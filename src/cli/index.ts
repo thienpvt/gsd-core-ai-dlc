@@ -13,12 +13,18 @@ export async function main(argv: string[]): Promise<void> {
     case "build-index":
       return (await import("./commands/build-index.js")).run(rest);
 
-    // Phase 2: case "select"      → ./commands/select.js
+    case "select":
+      return (await import("./commands/select.js")).run(rest);
+
     // Phase 3: case "rule-detail" → ./commands/rule-detail.js
 
     default:
       process.stderr.write(`Unknown command: ${subcommand ?? "(none)"}\n`);
-      process.stderr.write("Usage: governance build-index [--root <dir>] [--out <file>]\n");
+      process.stderr.write(
+        "Usage:\n" +
+          "  governance build-index [--root <dir>] [--out <file>]\n" +
+          "  governance select --phase <p> [--index <f>] [--input <f>] [--domains a,b] [--budget <n>] [--format json|text]\n",
+      );
       process.exit(2);
   }
 }
