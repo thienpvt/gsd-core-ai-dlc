@@ -1,0 +1,86 @@
+[
+  {
+    "name": "keywords-input-validation",
+    "signal": { "taskType": "refactor", "keywords": ["input", "validation"], "paths": [] },
+    "phase": "construction",
+    "scopeConfig": { "domains": [] },
+    "expectedRuleIds": ["input-validation", "secrets-management"]
+  },
+  {
+    "name": "tasktype-test",
+    "signal": { "taskType": "test", "keywords": [], "paths": [] },
+    "phase": "construction",
+    "scopeConfig": { "domains": [] },
+    "expectedRuleIds": ["test-coverage", "secrets-management"]
+  },
+  {
+    "name": "paths-iac",
+    "signal": { "taskType": "infra", "keywords": [], "paths": ["infra/main.tf"] },
+    "phase": "construction",
+    "scopeConfig": { "domains": [] },
+    "expectedRuleIds": ["iac-review", "secrets-management"]
+  },
+  {
+    "name": "multiaxis-api-or",
+    "signal": { "taskType": "feature", "keywords": ["api"], "paths": [] },
+    "phase": "construction",
+    "scopeConfig": { "domains": [] },
+    "expectedRuleIds": ["api-contract", "secrets-management"]
+  },
+  {
+    "name": "exclude-logging-carveout",
+    "signal": { "taskType": "refactor", "keywords": ["logging"], "paths": ["src/app.test.ts"] },
+    "phase": "construction",
+    "scopeConfig": { "domains": [] },
+    "expectedRuleIds": ["secrets-management"]
+  },
+  {
+    "name": "always-in-phase-critical-unrelated",
+    "signal": { "taskType": "docs", "keywords": ["readme"], "paths": ["docs/index.md"] },
+    "phase": "construction",
+    "scopeConfig": { "domains": [] },
+    "expectedRuleIds": ["secrets-management"]
+  },
+  {
+    "name": "out-of-phase-ops-skip",
+    "signal": { "taskType": "feature", "keywords": ["deploy"], "paths": [] },
+    "phase": "construction",
+    "scopeConfig": { "domains": [] },
+    "expectedRuleIds": ["api-contract", "secrets-management"]
+  },
+  {
+    "name": "domain-not-subscribed",
+    "signal": { "taskType": "security", "keywords": ["auth"], "paths": [] },
+    "phase": "construction",
+    "scopeConfig": { "domains": [] },
+    "expectedRuleIds": ["secrets-management"]
+  },
+  {
+    "name": "domain-subscribed-security",
+    "signal": { "taskType": "security", "keywords": ["auth", "threat"], "paths": [] },
+    "phase": "construction",
+    "scopeConfig": { "domains": ["security"] },
+    "expectedRuleIds": ["threat-model", "secrets-management"]
+  },
+  {
+    "name": "precedence-superseded-data-retention",
+    "signal": { "taskType": "data", "keywords": ["retention"], "paths": [] },
+    "phase": "construction",
+    "scopeConfig": { "domains": [] },
+    "expectedRuleIds": ["data-retention", "secrets-management"]
+  },
+  {
+    "name": "empty-expected-silent-operations",
+    "signal": { "taskType": "docs", "keywords": ["changelog"], "paths": [] },
+    "phase": "operations",
+    "scopeConfig": { "domains": [] },
+    "expectedRuleIds": []
+  },
+  {
+    "name": "payments-domain-critical",
+    "signal": { "taskType": "feature", "keywords": ["payment", "card"], "paths": [] },
+    "phase": "construction",
+    "scopeConfig": { "domains": ["payments"] },
+    "expectedRuleIds": ["pci-scope", "secrets-management", "api-contract"]
+  }
+]
