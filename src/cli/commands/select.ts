@@ -19,11 +19,12 @@
  * unknown flag or stray positional fails loud (T-2-CLI-INJECT).
  */
 import { parseArgs } from "node:util";
-import { readFileSync } from "node:fs";
+import { readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { buildIndex } from "../../index/build.js";
 import { select } from "../../select/select.js";
 import { validateSignal } from "../../select/validate-signal.js";
+import { validateIndex } from "../../index/validate-index.js";
 import type { RuleIndex, SelectionConfig, SelectionResult, Phase } from "../../types.js";
 
 /** Default per-request governance token budget when neither flag nor config sets it. */
@@ -164,14 +165,24 @@ export async function run(rest: string[]): Promise<void> {
 }
 
 /**
- * Read the rule index. A `.json` file is read + parsed directly (the prebuilt
- * artifact path). A directory is compiled on the fly via buildIndex (developer
- * convenience for pointing straight at a rule store). Anything else is a JSON parse.
+ * Read the rule index. A `.json` file is read + parsed, then validated LOUD via
+ * validateIndex (WR-04: mirrors how the signal is guarded by validateSignal — a
+ * hand-edited or third-party index with e.g. `phases: []` would otherwise silently
+ * skip a possibly-critical rule out-of-phase, an under-injection footgun; other
+ * corruptions would throw an opaque TypeError deep in select() instead of a clear
+ * "malformed index"). A DIRECTORY is compiled on the fly via buildIndex (WR-05:
+ * the documented developer-convenience fallback — buildIndex validates its own
+ * output, so no extra validateIndex call is needed on that branch).
  */
 function readIndex(indexPath: string): RuleIndex {
   const resolved = path.resolve(indexPath);
-  const raw = readFileSync(resolved, "utf8");
-  // A rule store is a directory; readFileSync above throws EISDIR for one, so if
-  // we reach here the path is a file — parse it as the prebuilt index JSON.
-  return JSON.parse(raw) as RuleIndex;
+  // A rule store is a directory; compile it on the fly (developer convenience).
+  // Without this branch, readFileSync(resolved) throws a cryptic EISDIR — the
+  // docstring promised a buildIndex fallback that WR-05 flags as never implemented.
+  if (statSync(resolved).isDirectory()) {
+    return buildIndex(resolved);
+  }
+  const parsed = JSON.parse(readFileSync(resolved, "utf8")) as RuleIndex;
+  validateIndex(parsed); // fail loud on a malformed/corrupted index (WR-04)
+  return parsed;
 }
