@@ -119,4 +119,19 @@ test("superseded: the enterprise data-retention loser is emitted from the winner
     result.selected.some((s) => s.id === "data-retention"),
     "the project data-retention winner should be selected on the 'retention' keyword",
   );
+  // WR-06: the superseded skip must carry the LOSER's own scope + sourceFile so an
+  // audit can tell WHICH physical file was dropped — the winner shares the same id
+  // and is ALSO in `selected`, and the skip's `severity` is the winner's. The
+  // loser's provenance is the only thing that disambiguates the collision.
+  const supersededSkip = superseded.find((s) => s.id === "data-retention");
+  assert.ok(supersededSkip, "the superseded data-retention skip must exist");
+  assert.equal(
+    supersededSkip.scope,
+    "enterprise",
+    "the superseded skip must carry the LOSER's scope (enterprise), not the selected project winner's (WR-06)",
+  );
+  assert.ok(
+    supersededSkip.sourceFile?.includes("enterprise"),
+    "the superseded skip must carry the LOSER's sourceFile so the audit names the dropped physical file (WR-06)",
+  );
 });

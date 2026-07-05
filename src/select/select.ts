@@ -285,11 +285,17 @@ export function select(
     if (!record.superseded) continue;
     for (const loser of record.superseded) {
       skipped.push({
-        // The SupersededRecord carries no severity; inherit the winner's so the
-        // skip record stays shape-complete for the audit.
+        // A loser shares its winner's id (same-id cross-tier collision is the
+        // whole mechanism), so if the winner is also selected the same id lands
+        // in BOTH arrays. The SupersededRecord carries no severity; inherit the
+        // winner's so the skip stays shape-complete (WR-06: severity is therefore
+        // the WINNER's, not the loser's — the loser's own scope + sourceFile below
+        // name which physical rule was dropped and disambiguate the collision).
         id: loser.id,
         severity: record.severity,
         reason: "superseded",
+        scope: loser.scope,
+        sourceFile: loser.sourceFile,
       });
     }
   }

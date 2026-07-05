@@ -183,6 +183,18 @@ export interface SkippedRule {
   severity: Severity;
   reason: SkipReason;
   detail?: string;
+  /**
+   * For a `superseded` skip (D-11), the LOSER's own scope — carried so the audit
+   * can disambiguate a same-id cross-tier collision (the loser shares the winner's
+   * id, and the winner may also appear in `selected`). Absent for other skips.
+   */
+  scope?: Scope;
+  /**
+   * For a `superseded` skip (D-11), the LOSER's own repo-relative sourceFile — the
+   * `severity` on this record is the WINNER's (a SupersededRecord carries none), so
+   * this names exactly WHICH physical rule file was dropped. Absent for other skips.
+   */
+  sourceFile?: string;
 }
 
 /**
