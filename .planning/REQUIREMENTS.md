@@ -93,26 +93,26 @@ Which phases cover which requirements. Populated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PACK-01 | TBD | Pending |
-| PACK-02 | TBD | Pending |
-| PACK-03 | TBD | Pending |
-| PACK-04 | TBD | Pending |
-| SEL-01 | TBD | Pending |
-| SEL-02 | TBD | Pending |
-| SEL-03 | TBD | Pending |
-| SEL-04 | TBD | Pending |
-| SEL-05 | TBD | Pending |
-| GATE-01 | TBD | Pending |
-| GATE-02 | TBD | Pending |
-| AUDIT-01 | TBD | Pending |
-| AUDIT-02 | TBD | Pending |
-| ENF-01 | TBD | Pending |
+| PACK-01 | Phase 1 | Pending |
+| PACK-02 | Phase 1 | Pending |
+| PACK-03 | Phase 1 | Pending |
+| PACK-04 | Phase 1 | Pending |
+| SEL-01 | Phase 2 | Pending |
+| SEL-02 | Phase 3 | Pending |
+| SEL-03 | Phase 3 | Pending |
+| SEL-04 | Phase 2 | Pending |
+| SEL-05 | Phase 2 | Pending |
+| GATE-01 | Phase 4 | Pending |
+| GATE-02 | Phase 4 | Pending |
+| AUDIT-01 | Phase 5 | Pending |
+| AUDIT-02 | Phase 5 | Pending |
+| ENF-01 | Phase 4 | Pending |
 
 **Coverage:**
 - v1 requirements: 14 total
-- Mapped to phases: 0 (roadmap pending)
-- Unmapped: 14 ⚠️ (resolved at roadmap creation)
+- Mapped to phases: 14 ✓
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-07-05*
-*Last updated: 2026-07-05 after initial definition*
+*Last updated: 2026-07-05 after roadmap creation (traceability mapped)*
