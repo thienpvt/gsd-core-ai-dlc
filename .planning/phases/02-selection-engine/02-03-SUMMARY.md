@@ -217,6 +217,10 @@ None - no external service configuration required. `estimateTokens` and the eval
 - **Phase 4 (capability wiring)** invokes `governance select` at the discuss/execute gates; the budget resolution reads `config.json` `governance.token_budget` defensively (optional key) so a project can tune the budget without a code change.
 - No blockers. The `governance.token_budget` config key is not yet present in `.planning/config.json` (read defensively, falls back to 2000); a project sets it when it wants a non-default budget.
 
+## Self-Check: PASSED
+
+All 9 created/modified files verified present on disk (tokens.ts, tokens.test.ts, eval-harness.ts, recall.test.ts, select.property.test.ts, cli/commands/select.ts, cli/select.smoke.test.ts, select.ts modified, cli/index.ts modified) plus 02-03-SUMMARY.md; all three task commits (`befdae5` RED, `0dfe78c` GREEN, `36a9554` CLI) verified in git history. Full suite green (79/79); production build passes.
+
 ---
 *Phase: 02-selection-engine*
 *Completed: 2026-07-05*
