@@ -142,12 +142,34 @@ export function aggregate(index: RuleIndex, results: CaseResult[]): Aggregate {
     sumFp += fp;
     sumFn += fn;
 
+    // WR-03: severity-partitioned recall is keyed by case name; a duplicate name
+    // would overwrite selectedByCase and silently check one case's expected keys
+    // against a DIFFERENT case's selection set — flipping hit/miss results and
+    // corrupting the critical gate. Fail loud instead (eval-fixtures.test.ts also
+    // asserts uniqueness, but the harness must self-defend).
+    if (selectedByCase.has(r.name)) {
+      throw new Error(
+        `duplicate eval case name '${r.name}' — case names must be unique for severity recall`,
+      );
+    }
     selectedByCase.set(r.name, new Set(r.selectedIds));
     for (const id of r.expectedIds) {
       const key = `${r.name}::${id}`;
       caseOf.set(key, r.name);
+      // WR-02: an expected id absent from the index has unknown severity. Silently
+      // dropping it (the old `if (sev)`) let a mislabeled critical expected id
+      // leave bySeverity.critical empty -> criticalRecall === 1.0 vacuously -> the
+      // build gate passing even though a critical rule never fired. Throw so the
+      // harness self-defends rather than delegating integrity entirely to a
+      // separate fixtures test (T-2-EVALINTEGRITY).
       const sev = severityById.get(id);
-      if (sev) bySeverity[sev].push(key);
+      if (!sev) {
+        throw new Error(
+          `eval case '${r.name}' expects id '${id}' not present in the index — ` +
+            `a mislabeled expected id must not silently pass the recall gate`,
+        );
+      }
+      bySeverity[sev].push(key);
     }
   }
 

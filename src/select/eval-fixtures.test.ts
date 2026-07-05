@@ -127,6 +127,23 @@ test("every expectedRuleId across all cases resolves to a real index winner id (
   }
 });
 
+test("every eval case name is unique (WR-03): duplicate names corrupt severity-partitioned recall", () => {
+  // WR-03: the recall harness keys severity-partitioned recall by case name. A
+  // duplicate name would silently overwrite one case's selection set with
+  // another's, flipping hit/miss results and potentially passing/failing the
+  // critical gate falsely. The harness now throws on a duplicate, but assert
+  // uniqueness here too so a bad fixture is caught at ground-truth integrity time.
+  const cases = loadCases();
+  const names = cases.map((c) => c.name);
+  assert.equal(
+    new Set(names).size,
+    cases.length,
+    `eval case names must be unique for severity recall — duplicates: ${names
+      .filter((n, i) => names.indexOf(n) !== i)
+      .join(", ")}`,
+  );
+});
+
 test("an empty-expected silent case is present (proves the engine must be allowed to stay silent — precision)", () => {
   const cases = loadCases();
   const silent = cases.filter((c) => c.expectedRuleIds.length === 0);
