@@ -6,7 +6,7 @@ This roadmap delivers Milestone 1 (Core / v1): proving the anti-bloat premise en
 
 ## Phases
 
-- [ ] **Phase 1: Rule-Pack Format & Index** - Author rules as Markdown+frontmatter across three scopes; compile a compact index
+- [x] **Phase 1: Rule-Pack Format & Index** - Author rules as Markdown+frontmatter across three scopes; compile a compact index (completed 2026-07-05)
 - [ ] **Phase 2: Selection Engine** - Deterministic trigger+scope+phase matching with a labeled recall/precision eval set
 - [ ] **Phase 3: Summary Injection & Lazy Detail Loading** - Inject summaries only; load full rule bodies on demand by id
 - [ ] **Phase 4: GSD Capability Integration & Persistence** - Register discuss/execute gate hooks as a capability; persist governance state to disk
@@ -27,14 +27,14 @@ This roadmap delivers Milestone 1 (Core / v1): proving the anti-bloat premise en
   3. A rule classified `binding` that names no enforcement contract is rejected at index-build time (the build fails loudly rather than passing silently).
   4. Running the index-builder CLI subcommand emits `rule-index.json` containing summaries and `detailPath` pointers with no full rule bodies present, verifiable by inspecting the artifact.
 
-**Plans**: 3/4 plans executed
+**Plans**: 4/4 plans complete
 
 Plans:
 
 - [x] 01-01-PLAN.md
 - [x] 01-02-PLAN.md
 - [x] 01-03-PLAN.md
-- [ ] 01-04-PLAN.md
+- [x] 01-04-PLAN.md
 
 **Wave 1**
 
@@ -43,7 +43,7 @@ Plans:
 **Wave 2** *(blocked on Wave 1 completion)*
 
 - [x] 01-02: Harden frontmatter schema (full trigger/severity model) + advisory/binding classification (PACK-01, PACK-03)
-- [ ] 01-03: Rule-pack store layout (enterprise/domain/project) + scope precedence resolution (PACK-02)
+- [x] 01-03: Rule-pack store layout (enterprise/domain/project) + scope precedence resolution (PACK-02)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -137,7 +137,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Rule-Pack Format & Index | 3/4 | In Progress|  |
+| 1. Rule-Pack Format & Index | 4/4 | Complete   | 2026-07-05 |
 | 2. Selection Engine | 0/3 | Not started | - |
 | 3. Summary Injection & Lazy Detail Loading | 0/2 | Not started | - |
 | 4. GSD Capability Integration & Persistence | 0/3 | Not started | - |
