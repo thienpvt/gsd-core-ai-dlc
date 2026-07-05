@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://gsd.dev/schemas/aidlc-rule-frontmatter.schema.json",
-  "title": "AI-DLC Rule-Pack Frontmatter (minimal — 01-01 walking skeleton)",
-  "description": "Minimal frontmatter contract for the walking skeleton. The full multi-axis trigger sub-schema and the binding/enforcement if-then are hardened in plan 01-02.",
+  "title": "AI-DLC Rule-Pack Frontmatter",
+  "description": "Full PACK-01 authoring contract + PACK-03 advisory/binding classification. Validates D-01..D-04 (multi-axis triggers), D-13 (severity), D-14 (independent axes), D-15 (binding needs a named contract). Scope-vs-directory (D-09) and duplicate-id (D-12) are programmatic checks owned by plan 01-03, not the schema.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -17,44 +17,103 @@
   "properties": {
     "id": {
       "type": "string",
-      "minLength": 1,
-      "description": "Author-assigned slug, globally unique across the store (D-12)."
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "description": "Author-assigned slug (D-12), globally unique across the store. Same id across scopes is the intentional override signal."
     },
     "scope": {
       "type": "string",
       "enum": ["enterprise", "domain", "project"],
-      "description": "Scope tier. Must also match the declaring directory (D-09) via a post-parse check added in 01-03."
+      "description": "Scope tier. MUST also match the declaring directory (D-09) via a post-parse check added in 01-03."
     },
     "triggers": {
       "type": "object",
       "additionalProperties": false,
-      "description": "D-03: an empty object {} is VALID and means always-in-phase. No minProperties. The taskType/keywords/paths/exclude axes are added in 01-02."
+      "description": "D-03: an empty object {} is VALID and means always-in-phase. NO minProperties — every axis is optional. Axes OR-combine (D-02); exclude wins over any positive match.",
+      "properties": {
+        "taskType": { "$ref": "#/$defs/taskTypeArray" },
+        "keywords": { "$ref": "#/$defs/stringArray" },
+        "paths": { "$ref": "#/$defs/stringArray" },
+        "exclude": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "D-02 negative selectors. Exclusion wins over any positive axis match.",
+          "properties": {
+            "taskType": { "$ref": "#/$defs/taskTypeArray" },
+            "keywords": { "$ref": "#/$defs/stringArray" },
+            "paths": { "$ref": "#/$defs/stringArray" }
+          }
+        }
+      }
     },
     "phases": {
       "type": "array",
       "minItems": 1,
       "uniqueItems": true,
-      "items": { "type": "string" }
+      "items": {
+        "type": "string",
+        "enum": ["inception", "construction", "operations", "common"]
+      },
+      "description": "Applicable workflow phase(s). Claude's Discretion starter set aligned with AI-DLC Inception/Construction/Operations + a shared `common` bucket — single-sourced here, revisited in Phase 2 (RESEARCH A1)."
     },
     "severity": {
       "type": "string",
-      "enum": ["critical", "high", "medium", "low"]
+      "enum": ["critical", "high", "medium", "low"],
+      "description": "Rule importance (D-13). Independent of classification (D-14)."
     },
     "summary": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "description": "One-line injected summary. NO maxLength — the token-budget cap is a deferred Phase 2 idea (SEL-05), not a Phase 1 constraint."
     },
     "classification": {
       "type": "string",
-      "enum": ["advisory", "binding"]
+      "enum": ["advisory", "binding"],
+      "description": "Enforcement classification (D-14), independent of severity. A `binding` rule must name an enforcement contract (D-15, enforced by allOf below)."
     },
     "detailPath": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "description": "Optional (D-06) pointer to a separate detail file, resolved relative to the declaring rule file (D-08). Resolution/traversal guard is 01-03."
     },
     "enforcement": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "description": "Free-form named contract id (e.g. `semgrep:no-eval`, `ci:exit-code`, `human-approval`). Declared here so additionalProperties:false + the binding if/then coexist without unevaluatedProperties (Pitfall 3). v1 does NOT resolve it against any registry (D-15)."
     }
-  }
+  },
+  "$defs": {
+    "stringArray": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "taskTypeArray": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "feature",
+          "bugfix",
+          "refactor",
+          "docs",
+          "test",
+          "infra",
+          "security",
+          "data"
+        ]
+      },
+      "description": "D-04: taskType matches by enum equality. Claude's Discretion starter set — single-sourced so the positive and exclude axes share it and a Phase 2 change is a one-line edit (RESEARCH A2)."
+    }
+  },
+  "allOf": [
+    {
+      "$comment": "D-14/D-15: a binding rule must name an enforcement contract. Because enforcement is declared in top-level properties, additionalProperties:false is still satisfied with no unevaluatedProperties (Pitfall 3).",
+      "if": {
+        "properties": { "classification": { "const": "binding" } },
+        "required": ["classification"]
+      },
+      "then": { "required": ["enforcement"] }
+    }
+  ]
 }
