@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 2
+current_phase: 02
 current_phase_name: Selection Engine
 status: executing
 stopped_at: Phase 1 context gathered
-last_updated: "2026-07-05T15:34:29.893Z"
+last_updated: "2026-07-05T15:45:37.583Z"
 last_activity: 2026-07-05
-last_activity_desc: Phase 01 complete, transitioned to Phase 2
+last_activity_desc: Phase 02 execution started
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 7
+  completed_plans: 5
   percent: 20
 ---
 
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-05)
 
 **Core value:** The rule selection engine injects only the relevant AI-DLC rule summaries for the current task and phase — enough governance to be safe, little enough to avoid context bloat.
-**Current focus:** Phase 01 — Rule-Pack Format & Index
+**Current focus:** Phase 02 — Selection Engine
 
 ## Current Position
 
-Phase: 2 — Selection Engine
-Plan: Not started
+Phase: 02 (Selection Engine) — EXECUTING
+Plan: 2 of 3
 Status: Ready to execute
-Last activity: 2026-07-05 — Phase 01 complete, transitioned to Phase 2
+Last activity: 2026-07-05 — Phase 02 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -59,6 +59,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01-rule-pack-format-index P02 | 18 | 2 tasks | 4 files |
 | Phase 01-rule-pack-format-index P03 | 20 | 3 tasks | 8 files |
 | Phase 01-rule-pack-format-index PP04 | 6 | 3 tasks tasks | 8 files files |
+| Phase 02-selection-engine P01 | 4 | 2 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -72,6 +73,8 @@ Recent decisions affecting current work:
 - [Roadmap]: Overlay ships as a declarative `capability.json` against GSD's Capability Registry seam — not a fork; Phase 4 must not precede a working selector.
 - [Phase 01-04]: PACK-04 no-body guarantee is now schema-enforced (rule-index.schema.json additionalProperties:false) + property-proven (fast-check per-rule canaries), wired into buildIndex — no longer construction-only
 - [Phase 01-04]: Output schema validates triggers as object-only; frontmatter schema (01-02) stays the single source of truth for trigger internals to avoid a drift surface
+- [Phase 02]: [Phase 02-01]: Eval corpus is a dedicated isolated fixture store (test/fixtures/eval/), decoupled from live aidlc-rules/ so ground truth cannot drift (T-2-EVALDRIFT)
+- [Phase 02]: [Phase 02-01]: Ground-truth integrity test validates labels only (imports buildIndex, not select()) — proves every expectedRuleId is a real winner before the engine exists, so the Wave-3 recall gate cannot be silently defeated by a typo (T-2-EVALINTEGRITY)
 
 ### Pending Todos
 
@@ -96,6 +99,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-05T11:52:28.188Z
+Last session: 2026-07-05T15:44:09.723Z
 Stopped at: Phase 1 context gathered
 Resume file: .planning/phases/01-rule-pack-format-index/01-CONTEXT.md
