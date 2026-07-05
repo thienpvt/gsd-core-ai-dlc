@@ -11,13 +11,19 @@ import matter from "gray-matter";
 import type { Frontmatter, ParsedRule } from "../types.js";
 import { validateFrontmatter, formatErrors } from "../schema/validate.js";
 
-/** List directory entries as Dirents, treating a missing/unreadable dir as empty. */
+/** List directory entries as Dirents, treating a genuinely-absent dir as empty. */
 function readDirSafe(dir: string) {
   try {
     return readdirSync(dir, { withFileTypes: true });
-  } catch {
-    // A missing root yields no rules rather than crashing the build.
-    return [];
+  } catch (err) {
+    // Only a genuinely-absent path yields an empty listing (a missing root must
+    // not crash the build). A directory that exists but cannot be read
+    // (permissions, I/O) must fail loud — silently dropping rules can flip a
+    // precedence winner, i.e. a governance bypass (CR-01).
+    if ((err as NodeJS.ErrnoException).code === "ENOENT") return [];
+    throw new Error(
+      `${dir}: cannot read rule directory: ${err instanceof Error ? err.message : String(err)}`,
+    );
   }
 }
 
