@@ -81,7 +81,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 02-03: Recall/precision measurement (100% `critical` recall gate + `high` ≥0.9), fast-check invariants, token-budget estimator + loud overflow, `governance select` CLI (SEL-04, SEL-05)
+- [x] 02-03: Recall/precision measurement (100% `critical` recall gate + `high` ≥0.9), fast-check invariants, token-budget estimator + loud overflow, `governance select` CLI (SEL-04, SEL-05)
 
 ### Phase 3: Summary Injection & Lazy Detail Loading
 
@@ -150,7 +150,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Rule-Pack Format & Index | 4/4 | Complete    | 2026-07-05 |
-| 2. Selection Engine | 3/3 | Complete   | 2026-07-05 |
+| 2. Selection Engine | 3/3 | Complete    | 2026-07-05 |
 | 3. Summary Injection & Lazy Detail Loading | 0/2 | Not started | - |
 | 4. GSD Capability Integration & Persistence | 0/3 | Not started | - |
 | 5. Audit-Artifact Writer | 0/2 | Not started | - |
