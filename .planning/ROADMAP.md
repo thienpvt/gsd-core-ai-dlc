@@ -63,17 +63,17 @@ Plans:
   4. When selected summaries would exceed the per-request governance token budget, the engine surfaces a loud signal, verifiable by a test that trips the budget.
   5. fast-check property tests confirm core invariants (selected rules are always a subset of triggered rules; ordering is stable).
 
-**Plans**: 1/3 plans executed
+**Plans**: 2/3 plans executed
 
 Plans:
 
 - [x] 02-01-PLAN.md
-- [ ] 02-02-PLAN.md
+- [x] 02-02-PLAN.md
 - [ ] 02-03-PLAN.md
 
 **Wave 1**
 
-- [ ] 02-01: Construct labeled eval set — controlled `eval-rules/` corpus + labeled `(signal, phase, scopeConfig) → expectedRuleIds` cases + ground-truth integrity test (SEL-01)
+- [x] 02-01: Construct labeled eval set — controlled `eval-rules/` corpus + labeled `(signal, phase, scopeConfig) → expectedRuleIds` cases + ground-truth integrity test (SEL-01)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -150,7 +150,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Rule-Pack Format & Index | 4/4 | Complete    | 2026-07-05 |
-| 2. Selection Engine | 1/3 | In Progress|  |
+| 2. Selection Engine | 2/3 | In Progress|  |
 | 3. Summary Injection & Lazy Detail Loading | 0/2 | Not started | - |
 | 4. GSD Capability Integration & Persistence | 0/3 | Not started | - |
 | 5. Audit-Artifact Writer | 0/2 | Not started | - |
