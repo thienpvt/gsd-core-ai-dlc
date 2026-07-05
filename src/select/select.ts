@@ -85,6 +85,15 @@ function matchKeywords(
  * paths axis (D-04): picomatch globs. A trigger glob fires when it matches any
  * signal path. Returns the matching SIGNAL path (the concrete value recorded).
  * picomatch is pure/deterministic for a given pattern+string (02-RESEARCH §1).
+ *
+ * `dot: true` is REQUIRED: with picomatch's default (`dot: false`), a `*` or `**`
+ * wildcard does not match a path segment that begins with `.`. So a rule authored
+ * to catch YAML via a globstar-then-`.yml` pattern would silently NOT fire on
+ * `.github/workflows/deploy.yml`, and a `src` globstar would miss `src/.env`. For
+ * a governance overlay whose whole point is catching dot-prefixed CI/config/secret
+ * paths, that narrows matching in the dangerous direction (under-injection, the #1
+ * project risk). Enabling dotfile matching errs toward over-injection — the
+ * acceptable direction.
  */
 function matchPaths(
   triggerPaths: readonly string[] | undefined,
@@ -92,7 +101,7 @@ function matchPaths(
 ): string | undefined {
   if (!triggerPaths || triggerPaths.length === 0) return undefined;
   for (const glob of triggerPaths) {
-    const isMatch = picomatch(glob);
+    const isMatch = picomatch(glob, { dot: true }); // match .github/, .env, etc.
     for (const p of signal.paths) {
       if (isMatch(p)) return p;
     }

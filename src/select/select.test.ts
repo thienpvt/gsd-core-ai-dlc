@@ -15,6 +15,8 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { buildIndex } from "../index/build.js";
 import { select } from "./select.js";
@@ -84,6 +86,56 @@ test("paths axis (D-04): a .tf path signal selects iac-review via picomatch with
   assert.ok(hit, "iac-review should be selected on the paths axis");
   assert.equal(hit.matchedAxis, "paths");
   assert.equal(hit.matchedValue, "infra/main.tf");
+});
+
+test("paths axis dotfiles (CR-01): a rule with paths ['**/*.yml'] fires on a dot-prefixed .github path", () => {
+  // Regression for CR-01: picomatch's DEFAULT dot:false makes `*`/`**` skip a
+  // segment starting with `.`, so `**/*.yml` would silently NOT match
+  // `.github/workflows/deploy.yml` — an under-injection of the exact CI/config
+  // paths a governance overlay exists to catch. select() must compile with
+  // dot:true so the rule fires (over-injection is the acceptable direction).
+  const tmpDir = mkdtempSync(path.join(os.tmpdir(), "gsd-select-cr01-"));
+  try {
+    const enterpriseDir = path.join(tmpDir, "enterprise");
+    mkdirSync(enterpriseDir, { recursive: true });
+    writeFileSync(
+      path.join(enterpriseDir, "ci-config.md"),
+      [
+        "---",
+        "id: ci-config",
+        "scope: enterprise",
+        "triggers:",
+        "  paths:",
+        '    - "**/*.yml"',
+        "phases:",
+        "  - construction",
+        "severity: critical",
+        "summary: CI/CD workflow changes require pipeline governance review.",
+        "classification: advisory",
+        "---",
+        "",
+        "## ci-config",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+    const index = buildIndex(tmpDir);
+    const signal: TaskSignal = {
+      taskType: "infra",
+      keywords: [],
+      paths: [".github/workflows/deploy.yml"],
+    };
+    const result = select(index, signal, { phase: "construction", domains: [] });
+    const hit = result.selected.find((s) => s.id === "ci-config");
+    assert.ok(
+      hit,
+      "ci-config (paths ['**/*.yml']) must fire on '.github/workflows/deploy.yml' — dot-prefixed paths must not be silently dropped (CR-01)",
+    );
+    assert.equal(hit.matchedAxis, "paths");
+    assert.equal(hit.matchedValue, ".github/workflows/deploy.yml");
+  } finally {
+    rmSync(tmpDir, { recursive: true, force: true });
+  }
 });
 
 test("OR-combine (D-02): a signal matching only ONE axis of api-contract still selects it", () => {
