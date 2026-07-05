@@ -47,7 +47,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 01-04: Index no-body hardening — output schema + fast-check property + build-time binding rejection + `detailPath` pointer pass-through (PACK-04, PACK-03)
+- [x] 01-04: Index no-body hardening — output schema + fast-check property + build-time binding rejection + `detailPath` pointer pass-through (PACK-04, PACK-03)
 
 ### Phase 2: Selection Engine
 
@@ -137,7 +137,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Rule-Pack Format & Index | 4/4 | Complete   | 2026-07-05 |
+| 1. Rule-Pack Format & Index | 4/4 | Complete    | 2026-07-05 |
 | 2. Selection Engine | 0/3 | Not started | - |
 | 3. Summary Injection & Lazy Detail Loading | 0/2 | Not started | - |
 | 4. GSD Capability Integration & Persistence | 0/3 | Not started | - |
