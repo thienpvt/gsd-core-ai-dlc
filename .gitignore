@@ -1,0 +1,13 @@
+# Dependencies
+node_modules/
+
+# Build output (tsc)
+dist/
+dist-test/
+
+# Generated build artifact (the committed example rule under aidlc-rules/ stays tracked)
+rule-index.json
+
+# Logs / coverage
+coverage/
+*.log

@@ -1,0 +1,39 @@
+{
+  "name": "@opengsd/gsd-aidlc-overlay",
+  "version": "0.1.0",
+  "description": "AI-DLC governance overlay for GSD Core — indexed, on-demand rule packs.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.0.0",
+    "npm": ">=10.0.0"
+  },
+  "bin": {
+    "governance": "bin/governance.cjs"
+  },
+  "main": "dist/index.js",
+  "files": [
+    "dist",
+    "bin",
+    "aidlc-rules"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "build:test": "tsc -p tsconfig.json",
+    "pretest": "npm run build && npm run build:test",
+    "test": "node --test \"dist-test/**/*.test.js\"",
+    "test:coverage": "c8 node --test \"dist-test/**/*.test.js\""
+  },
+  "dependencies": {
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
+    "gray-matter": "4.0.3",
+    "picomatch": "4.0.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/picomatch": "^4.0.0",
+    "c8": "^11.0.0",
+    "fast-check": "^4.8.0",
+    "typescript": "^6.0.3"
+  }
+}
