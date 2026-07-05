@@ -14,10 +14,10 @@ Requirements for the Core milestone. Each maps to a roadmap phase.
 
 ### Rule Packs
 
-- [ ] **PACK-01**: Rule author can define a rule as Markdown with YAML frontmatter carrying `id`, `scope`, `triggers`, `phases`, `severity`, `summary`, and `detailPath`
+- [x] **PACK-01**: Rule author can define a rule as Markdown with YAML frontmatter carrying `id`, `scope`, `triggers`, `phases`, `severity`, `summary`, and `detailPath`
 - [ ] **PACK-02**: Rule author can organize rules into enterprise / domain / project scopes, and the system resolves conflicts by defined precedence
 - [ ] **PACK-03**: Rule author can classify each rule as `advisory` or `binding`, and the system rejects a `binding` rule that names no enforcement contract
-- [ ] **PACK-04**: System builds a compact `rule-index.json` (summaries and pointers only, never full bodies) from the rule-pack store
+- [x] **PACK-04**: System builds a compact `rule-index.json` (summaries and pointers only, never full bodies) from the rule-pack store
 
 ### Selection & Injection
 
@@ -93,10 +93,10 @@ Which phases cover which requirements. Populated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PACK-01 | Phase 1 | Pending |
+| PACK-01 | Phase 1 | Complete |
 | PACK-02 | Phase 1 | Pending |
 | PACK-03 | Phase 1 | Pending |
-| PACK-04 | Phase 1 | Pending |
+| PACK-04 | Phase 1 | Complete |
 | SEL-01 | Phase 2 | Pending |
 | SEL-02 | Phase 3 | Pending |
 | SEL-03 | Phase 3 | Pending |
@@ -109,6 +109,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | ENF-01 | Phase 4 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 14 total
 - Mapped to phases: 14 ✓
 - Unmapped: 0

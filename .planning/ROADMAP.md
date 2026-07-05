@@ -27,12 +27,18 @@ This roadmap delivers Milestone 1 (Core / v1): proving the anti-bloat premise en
   3. A rule classified `binding` that names no enforcement contract is rejected at index-build time (the build fails loudly rather than passing silently).
   4. Running the index-builder CLI subcommand emits `rule-index.json` containing summaries and `detailPath` pointers with no full rule bodies present, verifiable by inspecting the artifact.
 
-**Plans**: TBD
+**Plans**: 1/4 plans executed
 
 Plans:
+
+- [x] 01-01-PLAN.md
+- [ ] 01-02-PLAN.md
+- [ ] 01-03-PLAN.md
+- [ ] 01-04-PLAN.md
+
 **Wave 1**
 
-- [ ] 01-01: Walking skeleton — project scaffold + `governance` CLI + minimal schema + one real rule → body-free `rule-index.json` + smoke test (PACK-01, PACK-04)
+- [x] 01-01: Walking skeleton — project scaffold + `governance` CLI + minimal schema + one real rule → body-free `rule-index.json` + smoke test (PACK-01, PACK-04)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -131,7 +137,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Rule-Pack Format & Index | 0/3 | Not started | - |
+| 1. Rule-Pack Format & Index | 1/4 | In Progress|  |
 | 2. Selection Engine | 0/3 | Not started | - |
 | 3. Summary Injection & Lazy Detail Loading | 0/2 | Not started | - |
 | 4. GSD Capability Integration & Persistence | 0/3 | Not started | - |
