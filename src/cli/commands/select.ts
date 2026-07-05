@@ -45,7 +45,15 @@ function readConfigBudget(): number | undefined {
     const raw = readFileSync(configPath, "utf8");
     const parsed = JSON.parse(raw) as { governance?: { token_budget?: unknown } };
     const value = parsed.governance?.token_budget;
-    return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+    // WR-07: require a non-negative integer, mirroring the --budget flag guard. A
+    // negative / fractional / non-finite token_budget is treated as ABSENT (return
+    // undefined -> fall back to the default) rather than silently producing a
+    // spurious budgetExceeded on every request. readConfigBudget stays defensive
+    // (never throws for optional config); the loud rejection is reserved for the
+    // explicit --budget flag, which is direct user input.
+    return typeof value === "number" && Number.isInteger(value) && value >= 0
+      ? value
+      : undefined;
   } catch {
     return undefined;
   }
@@ -124,9 +132,16 @@ export async function run(rest: string[]): Promise<void> {
   // Budget resolution order: --budget flag > config.json governance.token_budget > 2000.
   let budget: number;
   if (values.budget !== undefined) {
+    // WR-07: require a non-negative INTEGER. Number() alone accepts "" -> 0,
+    // "-5" -> -5, "0x10" -> 16, "1e3" -> 1000; a zero/negative budget makes
+    // used > limit true for any non-empty selection, silently flipping every
+    // request to a spurious budgetExceeded + confusing exit 1. Reject nonsense
+    // at parse time (loud) instead of turning it into a bogus overflow.
     budget = Number(values.budget);
-    if (!Number.isFinite(budget)) {
-      throw new Error(`--budget must be a number (got '${values.budget as string}')`);
+    if (!Number.isInteger(budget) || budget < 0) {
+      throw new Error(
+        `--budget must be a non-negative integer (got '${values.budget as string}')`,
+      );
     }
   } else {
     budget = readConfigBudget() ?? DEFAULT_TOKEN_BUDGET;
