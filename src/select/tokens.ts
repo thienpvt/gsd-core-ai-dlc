@@ -30,10 +30,9 @@ export const PER_RULE_OVERHEAD = 6;
 /**
  * Estimate the token count of `text` as `ceil(length / 4)` — the locked,
  * deterministic, zero-dependency char/4 heuristic (02-CONTEXT / 02-RESEARCH §3).
- *
- * RED STUB (Task 1): throws so tokens.test.ts fails until Task 2 implements the
- * ceil logic. Do NOT implement here.
+ * A documented estimate, not an exact tokenizer count: the empty string is 0,
+ * every 1-4 chars is 1 token, 5-8 is 2, and so on.
  */
-export function estimateTokens(_text: string): number {
-  throw new Error("estimateTokens not implemented");
+export function estimateTokens(text: string): number {
+  return Math.ceil(text.length / 4);
 }

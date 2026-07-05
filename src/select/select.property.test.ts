@@ -130,16 +130,19 @@ function ruleFile(id: string, spec: RuleSpec): string {
 
 /** The guaranteed exclude-wins rule: positive keyword AND exclude keyword both === kw, in-phase. */
 function excludeRuleFile(id: string, kw: string): string {
+  // Quote the keyword: an all-digit token (e.g. "123456") or a YAML boolean word
+  // ("true"/"false") would otherwise parse as a number/bool and fail the
+  // string-array schema. Quoting forces a string regardless of the token value.
   return [
     "---",
     `id: ${id}`,
     "scope: enterprise",
     "triggers:",
     "  keywords:",
-    `    - ${kw}`,
+    `    - "${kw}"`,
     "  exclude:",
     "    keywords:",
-    `      - ${kw}`,
+    `      - "${kw}"`,
     "phases:",
     "  - construction",
     "severity: high",

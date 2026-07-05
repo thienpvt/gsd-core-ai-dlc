@@ -20,6 +20,7 @@
  * matching — they lost precedence at build time (Pitfall 9).
  */
 import picomatch from "picomatch";
+import { estimateTokens, PER_RULE_OVERHEAD } from "./tokens.js";
 import type {
   RuleIndex,
   RuleIndexRecord,
@@ -32,6 +33,14 @@ import type {
   TriggerExclude,
   MatchedAxis,
 } from "../types.js";
+
+/**
+ * Default per-request governance token budget (02-CONTEXT / 02-RESEARCH §3). The
+ * CLI resolves the real limit (flag > config.json governance.token_budget > this
+ * default); this fallback keeps the pure core self-contained so callers that pass
+ * no `config.budget` (e.g. the property tests) still get a populated budget.
+ */
+const DEFAULT_TOKEN_BUDGET = 2000;
 
 /**
  * The result of evaluating a rule's positive trigger axes against a signal.
@@ -265,5 +274,26 @@ export function select(
   selected.sort(byId);
   skipped.sort(byId);
 
-  return { selected, skipped };
+  // Token budget (SEL-05). Sum estimateTokens(summary) + PER_RULE_OVERHEAD over
+  // the SELECTED rules (summaries are exactly what Phase 3 injects). The caller
+  // (CLI/harness) resolves the real limit; when absent the pure core falls back
+  // to the locked default so it stays self-contained (the property tests pass no
+  // budget). NEVER drop/slice/truncate a selected rule to fit — dropping a rule
+  // could drop a critical one (Pitfall 6); we only flag the overflow. The CLI
+  // maps budgetExceeded -> a non-zero exit; the core stays pure + testable.
+  const limit = config.budget ?? DEFAULT_TOKEN_BUDGET;
+  let used = 0;
+  for (const rule of selected) {
+    used += estimateTokens(rule.summary) + PER_RULE_OVERHEAD;
+  }
+  const budgetExceeded = used > limit;
+  // Construct the budget object field-by-field (determinism — never an
+  // input-ordered spread). Offenders are the selected ids on overflow, [] within.
+  const budget = {
+    used,
+    limit,
+    offenders: budgetExceeded ? selected.map((r) => r.id) : [],
+  };
+
+  return { selected, skipped, budgetExceeded, budget };
 }
