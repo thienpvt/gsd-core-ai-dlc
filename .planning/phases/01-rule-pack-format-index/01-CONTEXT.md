@@ -27,9 +27,9 @@ Covers requirements PACK-01 (frontmatter format), PACK-02 (scopes + precedence),
 
 ### Summary vs detail (sets the Phase 3 lazy-load boundary)
 - **D-05:** Full detail lives in a **separate detail file** (mirrors AI-DLC's `aws-aidlc-rules/` vs `aws-aidlc-rule-details/` split). `summary` stays in frontmatter (already PACK-01); `detailPath` points to a separate `.md`. This keeps the index reading frontmatter only and never emitting bodies (PACK-04 holds).
-- **D-06:** `detailPath` is **optional** — a rule whose `summary` fully expresses it needs no detail file. `rule-detail <id>` (Phase 3) on a summary-only rule returns the summary itself or a clear "no detail" signal. Matches AI-DLC, where details are *conditionally* referenced.
-- **D-07:** When a rule **does** name a `detailPath`, a missing/unresolvable target is a **loud build failure** (reports rule id + bad path). Consistent with PACK-03's fail-loud-not-silent stance; catches typos/moved files at author time rather than at executor-request time.
-- **D-08:** `detailPath` resolves **relative to the declaring rule file** (e.g. rule at `enterprise/security/auth.md` with `detailPath: details/auth.md` → `enterprise/security/details/auth.md`). Survives relocating a whole pack subtree; matches `$ref`/import conventions.
+- **D-06 [deferred]:** `detailPath` is **optional** — a rule whose `summary` fully expresses it needs no detail file. `rule-detail <id>` (Phase 3) on a summary-only rule returns the summary itself or a clear "no detail" signal. Matches AI-DLC, where details are *conditionally* referenced.
+- **D-07 [deferred]:** When a rule **does** name a `detailPath`, a missing/unresolvable target is a **loud build failure** (reports rule id + bad path). Consistent with PACK-03's fail-loud-not-silent stance; catches typos/moved files at author time rather than at executor-request time.
+- **D-08 [deferred]:** `detailPath` resolves **relative to the declaring rule file** (e.g. rule at `enterprise/security/auth.md` with `detailPath: details/auth.md` → `enterprise/security/details/auth.md`). Survives relocating a whole pack subtree; matches `$ref`/import conventions.
 
 ### Store & scope (feeds PACK-02 + index builder layout)
 - **D-09:** **Directory location is the source of truth for scope.** A rule's scope comes from which top-level tier it sits in; the frontmatter `scope` field is validated against the directory and the build fails on mismatch. No drift, scope is greppable by path, precedence maps to directory. (Matches ESLint/Prettier positional-config convention.)
@@ -81,7 +81,7 @@ The following were not explicitly decided and are left to research/planning to r
 ### Established Patterns
 - **CommonJS authoring** to match the host runtime (`gsd-tools.cjs` must be able to `require()` extension code without ESM interop).
 - **Deterministic, explainable matching** — every selection/precedence decision must be reconstructable for audit; no non-determinism (no embeddings, no `Math.random`/time-based behavior in core logic).
-- **Fail-loud validation** — invalid frontmatter, binding-without-contract, missing `detailPath` target, duplicate-id-in-scope, and scope/directory mismatch all fail the index build with a clear error rather than passing silently (D-07, D-09, D-12, D-15).
+- **Fail-loud validation** — invalid frontmatter, binding-without-contract, duplicate-id-in-scope, and scope/directory mismatch all fail the index build with a clear error rather than passing silently (D-09, D-12, D-15). (Missing-`detailPath`-target validation is D-07, deferred to Phase 3 — no Phase 1 rule declares a `detailPath`.)
 
 ### Integration Points
 - The index builder is expected to be a **CLI subcommand** (roadmap 01-03 says "index-builder CLI subcommand"; Phase 2 later invokes `governance select`, Phase 3 `governance rule-detail <id>`). Phase 1 should establish the CLI entry-point shape these later subcommands extend.
