@@ -25,7 +25,7 @@ Requirements for the Core milestone. Each maps to a roadmap phase.
 - [ ] **SEL-02**: System injects only rule summaries (never full bodies) into the working context for a governed task
 - [ ] **SEL-03**: Executor can load a single full rule body on demand by `id` when a summary is insufficient for the decision at hand
 - [x] **SEL-04**: For every governed task, the system records why each candidate rule was selected or skipped (selection observability)
-- [ ] **SEL-05**: System enforces a per-request governance token budget and surfaces a loud signal when injected summaries would exceed it
+- [x] **SEL-05**: System enforces a per-request governance token budget and surfaces a loud signal when injected summaries would exceed it
 
 ### Governance Gates
 
@@ -101,7 +101,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | SEL-02 | Phase 3 | Pending |
 | SEL-03 | Phase 3 | Pending |
 | SEL-04 | Phase 2 | Complete |
-| SEL-05 | Phase 2 | Pending |
+| SEL-05 | Phase 2 | Complete |
 | GATE-01 | Phase 4 | Pending |
 | GATE-02 | Phase 4 | Pending |
 | AUDIT-01 | Phase 5 | Pending |

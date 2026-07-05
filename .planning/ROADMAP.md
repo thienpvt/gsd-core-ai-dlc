@@ -7,7 +7,7 @@ This roadmap delivers Milestone 1 (Core / v1): proving the anti-bloat premise en
 ## Phases
 
 - [x] **Phase 1: Rule-Pack Format & Index** - Author rules as Markdown+frontmatter across three scopes; compile a compact index (completed 2026-07-05)
-- [ ] **Phase 2: Selection Engine** - Deterministic trigger+scope+phase matching with a labeled recall/precision eval set
+- [x] **Phase 2: Selection Engine** - Deterministic trigger+scope+phase matching with a labeled recall/precision eval set (completed 2026-07-05)
 - [ ] **Phase 3: Summary Injection & Lazy Detail Loading** - Inject summaries only; load full rule bodies on demand by id
 - [ ] **Phase 4: GSD Capability Integration & Persistence** - Register discuss/execute gate hooks as a capability; persist governance state to disk
 - [ ] **Phase 5: Audit-Artifact Writer** - Produce a machine-derived per-task audit of rules applied and skipped
@@ -63,13 +63,13 @@ Plans:
   4. When selected summaries would exceed the per-request governance token budget, the engine surfaces a loud signal, verifiable by a test that trips the budget.
   5. fast-check property tests confirm core invariants (selected rules are always a subset of triggered rules; ordering is stable).
 
-**Plans**: 2/3 plans executed
+**Plans**: 3/3 plans complete
 
 Plans:
 
 - [x] 02-01-PLAN.md
 - [x] 02-02-PLAN.md
-- [ ] 02-03-PLAN.md
+- [x] 02-03-PLAN.md
 
 **Wave 1**
 
@@ -77,7 +77,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 02-02: Selection pure function `select()` — phase→scope→trigger gate pipeline reusing D-01..D-04, per-rule select/skip reasons, `TaskSignal` schema/validator (SEL-01, SEL-04)
+- [x] 02-02: Selection pure function `select()` — phase→scope→trigger gate pipeline reusing D-01..D-04, per-rule select/skip reasons, `TaskSignal` schema/validator (SEL-01, SEL-04)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -150,7 +150,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Rule-Pack Format & Index | 4/4 | Complete    | 2026-07-05 |
-| 2. Selection Engine | 2/3 | In Progress|  |
+| 2. Selection Engine | 3/3 | Complete   | 2026-07-05 |
 | 3. Summary Injection & Lazy Detail Loading | 0/2 | Not started | - |
 | 4. GSD Capability Integration & Persistence | 0/3 | Not started | - |
 | 5. Audit-Artifact Writer | 0/2 | Not started | - |
