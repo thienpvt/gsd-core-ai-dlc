@@ -43,15 +43,18 @@ function findRuleFiles(dir: string): string[] {
   return out;
 }
 
-/** Normalize an absolute path to a repo-root-relative POSIX path (Pitfall 5). */
-function toRepoRelativePosix(rootDir: string, absPath: string): string {
-  const repoRoot = process.cwd();
-  const rel = path.relative(repoRoot, absPath);
-  return rel.split(path.sep).join("/");
+/**
+ * Normalize an absolute path to a POSIX path relative to the process cwd
+ * (the repo root when `build-index` is run from there — Pitfall 5). Splits on
+ * both `/` and `\` so the result is POSIX on Windows too, matching deriveScope.
+ */
+function toRepoRelativePosix(absPath: string): string {
+  const rel = path.relative(process.cwd(), absPath);
+  return rel.split(/[\\/]/).join("/");
 }
 
 /** Parse + validate a single rule file. Throws with the file path on any failure. */
-export function loadRuleFile(absPath: string, rootDir: string): ParsedRule {
+export function loadRuleFile(absPath: string): ParsedRule {
   const raw = readFileSync(absPath, "utf8");
 
   let data: Record<string, unknown>;
@@ -70,7 +73,7 @@ export function loadRuleFile(absPath: string, rootDir: string): ParsedRule {
 
   return {
     frontmatter: data as unknown as Frontmatter,
-    sourceFile: toRepoRelativePosix(rootDir, absPath),
+    sourceFile: toRepoRelativePosix(absPath),
     absPath,
   };
 }
@@ -83,5 +86,5 @@ export function loadRules(rootDir: string): ParsedRule[] {
   const absRoot = path.resolve(rootDir);
   return findRuleFiles(absRoot)
     .sort() // deterministic order — no reliance on filesystem enumeration order
-    .map((abs) => loadRuleFile(abs, absRoot));
+    .map((abs) => loadRuleFile(abs));
 }
