@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gsd.dev/schemas/aidlc-rule-frontmatter.schema.json",
+  "title": "AI-DLC Rule-Pack Frontmatter (minimal — 01-01 walking skeleton)",
+  "description": "Minimal frontmatter contract for the walking skeleton. The full multi-axis trigger sub-schema and the binding/enforcement if-then are hardened in plan 01-02.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "scope",
+    "triggers",
+    "phases",
+    "severity",
+    "summary",
+    "classification"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Author-assigned slug, globally unique across the store (D-12)."
+    },
+    "scope": {
+      "type": "string",
+      "enum": ["enterprise", "domain", "project"],
+      "description": "Scope tier. Must also match the declaring directory (D-09) via a post-parse check added in 01-03."
+    },
+    "triggers": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "D-03: an empty object {} is VALID and means always-in-phase. No minProperties. The taskType/keywords/paths/exclude axes are added in 01-02."
+    },
+    "phases": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string" }
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["critical", "high", "medium", "low"]
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1
+    },
+    "classification": {
+      "type": "string",
+      "enum": ["advisory", "binding"]
+    },
+    "detailPath": {
+      "type": "string",
+      "minLength": 1
+    },
+    "enforcement": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}
