@@ -15,6 +15,7 @@ import {
   resolvePrecedence,
   type ResolvedRule,
 } from "../rules/scope.js";
+import { validateIndex } from "./validate-index.js";
 
 /** Current on-disk index schema version. */
 const SCHEMA_VERSION = 1 as const;
@@ -62,11 +63,17 @@ export function buildIndex(rootDir: string): RuleIndex {
     assertScopeMatchesDirectory(rule, absRoot);
   }
   const resolved = resolvePrecedence(rules);
-  return {
+  const index: RuleIndex = {
     schemaVersion: SCHEMA_VERSION,
     generatedAt: new Date().toISOString(),
     rules: resolved.map(toRecord),
   };
+  // No-body output guard (D-05 / PACK-04, RESEARCH body-leak guard #2): validate
+  // the assembled index against rule-index.schema.json before returning, so any
+  // stray record key (a leaked body/content field) aborts the build at the
+  // strongest choke point — protecting writeIndex and every programmatic caller.
+  validateIndex(index);
+  return index;
 }
 
 /** Serialize the index to `outPath` as pretty-printed JSON (2-space indent). */

@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gsd.dev/schemas/aidlc-rule-index.schema.json",
+  "title": "AI-DLC Rule Index (emitted rule-index.json)",
+  "description": "OUTPUT schema for the emitted rule-index.json (PACK-04 / D-05). The per-record (and per-superseded-item) additionalProperties:false is RESEARCH body-leak guard #2: there is no property a Markdown body/content key could occupy, so validateIndex rejects any index that carries a leaked body. Trigger internals are validated by the frontmatter schema (01-02) at load time; this output schema only asserts triggers is an object so it does not duplicate or drift from that contract.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "generatedAt", "rules"],
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1,
+      "description": "On-disk index schema version. Bumped only on a breaking index-shape change."
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 build timestamp (new Date().toISOString())."
+    },
+    "rules": {
+      "type": "array",
+      "description": "One record per resolved precedence winner. Summaries + pointers only — never a body.",
+      "items": { "$ref": "#/$defs/ruleRecord" }
+    }
+  },
+  "$defs": {
+    "ruleRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "A single index record. additionalProperties:false is the no-body guard (D-05 / PACK-04) — no place for a body/content key to live.",
+      "required": [
+        "id",
+        "scope",
+        "triggers",
+        "phases",
+        "severity",
+        "summary",
+        "classification",
+        "sourceFile"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Author-assigned slug (D-12)."
+        },
+        "scope": {
+          "type": "string",
+          "enum": ["enterprise", "domain", "project"],
+          "description": "Scope tier (D-09/D-10)."
+        },
+        "triggers": {
+          "type": "object",
+          "description": "Multi-axis trigger object. Field-internal validation is owned by the frontmatter schema (01-02); this output schema asserts only that it is an object so the two contracts cannot drift."
+        },
+        "phases": {
+          "type": "array",
+          "description": "Applicable workflow phase(s)."
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["critical", "high", "medium", "low"],
+          "description": "Rule importance (D-13)."
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "description": "One-line injected summary — the only prose the index carries."
+        },
+        "classification": {
+          "type": "string",
+          "enum": ["advisory", "binding"],
+          "description": "Enforcement classification (D-14)."
+        },
+        "sourceFile": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Repo-relative POSIX pointer to the rule file (Pitfall 5)."
+        },
+        "enforcement": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional named contract id (required upstream when classification is binding — D-15)."
+        },
+        "detailPath": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional pointer to a detail file, carried verbatim (D-06). Never resolved in Phase 1 (D-07/D-08 deferred to Phase 3)."
+        },
+        "superseded": {
+          "type": "array",
+          "description": "Cross-tier losers of a same-id collision (D-11), recorded not dropped.",
+          "items": { "$ref": "#/$defs/supersededRecord" }
+        }
+      }
+    },
+    "supersededRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "A superseded loser under the winner (D-11). Pointers only — additionalProperties:false keeps a body out here too.",
+      "required": ["id", "scope", "sourceFile", "reason"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "scope": {
+          "type": "string",
+          "enum": ["enterprise", "domain", "project"]
+        },
+        "sourceFile": { "type": "string", "minLength": 1 },
+        "reason": { "type": "string", "const": "superseded" }
+      }
+    }
+  }
+}
