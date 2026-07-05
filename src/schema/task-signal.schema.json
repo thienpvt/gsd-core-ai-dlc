@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gsd.dev/schemas/task-signal.schema.json",
+  "title": "Task Signal",
+  "description": "The caller-supplied matchable signal for one selection request (SEL-01). Mirrors the three positive trigger axes locked in Phase 1 (D-01): taskType matched by enum equality (D-04), keywords + paths free-form arrays the trigger gate matches against. additionalProperties:false + required rejects a malformed signal loudly rather than letting select() run over garbage and silently under-inject (02-RESEARCH Pitfall 8, threat T-2-BADSIGNAL). There is NO free-form text field — callers pre-tokenize prose into keywords.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["taskType", "keywords", "paths"],
+  "properties": {
+    "taskType": {
+      "type": "string",
+      "enum": [
+        "feature",
+        "bugfix",
+        "refactor",
+        "docs",
+        "test",
+        "infra",
+        "security",
+        "data"
+      ],
+      "description": "D-04: matched by enum equality. Single-sourced conceptually from the frontmatter schema's taskTypeArray enum — a Phase 2 taskType change stays a one-line edit here and there."
+    },
+    "keywords": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Pre-tokenized free-text terms. The trigger gate matches a rule's keyword axis as a case-insensitive substring of any signal keyword (D-04)."
+    },
+    "paths": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Touched file paths. The trigger gate matches a rule's paths axis via picomatch globs against each signal path (D-04)."
+    }
+  }
+}

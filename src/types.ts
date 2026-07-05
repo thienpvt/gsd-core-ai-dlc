@@ -109,3 +109,95 @@ export interface RuleIndex {
   generatedAt: string;
   rules: RuleIndexRecord[];
 }
+
+// ---------------------------------------------------------------------------
+// Phase 2 selection types (SEL-01 / SEL-04).
+//
+// Added ALONGSIDE the Phase 1 format contract above — nothing here redefines
+// {@link RuleIndex}, {@link Triggers}, {@link TaskType}, etc. The selector
+// consumes the Phase 1 index (winners + superseded[]) and classifies every
+// candidate against a caller-supplied {@link TaskSignal} + {@link SelectionConfig}.
+// ---------------------------------------------------------------------------
+
+/**
+ * A task's matchable signal — the three positive trigger axes locked in Phase 1
+ * (D-01), nothing more. There is deliberately NO free-form `text` field: callers
+ * pre-tokenize prose into {@link TaskSignal.keywords} (02-CONTEXT input contract).
+ */
+export interface TaskSignal {
+  taskType: TaskType;
+  keywords: string[];
+  paths: string[];
+}
+
+/**
+ * Selection configuration for one request: the phase to match, the active-domain
+ * subscription (enterprise + project are always candidates; only `domain/<name>`
+ * is subscription-gated), and an optional token budget consumed in 02-03.
+ */
+export interface SelectionConfig {
+  phase: Phase;
+  domains: string[];
+  budget?: number;
+}
+
+/**
+ * Why a candidate was NOT selected, drawn from a machine-checkable enum aligned
+ * with AUDIT-02. `out-of-phase` = phase gate; `out-of-scope` = non-active domain;
+ * `out-of-scope-by-trigger` = in phase+scope but no axis matched or an `exclude`
+ * fired; `superseded` = lost a Phase 1 precedence collision (D-11). Phase 5
+ * RECONCILES this enum (adds `explicitly-waived`) rather than inheriting verbatim.
+ */
+export type SkipReason =
+  | "out-of-phase"
+  | "out-of-scope"
+  | "out-of-scope-by-trigger"
+  | "superseded";
+
+/**
+ * The trigger axis that fired for a selected rule. `always-in-phase` is the D-03
+ * empty-triggers case — a rule with no positive axis matches every in-phase,
+ * in-scope signal (the never-miss escape hatch a `critical` rule uses).
+ */
+export type MatchedAxis = "taskType" | "keywords" | "paths" | "always-in-phase";
+
+/**
+ * A selected rule: carries the summary Phase 3 injects plus the axis + concrete
+ * value that fired, so an audit can name exactly WHY the rule was chosen.
+ */
+export interface SelectedRule {
+  id: string;
+  severity: Severity;
+  summary: string;
+  matchedAxis: MatchedAxis;
+  matchedValue: string;
+}
+
+/**
+ * A skipped candidate: the reason from {@link SkipReason} plus an optional detail
+ * that distinguishes `matched-then-excluded` from `never-matched` while keeping
+ * the enum value `out-of-scope-by-trigger`.
+ */
+export interface SkippedRule {
+  id: string;
+  severity: Severity;
+  reason: SkipReason;
+  detail?: string;
+}
+
+/**
+ * The full, observable selection output (SEL-01 / SEL-04): every index candidate
+ * appears in exactly one of `selected` / `skipped`. The `budgetExceeded` / `budget`
+ * fields are declared here so 02-03 populates them without a type change; the
+ * 02-02 core leaves them unset.
+ */
+export interface SelectionResult {
+  selected: SelectedRule[];
+  skipped: SkippedRule[];
+  budgetExceeded?: boolean;
+  budget?: {
+    used: number;
+    limit: number;
+    offenders: string[];
+  };
+}
