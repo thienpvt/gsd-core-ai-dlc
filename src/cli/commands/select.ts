@@ -152,7 +152,14 @@ export async function run(rest: string[]): Promise<void> {
       `budget exceeded: used ${result.budget.used} tokens > limit ${result.budget.limit} ` +
         `(offenders: ${result.budget.offenders.join(", ")})\n`,
     );
-    process.exit(1);
+    // Set the exit code and let the event loop drain stdout naturally — NOT
+    // process.exit(1). process.exit() forces exit "even if there are still
+    // asynchronous operations pending... including I/O to process.stdout", so on
+    // a pipe (the normal way an audit artifact is captured) the large JSON write
+    // buffered on line 145 can be TRUNCATED — losing the audit output in exactly
+    // the overflow case the feature exists for. process.exitCode fires the same
+    // loud non-zero signal without cutting stdout short (cli/index.ts:39 idiom).
+    process.exitCode = 1;
   }
 }
 
