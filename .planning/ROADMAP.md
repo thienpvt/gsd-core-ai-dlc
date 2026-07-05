@@ -63,13 +63,25 @@ Plans:
   4. When selected summaries would exceed the per-request governance token budget, the engine surfaces a loud signal, verifiable by a test that trips the budget.
   5. fast-check property tests confirm core invariants (selected rules are always a subset of triggered rules; ordering is stable).
 
-**Plans**: TBD
+**Plans**: 3/3 plans planned
 
 Plans:
 
-- [ ] 02-01: Construct labeled eval set — (task, phase) → expected-rules ground truth
-- [ ] 02-02: Selection engine pure function (trigger + scope-glob + phase matching) + per-rule select/skip reasons
-- [ ] 02-03: Recall/precision measurement, fast-check invariants, token-budget signal
+- [ ] 02-01-PLAN.md
+- [ ] 02-02-PLAN.md
+- [ ] 02-03-PLAN.md
+
+**Wave 1**
+
+- [ ] 02-01: Construct labeled eval set — controlled `eval-rules/` corpus + labeled `(signal, phase, scopeConfig) → expectedRuleIds` cases + ground-truth integrity test (SEL-01)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 02-02: Selection pure function `select()` — phase→scope→trigger gate pipeline reusing D-01..D-04, per-rule select/skip reasons, `TaskSignal` schema/validator (SEL-01, SEL-04)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 02-03: Recall/precision measurement (100% `critical` recall gate + `high` ≥0.9), fast-check invariants, token-budget estimator + loud overflow, `governance select` CLI (SEL-04, SEL-05)
 
 ### Phase 3: Summary Injection & Lazy Detail Loading
 
