@@ -9,27 +9,261 @@
  * enum). Identical `(index, signal, config)` inputs always produce byte-identical
  * output (02-RESEARCH determinism traps, Pitfalls 1 + 7).
  *
- * STUB (Task 1 / RED): the real gate pipeline lands in Task 2 (GREEN). This throws
- * unconditionally so the RED suites compile and fail against a correct signature.
+ * The per-rule decision runs a FIXED gate order so the skip reason is
+ * deterministic and matches AUDIT-02 (02-RESEARCH §1):
+ *   1. phase gate    -> "out-of-phase"
+ *   2. scope gate    -> "out-of-scope"        (domain not subscribed)
+ *   3. trigger gate  -> "out-of-scope-by-trigger" (no axis, or matched-then-excluded)
+ *   otherwise        -> selected (matchedAxis + matchedValue)
+ * The FIRST failing gate wins the reason. After the main loop, every winner's
+ * superseded[] losers (D-11) are emitted as "superseded" skips WITHOUT re-running
+ * matching — they lost precedence at build time (Pitfall 9).
  */
+import picomatch from "picomatch";
 import type {
   RuleIndex,
+  RuleIndexRecord,
   TaskSignal,
   SelectionConfig,
   SelectionResult,
+  SelectedRule,
+  SkippedRule,
+  Triggers,
+  TriggerExclude,
+  MatchedAxis,
 } from "../types.js";
 
 /**
+ * The result of evaluating a rule's positive trigger axes against a signal.
+ * `matched: false` means no populated positive axis fired (a plain no-match).
+ * When `matched: true`, `axis` + `value` are the FIRST matching axis in the
+ * fixed order taskType -> keywords -> paths (documented, deterministic).
+ */
+type PositiveMatch =
+  | { matched: false }
+  | { matched: true; axis: MatchedAxis; value: string };
+
+/** taskType axis (D-04): enum equality — the signal type equals any listed member. */
+function matchTaskType(
+  triggerTypes: readonly string[] | undefined,
+  signal: TaskSignal,
+): string | undefined {
+  if (!triggerTypes || triggerTypes.length === 0) return undefined;
+  return triggerTypes.includes(signal.taskType) ? signal.taskType : undefined;
+}
+
+/**
+ * keywords axis (D-04): case-insensitive substring. The trigger keyword is the
+ * NEEDLE — a trigger fires when it is a substring of some normalized signal
+ * keyword (both lowercased + trimmed; the signal is the free text). Returns the
+ * matching SIGNAL keyword (the concrete value the audit records).
+ */
+function matchKeywords(
+  triggerKeywords: readonly string[] | undefined,
+  signal: TaskSignal,
+): string | undefined {
+  if (!triggerKeywords || triggerKeywords.length === 0) return undefined;
+  for (const sig of signal.keywords) {
+    const haystack = sig.trim().toLowerCase();
+    for (const trig of triggerKeywords) {
+      if (haystack.includes(trig.trim().toLowerCase())) return sig;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * paths axis (D-04): picomatch globs. A trigger glob fires when it matches any
+ * signal path. Returns the matching SIGNAL path (the concrete value recorded).
+ * picomatch is pure/deterministic for a given pattern+string (02-RESEARCH §1).
+ */
+function matchPaths(
+  triggerPaths: readonly string[] | undefined,
+  signal: TaskSignal,
+): string | undefined {
+  if (!triggerPaths || triggerPaths.length === 0) return undefined;
+  for (const glob of triggerPaths) {
+    const isMatch = picomatch(glob);
+    for (const p of signal.paths) {
+      if (isMatch(p)) return p;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Evaluate the populated POSITIVE axes of `triggers` against `signal`, returning
+ * the FIRST match in the fixed order taskType -> keywords -> paths (D-02
+ * OR-combine; first-match rule is documented + deterministic). Empty triggers
+ * (no positive axis) are handled by the caller as always-in-phase (D-03) — this
+ * helper only sees whether a populated axis fired.
+ */
+function matchPositive(triggers: Triggers, signal: TaskSignal): PositiveMatch {
+  const taskType = matchTaskType(triggers.taskType, signal);
+  if (taskType !== undefined) return { matched: true, axis: "taskType", value: taskType };
+  const keyword = matchKeywords(triggers.keywords, signal);
+  if (keyword !== undefined) return { matched: true, axis: "keywords", value: keyword };
+  const path = matchPaths(triggers.paths, signal);
+  if (path !== undefined) return { matched: true, axis: "paths", value: path };
+  return { matched: false };
+}
+
+/**
+ * Whether `exclude` fires for `signal` (D-02 exclude-wins). Any exclude sub-axis
+ * matching (same per-axis rules as the positive axes) excludes the rule.
+ */
+function matchExclude(
+  exclude: TriggerExclude | undefined,
+  signal: TaskSignal,
+): boolean {
+  if (!exclude) return false;
+  if (matchTaskType(exclude.taskType, signal) !== undefined) return true;
+  if (matchKeywords(exclude.keywords, signal) !== undefined) return true;
+  if (matchPaths(exclude.paths, signal) !== undefined) return true;
+  return false;
+}
+
+/** True when a rule's triggers have NO populated positive axis (D-03 always-in-phase). */
+function isEmptyTriggers(triggers: Triggers): boolean {
+  return (
+    (triggers.taskType?.length ?? 0) === 0 &&
+    (triggers.keywords?.length ?? 0) === 0 &&
+    (triggers.paths?.length ?? 0) === 0
+  );
+}
+
+/**
+ * Phase gate (02-RESEARCH §1 step 1): a record matches the signal's phase if its
+ * `phases[]` contains that phase OR the shared `common` bucket (common applies to
+ * every phase).
+ */
+function inPhase(record: RuleIndexRecord, config: SelectionConfig): boolean {
+  return record.phases.includes(config.phase) || record.phases.includes("common");
+}
+
+/**
+ * Derive a domain rule's sub-name from its sourceFile (D-10 domain/<name>/ layout).
+ * The record carries scope "domain" but NOT the sub-name, so we read the path
+ * segment immediately after the "domain" tier: e.g.
+ *   ".../eval-rules/domain/security/threat-model.md" -> "security".
+ * Returns undefined if the layout is unexpected (defensive; a domain rule always
+ * lives under domain/<name>/ per Phase 1's deriveScope).
+ */
+function domainName(record: RuleIndexRecord): string | undefined {
+  const segments = record.sourceFile.split("/");
+  const domainIdx = segments.lastIndexOf("domain");
+  if (domainIdx === -1 || domainIdx + 1 >= segments.length) return undefined;
+  return segments[domainIdx + 1];
+}
+
+/**
+ * Scope gate (02-RESEARCH §1 step 2): enterprise and project are ALWAYS in the
+ * candidate set; only a `domain` rule is subscription-gated — it stays a candidate
+ * only when its domain sub-name is in `config.domains` (exact string equality,
+ * deterministic + audit-simple; a glob subscription is a future option). Returns
+ * true when the rule passes the scope gate.
+ */
+function inScope(record: RuleIndexRecord, config: SelectionConfig): boolean {
+  if (record.scope !== "domain") return true;
+  const name = domainName(record);
+  return name !== undefined && config.domains.includes(name);
+}
+
+/** Ascending-by-id comparator — the single documented sort key for both output arrays. */
+function byId(a: { id: string }, b: { id: string }): number {
+  return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
+}
+
+/**
  * Classify every candidate in `index` against `signal` + `config`.
- * Task 2 implements the fixed phase -> scope -> trigger -> superseded pipeline.
+ *
+ * Pure: builds `selected`/`skipped` explicitly, constructs each record
+ * field-by-field (mirrors build.ts toRecord — never spread an input-ordered
+ * object), and sorts both arrays by id ascending so ordering never depends on
+ * upstream index order (Pitfall 7). Does NOT compute budget (02-03) and does NOT
+ * call validateSignal (the CLI/harness boundary validates; select() stays pure
+ * over an already-typed TaskSignal).
  */
 export function select(
   index: RuleIndex,
   signal: TaskSignal,
   config: SelectionConfig,
 ): SelectionResult {
-  void index;
-  void signal;
-  void config;
-  throw new Error("select not implemented");
+  const selected: SelectedRule[] = [];
+  const skipped: SkippedRule[] = [];
+
+  for (const record of index.rules) {
+    // Gate 1 — phase. First failing gate wins the reason.
+    if (!inPhase(record, config)) {
+      skipped.push({ id: record.id, severity: record.severity, reason: "out-of-phase" });
+      continue;
+    }
+    // Gate 2 — scope (domain subscription).
+    if (!inScope(record, config)) {
+      skipped.push({ id: record.id, severity: record.severity, reason: "out-of-scope" });
+      continue;
+    }
+    // Gate 3 — trigger (D-01..D-04).
+    if (isEmptyTriggers(record.triggers)) {
+      // D-03: empty triggers = always-in-phase (never "never fires"; Pitfall 2).
+      selected.push({
+        id: record.id,
+        severity: record.severity,
+        summary: record.summary,
+        matchedAxis: "always-in-phase",
+        matchedValue: "always-in-phase",
+      });
+      continue;
+    }
+    const positive = matchPositive(record.triggers, signal);
+    if (!positive.matched) {
+      // No populated positive axis fired.
+      skipped.push({
+        id: record.id,
+        severity: record.severity,
+        reason: "out-of-scope-by-trigger",
+      });
+      continue;
+    }
+    if (matchExclude(record.triggers.exclude, signal)) {
+      // D-02 exclude-wins: matched a positive axis, then an exclude sub-axis fired.
+      // Enum stays out-of-scope-by-trigger; detail distinguishes it from no-match.
+      skipped.push({
+        id: record.id,
+        severity: record.severity,
+        reason: "out-of-scope-by-trigger",
+        detail: "matched-then-excluded",
+      });
+      continue;
+    }
+    // Selected — record the first matching axis + concrete value.
+    selected.push({
+      id: record.id,
+      severity: record.severity,
+      summary: record.summary,
+      matchedAxis: positive.axis,
+      matchedValue: positive.value,
+    });
+  }
+
+  // Superseded losers (D-11): emitted from each winner's superseded[], NEVER
+  // re-run through matching — they lost precedence at build time (Pitfall 9).
+  for (const record of index.rules) {
+    if (!record.superseded) continue;
+    for (const loser of record.superseded) {
+      skipped.push({
+        // The SupersededRecord carries no severity; inherit the winner's so the
+        // skip record stays shape-complete for the audit.
+        id: loser.id,
+        severity: record.severity,
+        reason: "superseded",
+      });
+    }
+  }
+
+  // Sort both arrays by id ascending — the single documented key (Pitfall 7).
+  selected.sort(byId);
+  skipped.sort(byId);
+
+  return { selected, skipped };
 }
