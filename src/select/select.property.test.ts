@@ -222,7 +222,17 @@ function passesAllGatesIndep(record: RuleIndexRecord, signal: TaskSignal): boole
     (t.taskType?.length ?? 0) === 0 &&
     (t.keywords?.length ?? 0) === 0 &&
     (t.paths?.length ?? 0) === 0;
-  if (empty) return true; // D-03 always-in-phase
+  if (empty) {
+    // WR-01: an exclude-only rule (no positive axis, but an exclude carve-out)
+    // must still honor its exclude BEFORE falling through to always-in-phase —
+    // mirrors select()'s exclude check in the empty-triggers branch, so this
+    // independent cross-check re-encodes the corrected D-02/D-03 semantics.
+    if (t.exclude) {
+      if (t.exclude.taskType?.includes(signal.taskType)) return false;
+      if (keywordMatchIndep(t.exclude.keywords, signal.keywords)) return false;
+    }
+    return true; // D-03 always-in-phase
+  }
   let positive = false;
   if (t.taskType?.includes(signal.taskType)) positive = true;
   if (!positive && keywordMatchIndep(t.keywords, signal.keywords)) positive = true;

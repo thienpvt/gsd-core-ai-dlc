@@ -223,7 +223,22 @@ export function select(
     }
     // Gate 3 — trigger (D-01..D-04).
     if (isEmptyTriggers(record.triggers)) {
-      // D-03: empty triggers = always-in-phase (never "never fires"; Pitfall 2).
+      // D-03: no POSITIVE axis = always-in-phase (never "never fires"; Pitfall 2).
+      // WR-01: an exclude-only rule (`triggers: { exclude: {...} }`) also has no
+      // positive axis, yet it still carries authored intent — "fire always EXCEPT
+      // <carve-out>". isEmptyTriggers inspects only the positive axes, so we must
+      // consult matchExclude HERE (D-02 exclude-wins) before selecting; otherwise
+      // the authored exclude is a silent no-op and the rule fires even for a signal
+      // the author explicitly carved out.
+      if (matchExclude(record.triggers.exclude, signal)) {
+        skipped.push({
+          id: record.id,
+          severity: record.severity,
+          reason: "out-of-scope-by-trigger",
+          detail: "matched-then-excluded",
+        });
+        continue;
+      }
       selected.push({
         id: record.id,
         severity: record.severity,

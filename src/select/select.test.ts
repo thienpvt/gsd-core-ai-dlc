@@ -138,6 +138,71 @@ test("paths axis dotfiles (CR-01): a rule with paths ['**/*.yml'] fires on a dot
   }
 });
 
+test("exclude-only triggers (WR-01): an exclude-only rule is EXCLUDED for a matching signal, not silently always-in-phase", () => {
+  // WR-01 regression: a rule authored `triggers: { exclude: { taskType: [docs] } }`
+  // — "fire always EXCEPT for docs tasks" — has no POSITIVE axis. isEmptyTriggers
+  // sees no positive axis and would select it always-in-phase BEFORE matchExclude
+  // ran, making the authored carve-out a silent no-op. select() must consult the
+  // exclude in the empty-triggers branch: a docs signal must be SKIPPED, and a
+  // non-docs signal must still fire always-in-phase (the carve-out is respected,
+  // the always-fire intent is preserved).
+  const tmpDir = mkdtempSync(path.join(os.tmpdir(), "gsd-select-wr01-"));
+  try {
+    const enterpriseDir = path.join(tmpDir, "enterprise");
+    mkdirSync(enterpriseDir, { recursive: true });
+    writeFileSync(
+      path.join(enterpriseDir, "except-docs.md"),
+      [
+        "---",
+        "id: except-docs",
+        "scope: enterprise",
+        "triggers:",
+        "  exclude:",
+        "    taskType:",
+        "      - docs",
+        "phases:",
+        "  - construction",
+        "severity: critical",
+        "summary: Fire on every task except documentation-only changes.",
+        "classification: advisory",
+        "---",
+        "",
+        "## except-docs",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+    const index = buildIndex(tmpDir);
+    const config: SelectionConfig = { phase: "construction", domains: [] };
+
+    // Matching signal (docs) -> the exclude fires -> SKIPPED, never selected.
+    const docsResult = select(index, { taskType: "docs", keywords: [], paths: [] }, config);
+    assert.ok(
+      !docsResult.selected.some((s) => s.id === "except-docs"),
+      "except-docs must NOT be selected for a docs signal — the authored exclude carve-out must win (WR-01)",
+    );
+    const docsSkip = docsResult.skipped.find((s) => s.id === "except-docs");
+    assert.ok(docsSkip, "except-docs must appear as a skip for the excluded docs signal");
+    assert.equal(docsSkip.reason, "out-of-scope-by-trigger");
+    assert.equal(
+      docsSkip.detail,
+      "matched-then-excluded",
+      "the exclude-only skip must carry the matched-then-excluded detail for the audit",
+    );
+
+    // Non-matching signal (feature) -> the always-fire intent is preserved.
+    const featResult = select(index, { taskType: "feature", keywords: [], paths: [] }, config);
+    const featHit = featResult.selected.find((s) => s.id === "except-docs");
+    assert.ok(
+      featHit,
+      "except-docs must still fire always-in-phase for a non-excluded signal (the always-fire intent survives)",
+    );
+    assert.equal(featHit.matchedAxis, "always-in-phase");
+  } finally {
+    rmSync(tmpDir, { recursive: true, force: true });
+  }
+});
+
 test("OR-combine (D-02): a signal matching only ONE axis of api-contract still selects it", () => {
   const index = evalIndex();
   // Matches api-contract's keywords axis ONLY: taskType refactor != feature, no api path.
