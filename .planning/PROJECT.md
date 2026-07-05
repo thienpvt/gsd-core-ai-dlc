@@ -12,11 +12,10 @@ The rule selection engine correctly injects only the relevant AI-DLC rule summar
 
 ### Validated
 
-(None yet — ship to validate)
+- [x] Rule-pack format: rules organized by enterprise / domain / project scope, each carrying an index, trigger condition, applicable phase(s), and severity — **Validated in Phase 1: Rule-Pack Format & Index** (PACK-01..04: frontmatter schema + Ajv validation, scope precedence project>domain>enterprise, binding-without-contract build rejection, body-free `rule-index.json`)
 
 ### Active
 
-- [ ] Rule-pack format: rules organized by enterprise / domain / project scope, each carrying an index, trigger condition, applicable phase(s), and severity
 - [ ] Rule selection engine: given a task + phase, select only matching rules and emit their summaries (not full bodies)
 - [ ] On-demand detail loading: full rule text is fetched only when a summary is insufficient for the current decision
 - [ ] GSD gate hooks at the five workflow points: discuss (task type + risk), plan (requirements, risks, acceptance criteria, impacted modules), execute (inject rules for executor/subagent), verify (tests, lint, security scans, policy checks), ship (audit records, approvals, rollback plan, test evidence)
@@ -55,7 +54,7 @@ The rule selection engine correctly injects only the relevant AI-DLC rule summar
 | Deliverable is a working GSD extension (not a design doc) | User needs runnable tooling: rule packs, selection engine, hooks, audit generation | — Pending |
 | Rule selection engine is the riskiest core to build first | If summary selection is wrong, the anti-bloat premise collapses | — Pending |
 | Tool-agnostic gate contracts + adapter stubs | Broadest applicability, avoids vendor lock-in for enforcement | — Pending |
-| Rules scoped enterprise / domain / project, indexed by trigger + phase + severity | Enables precise, minimal selection per task | — Pending |
+| Rules scoped enterprise / domain / project, indexed by trigger + phase + severity | Enables precise, minimal selection per task | ✓ Validated (Phase 1) — frontmatter format + scope precedence + body-free index shipped |
 | Markdown steering is advisory, not enforcement | Real enforcement belongs in CI/SAST/tests/policy-as-code/human approval | — Pending |
 
 ## Evolution
@@ -76,4 +75,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-04 after initialization*
+*Last updated: 2026-07-05 after Phase 1 completion (Rule-Pack Format & Index)*
