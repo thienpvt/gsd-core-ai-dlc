@@ -32,12 +32,16 @@ This roadmap delivers Milestone 1 (Core / v1): proving the anti-bloat premise en
 Plans:
 **Wave 1**
 
-- [ ] 01-01: Rule frontmatter JSON Schema + advisory/binding classification (reject binding-without-contract)
+- [ ] 01-01: Walking skeleton — project scaffold + `governance` CLI + minimal schema + one real rule → body-free `rule-index.json` + smoke test (PACK-01, PACK-04)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 01-02: Rule-pack store layout (enterprise/domain/project) + scope precedence resolution
-- [ ] 01-03: Index builder CLI → `rule-index.json` (summaries + pointers only)
+- [ ] 01-02: Harden frontmatter schema (full trigger/severity model) + advisory/binding classification (PACK-01, PACK-03)
+- [ ] 01-03: Rule-pack store layout (enterprise/domain/project) + scope precedence resolution (PACK-02)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 01-04: Index no-body hardening — output schema + fast-check property + build-time binding rejection + `detailPath` pointer pass-through (PACK-04, PACK-03)
 
 ### Phase 2: Selection Engine
 
