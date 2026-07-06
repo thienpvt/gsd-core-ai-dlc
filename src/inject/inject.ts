@@ -16,7 +16,7 @@
  * on top of this guarantee). It is also deterministic: no clock, no `Math.random`,
  * no I/O — identical input yields byte-identical output.
  */
-import type { Severity, SelectionResult } from "../types.js";
+import type { Severity, SelectedRule, SelectionResult } from "../types.js";
 
 /**
  * The injector's OWN severity ordinal (Pitfall 6) — the fragment sorts
@@ -31,11 +31,60 @@ export const SEVERITY_ORDINAL: Record<Severity, number> = {
   low: 3,
 };
 
+/** The one-line human header naming the block's contents (summaries + pointers only). */
+const HEADER =
+  "Selected governance rules for this task (summaries only). " +
+  "Run `governance rule-detail <id>` for a rule's full body.";
+
+/** The empty-selection line — an unambiguous, still-strippable no-rules signal. */
+const NO_RULES_LINE = "No governance rules apply to this task.";
+
 /**
- * Render the `<governance>` fragment from a SelectionResult (STUB — Task 2 GREEN).
- *
- * Reads only `selected[].{id, severity, summary}`; never opens a file.
+ * Ascending comparator over selected rules: severity-descending via
+ * {@link SEVERITY_ORDINAL} (critical first), tie-broken by id ascending. Mirrors
+ * select.ts's `byId` tie-break so ordering is deterministic and never depends on
+ * the upstream selection order.
  */
-export function renderInjection(_result: SelectionResult): string {
-  throw new Error("renderInjection not implemented");
+function bySeverityThenId(a: SelectedRule, b: SelectedRule): number {
+  const bySeverity = SEVERITY_ORDINAL[a.severity] - SEVERITY_ORDINAL[b.severity];
+  if (bySeverity !== 0) return bySeverity;
+  return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
+}
+
+/**
+ * Render the selected rules of a {@link SelectionResult} into a single tagged
+ * `<governance>` markdown block (SEL-02).
+ *
+ * Reads ONLY `id`, `severity`, and `summary` from each selected rule — never any
+ * body/content field (there is none) and never opens a file, so summary-only
+ * injection is true by construction. Skip reasons are excluded (audit-only,
+ * Phase 5). Deterministic: no clock, no `Math.random`, no I/O — identical input
+ * yields byte-identical output. An empty selection still renders the
+ * `<governance>` frame around a single no-rules line (never an empty string) so
+ * Phase 4's inject/strip logic is uniform.
+ */
+export function renderInjection(result: SelectionResult): string {
+  const lines: string[] = ["<governance>"];
+
+  if (result.selected.length === 0) {
+    lines.push(NO_RULES_LINE);
+    lines.push("</governance>");
+    return `${lines.join("\n")}\n`;
+  }
+
+  // Copy before sorting — never mutate the caller's array (purity).
+  const ordered = [...result.selected].sort(bySeverityThenId);
+
+  lines.push(HEADER);
+  lines.push("");
+  for (const rule of ordered) {
+    // One entry per rule: [severity] id, its summary, and a per-rule rule-detail
+    // hint so the reader can pull the full body on demand (03-CONTEXT).
+    lines.push(
+      `- [${rule.severity}] ${rule.id}: ${rule.summary} ` +
+        `(run \`governance rule-detail ${rule.id}\` for the full rule)`,
+    );
+  }
+  lines.push("</governance>");
+  return `${lines.join("\n")}\n`;
 }
