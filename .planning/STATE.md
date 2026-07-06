@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Govern
 status: planning
-last_updated: "2026-07-06T14:37:30.745Z"
+last_updated: "2026-07-06T00:00:00.000Z"
 last_activity: 2026-07-06
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,24 +20,24 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-06)
 
 **Core value:** The rule selection engine injects only the relevant AI-DLC rule summaries for the current task and phase — enough governance to be safe, little enough to avoid context bloat.
-**Current focus:** v1.0 Core shipped (2026-07-06) — all 5 phases / 14 plans verified. Awaiting next milestone (`/gsd-new-milestone` for v2.0 Govern).
+**Current focus:** v2.0 Govern roadmap defined (Phases 6-10). First phase owns v1.0 tech-debt fold-in atomically before new gate surface opens. Awaiting plan for Phase 6.
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 6 — v1.0 Tech-Debt Fold-In (not started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-07-06 — Milestone v2.0 started
+Status: Roadmap defined, awaiting plan
+Last activity: 2026-07-06 — v2.0 Govern roadmap created
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 14
+- Total plans completed: 14 (v1.0)
 - Average duration: — min
 - Total execution time: 0.0 hours
 
-**By Phase:**
+**By Phase (v1.0):**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
@@ -47,25 +47,22 @@ Last activity: 2026-07-06 — Milestone v2.0 started
 | 04 | 3 | - | - |
 | 05 | 2 | - | - |
 
+**v2.0 Phases (not started):**
+
+| Phase | Plans | Status |
+|-------|-------|--------|
+| 6. v1.0 Tech-Debt Fold-In | 0/? | Not started |
+| 7. Enforcement Contracts & Adapter Stubs | 0/? | Not started |
+| 8. Remaining Gate Hooks | 0/? | Not started |
+| 9. Complete Audit Record & Approval | 0/? | Not started |
+| 10. Selection-Quality Harness | 0/? | Not started |
+
 **Recent Trend:**
 
 - Last 5 plans: —
 - Trend: —
 
 *Updated after each plan completion*
-| Phase 01-rule-pack-format-index P01 | 35 | 3 tasks | 16 files |
-| Phase 01-rule-pack-format-index P02 | 18 | 2 tasks | 4 files |
-| Phase 01-rule-pack-format-index P03 | 20 | 3 tasks | 8 files |
-| Phase 01-rule-pack-format-index PP04 | 6 | 3 tasks tasks | 8 files files |
-| Phase 02-selection-engine P01 | 4 | 2 tasks | 13 files |
-| Phase 02 P02 | 20 | 2 tasks | 6 files |
-| Phase 02-selection-engine P03 | 25 | 3 tasks | 9 files |
-| Phase 03-summary-injection-lazy-detail-loading P01 | 11 | 3 tasks | 6 files |
-| Phase 03-summary-injection-lazy-detail-loading P02 | 13 | 3 tasks | 11 files |
-| Phase 04 P02 | 8 | 3 tasks | 4 files |
-| Phase 04 P03 | 30 | 3 tasks | 5 files |
-| Phase 05-audit-artifact-writer P01 | 5 | 2 tasks | 2 files |
-| Phase 05-audit-artifact-writer P02 | 9 | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -74,34 +71,12 @@ Last activity: 2026-07-06 — Milestone v2.0 started
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- [Roadmap]: Dependency-forced spine — rule shape → index → selection → injection → gates → audit. Audit cannot precede selection.
-- [Roadmap]: Selection engine (Phase 2) is the riskiest, highest-value core; its acceptance evidence includes a labeled recall/precision eval set (under-injection is the top risk).
-- [Roadmap]: Overlay ships as a declarative `capability.json` against GSD's Capability Registry seam — not a fork; Phase 4 must not precede a working selector.
-- [Phase 01-04]: PACK-04 no-body guarantee is now schema-enforced (rule-index.schema.json additionalProperties:false) + property-proven (fast-check per-rule canaries), wired into buildIndex — no longer construction-only
-- [Phase 01-04]: Output schema validates triggers as object-only; frontmatter schema (01-02) stays the single source of truth for trigger internals to avoid a drift surface
-- [Phase 02]: [Phase 02-01]: Eval corpus is a dedicated isolated fixture store (test/fixtures/eval/), decoupled from live aidlc-rules/ so ground truth cannot drift (T-2-EVALDRIFT)
-- [Phase 02]: [Phase 02-01]: Ground-truth integrity test validates labels only (imports buildIndex, not select()) — proves every expectedRuleId is a real winner before the engine exists, so the Wave-3 recall gate cannot be silently defeated by a typo (T-2-EVALINTEGRITY)
-- [Phase ?]: [Phase 02-02]: select() is a pure function (no clock/random/IO) running a fixed phase->scope->trigger->superseded gate order; the first failing gate sets the AUDIT-02-aligned skip reason and output is sorted by id ascending (T-2-NONDET mitigation)
-- [Phase ?]: [Phase 02-02]: validateSignal (Ajv 2020) rejects a malformed TaskSignal loudly at the boundary and is kept OUT of select() so the core stays pure over an already-typed signal (T-2-BADSIGNAL mitigation)
-- [Phase ?]: [Phase 02-02]: empty-triggers (D-03) selections record matchedAxis and matchedValue both as 'always-in-phase'; multi-axis matches record the first axis in order taskType->keywords->paths; superseded losers inherit the winner's severity and are never re-matched (D-11)
-- [Phase ?]: [Phase 03-01]: renderInjection is a pure SEL-02 core importing only ../types.js (no node:fs, no gray-matter) — summary-only injection is true by construction (no body-read path), proven belt-and-suspenders by a fast-check no-body-canary property (success criterion 3)
-- [Phase ?]: [Phase 03-01]: SEVERITY_ORDINAL (critical=0..low=3) declared in inject.ts as the injector's OWN axis, NOT the scope ORDINAL from scope.ts (Pitfall 6); fragment sorts severity-desc then id-asc
-- [Phase ?]: [Phase 03-01]: governance inject CLI emits the <governance> fragment to stdout FIRST, then on budgetExceeded warns to stderr + sets process.exitCode=1 (never process.exit — CR-02); malformed input fails loud via a lightweight selected[]+skipped[] shape guard, never a silent empty fragment (Pitfall 7)
-- [Phase 03]: [Phase 03-02]: resolveDetailPath is the single-sourced D-08 resolver + IN-05 traversal guard (pure path math, reads no file), imported by BOTH buildIndex (build-time D-07) and rule-detail (fetch-time backstop) so the guards cannot drift (Pitfall 8)
-- [Phase 03]: [Phase 03-02]: D-07 build-time validation (scoped to the store root absRoot) is the AUTHORITATIVE guard; rule-detail fetch-time guard is an intentional coarse backstop scoped to process.cwd(), documented as looser and never claimed to match the build boundary
-- [Phase 03]: [Phase 03-02]: governance rule-detail <id> is the ONE sanctioned body surface (SEL-03): reads ONLY the one requested id target via gray-matter, D-06 no-detail rule returns summary + signal (exit 0), unknown id fails loud non-zero, never pre-fetches another body
-- [Phase 04]: [Phase 04-02]: executeHook emits the governance fragment on stdout and returns it, preserving observable context even when budget overflow sets process.exitCode=1. — Matches Phase 3 inject CLI and prevents truncating the executor context fragment on overflow.
-- [Phase 04]: [Phase 04-02]: executeHook reads persisted selection through StateStore and renderInjection only; it does not import select, validateSignal, classifyRisk, or discussHook. — Preserves D-RELOAD and prevents execute-time re-derivation drift.
-- [Phase 04]: [Phase 04-02]: reload-boundary acceptance is test-only once 04-01 and executeHook exist; no fake RED failure was introduced. — The plan explicitly noted the test becomes green once both halves land; artificial failures would add no product proof.
-- [Phase 04]: [Phase 04-03]: aidlc-governance consent is CB-3-bound to (realpath(projectRoot), id, bundleContentHash); pre-consent hooks omit it, post-consent hooks render discuss/execute, and tamper flips inactive.
-- [Phase 04]: [Phase 04-03]: project install ledger is committed for discoverability, but the user-owned consent store remains the activation authority and lives outside the repo.
-- [Phase 04]: [Phase 04-03]: Codex runtime hook verification needs `--config-dir "$HOME/.codex"` in this shell so capability-state sees the Codex skill surface.
-- [Phase 05]: 05-01 audit records derive only from readSelection(projectRoot), never selector/risk/discuss/execute re-derivation.
-- [Phase 05]: 05-01 normalizes selector reason out-of-scope to audit reason out-of-scope-by-trigger while preserving selector_reason.
-- [Phase 05]: 05-01 direct audit runner validates basename GOVERNANCE.md and containment under <projectRoot>/.planning/phases/ before writing.
-- [Phase 05]: [Phase 05-02]: Audit capability is step-only at verify:post and keeps gates empty; no scan, approval, ship, adapter, or v2 enforcement behavior was added.
-- [Phase 05]: [Phase 05-02]: aidlc-governance-audit resolves current_phase and the phase GOVERNANCE.md path, then delegates audit content to dist/governance/audit-artifact.js.
-- [Phase 05]: [Phase 05-02]: Local Codex runtime surface must include gsd-aidlc-governance-audit after manifest skill changes; consent remains content-hash bound.
+- [Roadmap v2.0]: Dependency-forced spine preserved — tech-debt (Phase 6) → contracts (Phase 7) → gates (Phase 8) → audit+approval (Phase 9) → quality harness (Phase 10). Tech-debt first is load-bearing per v1 milestone close decision; contracts must precede gates that consume them; audit consumes gates; harness validates the whole.
+- [Roadmap v2.0]: Phase 6 owns v1.0 tech-debt fold-in atomically — 3 correctness (WR-01/03/05: timestamp shape, consent audit-hook coverage, atomic-write race) + 6 hygiene (WR-02/04, IN-01/02/03, config namespacing). New gate surface in Phases 7-10 opens on a clean foundation.
+- [Roadmap v2.0]: Phase 7 contracts are the tool-agnostic boundary — JSON Schema draft 2020-12 + Ajv runtime validation + GateAdapter interface + no-op/echo stubs named after AI-DLC-implied tools (semgrep, bandit, checkov, grype, gitleaks, generic-exit-ci, human-approval). No OPA hard-dep, no first-class integrations.
+- [Roadmap v2.0]: Phase 8 gates consume Phase 7 contracts — plan gate reuses selection engine, verify gate routes through adapters, ship gate blocks on incomplete prior gates.
+- [Roadmap v2.0]: Phase 9 audit extends v1's GOVERNANCE.md writer — requirements covered, tests executed (real runner output, not narration), remaining risks, approvals required. APPR-01 human approval flows through the contract layer.
+- [Roadmap v2.0]: Phase 10 SEL-06 harness validates the whole — standing recall/precision check against the labeled eval set, repeatable and auditable, blocks ship on regression.
 
 ### Pending Todos
 
@@ -113,7 +88,9 @@ None yet.
 
 [Issues that affect future work]
 
-- [Phase 2]: Labeled eval-set construction methodology and the `critical`-rule recall threshold are novel and load-bearing — flagged for deeper research during Phase 2 planning.
+- [Phase 2]: Labeled eval-set construction methodology and the `critical`-rule recall threshold are novel and load-bearing — flagged for deeper research during Phase 2 planning. (Resolved in v1.0; SEL-06 in Phase 10 will formalize the standing harness.)
+- [Phase 6]: TD-02 consent integration test must cover the `onError:halt` silent-failure path — verify the audit hook actually fires post-consent, not just that consent activates.
+- [Phase 7]: Adapter stubs must be schema-valid by Ajv at runtime — a stub that emits malformed output must hard-fail, not silently corrupt the audit trail.
 
 ## Deferred Items
 
@@ -121,14 +98,15 @@ Items acknowledged and carried forward from previous milestone close:
 
 | Category | Item | Status | Deferred At |
 |----------|------|--------|-------------|
-| Milestone 2 (v2) | Remaining gates (GATE-03/04/05), full audit (AUDIT-03..06), enforcement contracts (ENF-02/03/04), SEL-06 harness, APPR-01 | Deferred | 2026-07-05 |
+| Milestone 2 (v2) | Remaining gates (GATE-03/04/05), full audit (AUDIT-03..06), enforcement contracts (ENF-02/03/04), SEL-06 harness, APPR-01 | Now in v2.0 roadmap (Phases 6-10) | 2026-07-05 |
+| Future milestone | OPS-01 operations-phase governance | Deferred | 2026-07-06 |
 
 ## Session Continuity
 
-Last session: 2026-07-06T12:47:58.635Z
-Stopped at: Completed 05-02-PLAN.md
+Last session: 2026-07-06
+Stopped at: v2.0 Govern roadmap defined (Phases 6-10)
 Resume file: None
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Plan Phase 6 with `/gsd-plan-phase 6` (v1.0 tech-debt fold-in — 9 TD items, first v2.0 phase)
