@@ -1,0 +1,16 @@
+{
+  "version": "1",
+  "updatedAt": "2026-07-06T11:41:12.337Z",
+  "entries": {
+    "aidlc-governance": {
+      "id": "aidlc-governance",
+      "version": "0.1.0",
+      "source": "./.gsd/capabilities/aidlc-governance",
+      "integrity": "",
+      "files": [
+        ".gsd/capabilities/aidlc-governance/capability.json"
+      ],
+      "sharedEdits": []
+    }
+  }
+}
