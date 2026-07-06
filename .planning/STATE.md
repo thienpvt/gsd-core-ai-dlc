@@ -5,15 +5,15 @@ milestone_name: Govern
 current_phase: 06
 current_phase_name: v1.0 Tech-Debt Fold-In
 status: executing
-stopped_at: Completed 06-01-PLAN.md (atomicWriteFile shared helper, TD-03)
-last_updated: "2026-07-06T15:50:51.350Z"
+stopped_at: Completed 06-03-PLAN.md (TD-02/08/09 tech-debt fold-in)
+last_updated: "2026-07-06T15:58:26.462Z"
 last_activity: 2026-07-06
 last_activity_desc: Phase 06 execution started
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 ## Current Position
 
 Phase: 06 (v1.0 Tech-Debt Fold-In) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-07-06 — Phase 06 execution started
 
@@ -68,6 +68,7 @@ Last activity: 2026-07-06 — Phase 06 execution started
 
 *Updated after each plan completion*
 | Phase 06 P01 | 5 | 2 tasks | 5 files |
+| Phase 06 P03 | 5 | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -84,6 +85,9 @@ Recent decisions affecting current work:
 - [Roadmap v2.0]: Phase 10 SEL-06 harness validates the whole — standing recall/precision check against the labeled eval set, repeatable and auditable, blocks ship on regression.
 - [Phase ?]: 06-01: atomicWriteFile shared helper uses .<pid>-<uuid>.tmp temp suffix (crypto.randomUUID) — concurrent writers cannot clobber; atomicWriteText/atomicWriteJson reduced to one-line wrappers (TD-03)
 - [Phase ?]: 06-01: concurrent-write test asserts content integrity (one payload, not merged/empty/truncated) not all-exit-0 — Windows renameSync race tolerated; losing writer temp cleaned up, winner payload intact
+- [Phase ?]: 06-03: TD-09 removed top-level warned config keys (tavily_search/ref_search/perplexity/jina/quick_branch_template) rather than namespacing — keys were inert, removal is zero-surface fix; git.quick_branch_template stays as namespaced form
+- [Phase ?]: 06-03: TD-02 wrote self-contained consent-verify-post test (duplicated helpers) instead of extracting to test/fixtures/consent-helpers.ts — test/ not compiled by tsconfig (src/** only), and extraction adds regression risk to passing consent.test.ts for zero functional gain
+- [Phase ?]: 06-03: TD-08 resolveGsdTools returns string | null with caller null-guard (not thrown error) — matches existing t.skip pattern for absent runtime
 
 ### Pending Todos
 
@@ -110,8 +114,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-06T15:50:51.344Z
-Stopped at: Completed 06-01-PLAN.md (atomicWriteFile shared helper, TD-03)
+Last session: 2026-07-06T15:58:26.456Z
+Stopped at: Completed 06-03-PLAN.md (TD-02/08/09 tech-debt fold-in)
 Resume file: None
 
 ## Operator Next Steps

@@ -48,13 +48,13 @@ Phase numbering continues at 6 (no reset). First phase owns the v1.0 tech-debt f
   4. `gsd-tools` no longer emits warnings on unrelated config keys (`tavily_search`, `ref_search`, `perplexity`, `jina`, `quick_branch_template`) — governance keys are namespaced or split (TD-09).
   5. Hygiene items are merged: unified `selector_reason` validation shape (TD-04), `isDirectRun` narrowed to the dist entry path (TD-05), `buildAuditRecord` export narrowed to module-internal (TD-06), `writeGovernanceAudit` returns the resolved absolute path (TD-07), `resolveGsdTools` handles the `undefined` fallback explicitly (TD-08).
 
-**Plans**: 1/3 plans executed
+**Plans**: 2/3 plans executed
 
 Plans:
 **Wave 1**
 
 - [x] 06-01-PLAN.md — Extract shared atomicWriteFile helper with unique temp suffix; delegate atomicWriteText/atomicWriteJson (TD-03)
-- [ ] 06-03-PLAN.md — Namespace config keys, consent-gated verify:post integration test, explicit resolveGsdTools fallback (TD-02, TD-08, TD-09)
+- [x] 06-03-PLAN.md — Namespace config keys, consent-gated verify:post integration test, explicit resolveGsdTools fallback (TD-02, TD-08, TD-09)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -127,7 +127,7 @@ v2.0 Phases execute in numeric order: 6 → 7 → 8 → 9 → 10.
 | 3. Summary Injection & Lazy Detail Loading | v1.0 | 2/2 | Complete | 2026-07-06 |
 | 4. GSD Capability Integration & Persistence | v1.0 | 3/3 | Complete | 2026-07-06 |
 | 5. Audit-Artifact Writer | v1.0 | 2/2 | Complete | 2026-07-06 |
-| 6. v1.0 Tech-Debt Fold-In | v2.0 | 1/3 | In Progress|  |
+| 6. v1.0 Tech-Debt Fold-In | v2.0 | 2/3 | In Progress|  |
 | 7. Enforcement Contracts & Adapter Stubs | v2.0 | 0/? | Not started | - |
 | 8. Remaining Gate Hooks | v2.0 | 0/? | Not started | - |
 | 9. Complete Audit Record & Approval | v2.0 | 0/? | Not started | - |

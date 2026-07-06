@@ -37,14 +37,14 @@ Requirements for milestone **v2.0 Govern**. Each maps to a roadmap phase (number
 ### Tech Debt — v1.0 Fold-in (first phase)
 
 - [ ] **TD-01**: `assertTimestamp` enforces ISO 8601 shape (rejects non-ISO like `"2026/07/06"`) in `src/governance/audit-artifact.ts` — fixes WR-01 (correctness)
-- [ ] **TD-02**: Consent integration test renders `verify:post` post-consent and asserts the audit hook fires — covers the `onError:halt` silent-failure path (WR-03, correctness)
+- [x] **TD-02**: Consent integration test renders `verify:post` post-consent and asserts the audit hook fires — covers the `onError:halt` silent-failure path (WR-03, correctness)
 - [x] **TD-03**: `atomicWriteText` uses a unique temp suffix (PID/counter) before atomic rename — closes the concurrent-writer race for v2 adapters (WR-05, correctness)
 - [ ] **TD-04**: `selector_reason` validation unified (single error shape) across `assertSelectionArrays` + `normalizeSkipReason` (WR-02, hygiene)
 - [ ] **TD-05**: `isDirectRun` narrowed to the dist entry path, not any `audit-artifact.js` (WR-04, hygiene)
 - [ ] **TD-06**: `buildAuditRecord` export narrowed to module-internal (IN-01, hygiene)
 - [ ] **TD-07**: `writeGovernanceAudit` returns the resolved absolute path, not the input `outputPath` (IN-02, hygiene)
-- [ ] **TD-08**: `resolveGsdTools` handles the `undefined` fallback explicitly instead of an `as string` cast (IN-03, hygiene)
-- [ ] **TD-09**: `.planning/config.json` governance keys namespaced or split so unrelated keys (`tavily_search`, `ref_search`, `perplexity`, `jina`, `quick_branch_template`) stop triggering `gsd-tools` warnings (hygiene)
+- [x] **TD-08**: `resolveGsdTools` handles the `undefined` fallback explicitly instead of an `as string` cast (IN-03, hygiene)
+- [x] **TD-09**: `.planning/config.json` governance keys namespaced or split so unrelated keys (`tavily_search`, `ref_search`, `perplexity`, `jina`, `quick_branch_template`) stop triggering `gsd-tools` warnings (hygiene)
 
 ## v2 Requirements
 
@@ -72,14 +72,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | TD-01 | Phase 6 | Pending |
-| TD-02 | Phase 6 | Pending |
+| TD-02 | Phase 6 | Complete |
 | TD-03 | Phase 6 | Complete |
 | TD-04 | Phase 6 | Pending |
 | TD-05 | Phase 6 | Pending |
 | TD-06 | Phase 6 | Pending |
 | TD-07 | Phase 6 | Pending |
-| TD-08 | Phase 6 | Pending |
-| TD-09 | Phase 6 | Pending |
+| TD-08 | Phase 6 | Complete |
+| TD-09 | Phase 6 | Complete |
 | ENF-02 | Phase 7 | Pending |
 | ENF-03 | Phase 7 | Pending |
 | ENF-04 | Phase 7 | Pending |
