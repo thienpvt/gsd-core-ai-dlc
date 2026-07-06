@@ -1,0 +1,52 @@
+/**
+ * Single-sourced path helpers for the on-disk governance ledger (RESEARCH §5).
+ *
+ * Layout under `<projectRoot>/.planning/governance/`:
+ *   - `selection-state.json`        — the latest full SelectionResult record
+ *   - `phase-<NN>/<key>.json`       — per-phase records (key chosen by callers)
+ *
+ * Centralizing path derivation here prevents the path-drift pitfall flagged in
+ * 04-RESEARCH — every reader/writer composes through these helpers, so a layout
+ * change is one edit, not many. Pure: no I/O, no clock, no random.
+ */
+import path from "node:path";
+import type { Phase } from "../types.js";
+
+/**
+ * The governance directory under a project root. Created on first write by
+ * state-store.ts (mkdirSync recursive) — readers must NOT assume it exists.
+ */
+export function governanceDir(projectRoot: string): string {
+  return path.join(projectRoot, ".planning", "governance");
+}
+
+/**
+ * Path to the canonical `selection-state.json` (the latest full record). This
+ * is the file the execute hook (04-02) reads to reload a selection across a
+ * subagent/compaction boundary — single source of truth for "what was
+ * selected at discuss time".
+ */
+export function selectionStatePath(projectRoot: string): string {
+  return path.join(governanceDir(projectRoot), "selection-state.json");
+}
+
+/**
+ * Path to a per-phase governance directory. Phase is the Phase enum string
+ * (`inception` | `construction` | `operations` | `common`) — callers pass the
+ * same Phase value used in SelectionConfig.
+ */
+export function phaseDir(projectRoot: string, phase: Phase): string {
+  return path.join(governanceDir(projectRoot), `phase-${phase}`);
+}
+
+/**
+ * Path to a per-phase record file. `key` is a caller-chosen identifier (e.g.
+ * a task id or timestamp) — the store does not interpret it.
+ */
+export function phaseRecordPath(
+  projectRoot: string,
+  phase: Phase,
+  key: string,
+): string {
+  return path.join(phaseDir(projectRoot, phase), `${key}.json`);
+}
