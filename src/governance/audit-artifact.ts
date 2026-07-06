@@ -66,6 +66,18 @@ function atomicWriteText(finalPath: string, content: string): void {
   renameSync(tmpPath, finalPath);
 }
 
+function assertRecordObject(value: unknown, field: string): asserts value is Record<string, unknown> {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new Error(`malformed governance state: ${field} must be an object`);
+  }
+}
+
+function assertString(value: unknown, field: string): asserts value is string {
+  if (typeof value !== "string" || value.length === 0) {
+    throw new Error(`malformed governance state: ${field} must be a non-empty string`);
+  }
+}
+
 function assertSelectionArrays(record: GovernanceRecord): void {
   if (!Array.isArray(record.selectionResult.selected)) {
     throw new Error("malformed governance state: selectionResult.selected must be an array");
@@ -73,6 +85,31 @@ function assertSelectionArrays(record: GovernanceRecord): void {
   if (!Array.isArray(record.selectionResult.skipped)) {
     throw new Error("malformed governance state: selectionResult.skipped must be an array");
   }
+
+  record.selectionResult.selected.forEach((rule, index) => {
+    assertRecordObject(rule, `selectionResult.selected[${index}]`);
+    assertString(rule.id, `selectionResult.selected[${index}].id`);
+    assertString(rule.severity, `selectionResult.selected[${index}].severity`);
+    assertString(rule.summary, `selectionResult.selected[${index}].summary`);
+    assertString(rule.matchedAxis, `selectionResult.selected[${index}].matchedAxis`);
+    assertString(rule.matchedValue, `selectionResult.selected[${index}].matchedValue`);
+  });
+
+  record.selectionResult.skipped.forEach((rule, index) => {
+    assertRecordObject(rule, `selectionResult.skipped[${index}]`);
+    assertString(rule.id, `selectionResult.skipped[${index}].id`);
+    assertString(rule.severity, `selectionResult.skipped[${index}].severity`);
+    assertString(rule.reason, `selectionResult.skipped[${index}].reason`);
+    if (rule.detail !== undefined) {
+      assertString(rule.detail, `selectionResult.skipped[${index}].detail`);
+    }
+    if (rule.scope !== undefined) {
+      assertString(rule.scope, `selectionResult.skipped[${index}].scope`);
+    }
+    if (rule.sourceFile !== undefined) {
+      assertString(rule.sourceFile, `selectionResult.skipped[${index}].sourceFile`);
+    }
+  });
 }
 
 function assertGovernanceOutputPath(projectRoot: string, outputPath: string): void {
@@ -82,9 +119,15 @@ function assertGovernanceOutputPath(projectRoot: string, outputPath: string): vo
   }
 
   const phasesRoot = path.resolve(projectRoot, ".planning", "phases");
-  const relative = path.relative(phasesRoot, resolvedOutput);
-  if (relative === "" || relative.startsWith("..") || path.isAbsolute(relative)) {
-    throw new Error("audit artifact output path must stay under <projectRoot>/.planning/phases/");
+  const outputDir = path.dirname(resolvedOutput);
+  const phaseDirName = path.basename(outputDir);
+  if (
+    path.dirname(outputDir) !== phasesRoot ||
+    !/^\d{2}(?:\.\d+)?-/.test(phaseDirName)
+  ) {
+    throw new Error(
+      "audit artifact output path must be <projectRoot>/.planning/phases/{NN}-*/GOVERNANCE.md",
+    );
   }
 }
 
@@ -120,6 +163,7 @@ export function renderGovernanceMarkdown(audit: GovernanceAudit): string {
 }
 
 export function writeGovernanceAudit(args: WriteGovernanceAuditArgs): WriteGovernanceAuditResult {
+  assertGovernanceOutputPath(args.projectRoot, args.outputPath);
   const record = readSelection(args.projectRoot);
   if (record === null) {
     throw new Error(
@@ -138,7 +182,6 @@ function runDirect(argv: string[]): void {
   }
 
   const [projectRoot, outputPath] = argv;
-  assertGovernanceOutputPath(projectRoot, outputPath);
   writeGovernanceAudit({ projectRoot, outputPath });
 }
 

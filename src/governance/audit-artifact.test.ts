@@ -174,6 +174,28 @@ test("buildAuditRecord throws on a skipped rule reason outside the audit enum", 
   );
 });
 
+test("writeGovernanceAudit rejects malformed selected rule rows without writing GOVERNANCE.md", () => {
+  withTempRoot((root) => {
+    const selectionResult = fixtureSelectionResult();
+    selectionResult.selected = [
+      {
+        severity: "critical",
+        summary: "missing id",
+        matchedAxis: "keywords",
+        matchedValue: "audit",
+      } as unknown as SelectionResult["selected"][number],
+    ];
+    writeSelection(fixtureRecord(selectionResult), root);
+
+    const outputPath = path.join(root, ".planning", "phases", "05-audit", "GOVERNANCE.md");
+    assert.throws(
+      () => writeGovernanceAudit({ projectRoot: root, outputPath }),
+      /selectionResult\.selected\[0\]\.id/i,
+    );
+    assert.equal(existsSync(outputPath), false);
+  });
+});
+
 test("renderGovernanceMarkdown is deterministic for rules_applied and rules_skipped", () => {
   const record = fixtureRecord();
   const first = parseAuditMarkdown(renderGovernanceMarkdown(buildAuditRecord(record)));
@@ -190,6 +212,24 @@ test("writeGovernanceAudit throws when selection-state.json is missing", () => {
       () => writeGovernanceAudit({ projectRoot: root, outputPath }),
       /missing governance selection state/i,
     );
+  });
+});
+
+test("writeGovernanceAudit rejects output paths outside a concrete planning phase directory", () => {
+  withTempRoot((root) => {
+    writeSelection(fixtureRecord(), root);
+
+    for (const outputPath of [
+      path.join(root, ".planning", "phases", "GOVERNANCE.md"),
+      path.join(root, ".planning", "GOVERNANCE.md"),
+      path.join(root, ".planning", "phases", "not-a-phase", "GOVERNANCE.md"),
+    ]) {
+      assert.throws(
+        () => writeGovernanceAudit({ projectRoot: root, outputPath }),
+        /audit artifact output path/i,
+      );
+      assert.equal(existsSync(outputPath), false);
+    }
   });
 });
 

@@ -1,5 +1,6 @@
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -19,8 +20,8 @@ const SKILL_PATH = path.join(
   "aidlc-governance-audit",
   "SKILL.md",
 );
-const GSD_TOOLS = "C:/Users/thien/.codex/gsd-core/bin/gsd-tools.cjs";
-const CODEX_CONFIG_DIR = "C:/Users/thien/.codex";
+const CODEX_CONFIG_DIR = process.env.CODEX_HOME ?? path.join(os.homedir(), ".codex");
+const GSD_TOOLS = resolveGsdTools();
 
 type CapabilityStep = {
   point?: string;
@@ -55,6 +56,16 @@ function auditSteps(capability: CapabilityManifest): CapabilityStep[] {
       step.point === "verify:post" &&
       step.ref?.skill === "aidlc-governance-audit",
   );
+}
+
+function resolveGsdTools(): string {
+  const candidates = [
+    path.join(CODEX_CONFIG_DIR, "gsd-core", "bin", "gsd-tools.cjs"),
+    path.join(os.homedir(), ".codex", "gsd-core", "bin", "gsd-tools.cjs"),
+    path.join(os.homedir(), ".claude", "gsd-core", "bin", "gsd-tools.cjs"),
+  ];
+
+  return candidates.find((candidate) => existsSync(candidate)) ?? candidates[0] as string;
 }
 
 test("capability manifest declares one artifact-only audit verify:post step", () => {
