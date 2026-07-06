@@ -2,7 +2,7 @@ import { mkdirSync, renameSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { readSelection, type GovernanceRecord } from "./state-store.js";
 import { selectionStatePath } from "./paths.js";
-import type { Severity, SkipReason, Scope } from "../types.js";
+import type { Severity, SkipReason, Scope, MatchedAxis } from "../types.js";
 
 export const AUDIT_SKIP_REASONS = [
   "out-of-phase",
@@ -15,6 +15,7 @@ const PHASES = ["inception", "construction", "operations", "common"] as const;
 const RISK_TIERS = ["critical", "elevated", "baseline"] as const;
 const SEVERITIES = ["critical", "high", "medium", "low"] as const;
 const SCOPES = ["enterprise", "domain", "project"] as const;
+const MATCHED_AXES = ["taskType", "keywords", "paths", "always-in-phase"] as const;
 
 export type AuditSkipReason = (typeof AUDIT_SKIP_REASONS)[number];
 
@@ -22,7 +23,7 @@ export interface AuditAppliedRule {
   id: string;
   severity: Severity;
   summary: string;
-  matchedAxis: string;
+  matchedAxis: MatchedAxis;
   matchedValue: string;
 }
 
@@ -115,7 +116,7 @@ function assertSelectionArrays(record: GovernanceRecord): void {
     assertString(rule.id, `selectionResult.selected[${index}].id`);
     assertOneOf(rule.severity, `selectionResult.selected[${index}].severity`, SEVERITIES);
     assertString(rule.summary, `selectionResult.selected[${index}].summary`);
-    assertString(rule.matchedAxis, `selectionResult.selected[${index}].matchedAxis`);
+    assertOneOf(rule.matchedAxis, `selectionResult.selected[${index}].matchedAxis`, MATCHED_AXES);
     assertString(rule.matchedValue, `selectionResult.selected[${index}].matchedValue`);
   });
 

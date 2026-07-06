@@ -231,6 +231,17 @@ test("writeGovernanceAudit rejects malformed governance metadata and enum fields
         /selected\[0\]\.severity/i,
       ],
       [
+        "invalid selected matchedAxis",
+        (record: Record<string, unknown>) => {
+          const selectionResult = record.selectionResult as SelectionResult;
+          selectionResult.selected[0] = {
+            ...selectionResult.selected[0],
+            matchedAxis: "garbage",
+          } as unknown as SelectionResult["selected"][number];
+        },
+        /selected\[0\]\.matchedAxis/i,
+      ],
+      [
         "invalid skipped scope",
         (record: Record<string, unknown>) => {
           const selectionResult = record.selectionResult as SelectionResult;
