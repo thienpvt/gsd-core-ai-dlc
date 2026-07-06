@@ -71,7 +71,13 @@ Plans:
   2. A single `GateAdapter` TypeScript interface (`evaluate(request) → Promise<GateResult>`) ships with reference no-op/echo stubs named semgrep, bandit, checkov, grype, gitleaks, generic-exit-ci, and human-approval — as stubs, not first-class integrations (ENF-03).
   3. Binding rules route enforcement through the named gate contracts; markdown steering stays advisory, and the boundary between advisory context and binding enforcement is explicit in the contracts (ENF-04).
 
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 07-01-PLAN.md — Publish 3 JSON Schema (draft 2020-12) contract files + enforcement TypeScript types (GateId, GateRequest, GateResult, GateFinding) + schema-compile smoke test
+- [ ] 07-02-PLAN.md — Implement validateGateResult assert (Ajv 2020 runtime validator, 4th instance of the validate.ts pattern) — ENF-02 integrity gate (TDD)
+- [ ] 07-03-PLAN.md — Implement GateAdapter interface + noopAdapter/echoAdapter factories + 7 named stubs + static ADAPTERS/ECHO_ADAPTERS Maps — ENF-03 (TDD)
+- [ ] 07-04-PLAN.md — Implement runAdapter hard-fail boundary wrapper + append malformed-fixture contract tests — ENF-02 + ENF-04 boundary (TDD)
 
 ### Phase 8: Remaining Gate Hooks
 
