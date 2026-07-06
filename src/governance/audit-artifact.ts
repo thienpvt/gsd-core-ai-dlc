@@ -1,7 +1,7 @@
-import { mkdirSync, renameSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { readSelection, type GovernanceRecord } from "./state-store.js";
 import { selectionStatePath } from "./paths.js";
+import { atomicWriteFile } from "./atomic-write.js";
 import type { Severity, SkipReason, Scope, MatchedAxis } from "../types.js";
 
 export const AUDIT_SKIP_REASONS = [
@@ -66,10 +66,7 @@ function normalizeSkipReason(reason: string): AuditSkipReason {
 }
 
 function atomicWriteText(finalPath: string, content: string): void {
-  mkdirSync(path.dirname(finalPath), { recursive: true });
-  const tmpPath = `${finalPath}.tmp`;
-  writeFileSync(tmpPath, content, "utf8");
-  renameSync(tmpPath, finalPath);
+  atomicWriteFile(finalPath, content);
 }
 
 function assertRecordObject(value: unknown, field: string): asserts value is Record<string, unknown> {

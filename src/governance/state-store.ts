@@ -2,11 +2,12 @@
  * Atomic read/write of the governance ledger under
  * `<projectRoot>/.planning/governance/` (RESEARCH §5, Pitfalls 4 + 5 + 7).
  *
- * Write contract (Pitfall 5 — atomic):
+ * Write contract (Pitfall 5 — atomic; TD-03 unique temp suffix):
  *   - serialize as pretty JSON
- *   - write to `<final>.tmp` (writeFileSync)
+ *   - delegate to atomicWriteFile — unique `.<pid>-<uuid>.tmp` temp then rename
  *   - renameSync(tmp, final) — atomic on POSIX, near-atomic on Windows
  *   - a mid-write crash leaves either the old or the new file, never a truncated one
+ *   - unique temp suffix means concurrent writers cannot clobber each other (TD-03)
  *
  * Read contract (Pitfall 7 — loud on malformed):
  *   - missing file  -> null (no record yet — not an error)
@@ -18,8 +19,9 @@
  *   - the persisted `selectionResult` is the full Phase 2 SelectionResult
  *     with NO timestamp field; the wrapper record's `timestamp` is metadata.
  */
-import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import path from "node:path";
+import { atomicWriteFile } from "./atomic-write.js";
 import type {
   Phase,
   RuleIndex,
@@ -60,10 +62,7 @@ export type { RuleIndex };
  * Shared by both the canonical selection-state file and the per-phase files.
  */
 function atomicWriteJson(finalPath: string, record: GovernanceRecord): void {
-  mkdirSync(path.dirname(finalPath), { recursive: true });
-  const tmp = `${finalPath}.tmp`;
-  writeFileSync(tmp, JSON.stringify(record, null, 2), "utf8");
-  renameSync(tmp, finalPath);
+  atomicWriteFile(finalPath, JSON.stringify(record, null, 2));
 }
 
 /**
@@ -139,9 +138,9 @@ export function writePhaseRecord(
   projectRoot: string,
   key: string,
 ): void {
-  // Ensure the phase dir exists (mkdirSync recursive in atomicWriteJson covers
-  // the parent of the final file, but this gives a stable layout even before
-  // the first write — useful for tests that scan the dir).
+  // Ensure the phase dir exists (atomicWriteFile creates the parent of the
+  // final file, but this gives a stable layout even before the first write —
+  // useful for tests that scan the dir).
   mkdirSync(phaseDir(projectRoot, record.phase), { recursive: true });
   atomicWriteJson(phaseRecordPath(projectRoot, record.phase, key), record);
 }

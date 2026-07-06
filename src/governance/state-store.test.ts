@@ -118,13 +118,22 @@ test("writeSelection writes via temp file then rename — a leftover .tmp file f
   });
 });
 
-test("writeSelection's .tmp intermediate is gone after a successful write (rename completed)", () => {
+test("writeSelection's temp intermediate is gone after a successful write (rename completed; no `*.tmp*` leftover of any suffix)", () => {
   withTempRoot((root) => {
     const finalPath = selectionStatePath(root);
-    const tmpPath = `${finalPath}.tmp`;
     writeSelection(record(), root);
     assert.ok(existsSync(finalPath), "final record file must exist");
-    assert.ok(!existsSync(tmpPath), "leftover .tmp must be gone after rename");
+    // The helper now uses a unique `.<pid>-<uuid>.tmp` suffix; assert NO
+    // sibling temp file of any suffix remains after a successful rename.
+    const siblings = readdirSync(path.dirname(finalPath));
+    const leftovers = siblings.filter(
+      (name) => name !== path.basename(finalPath) && name.includes(".tmp"),
+    );
+    assert.deepEqual(
+      leftovers,
+      [],
+      `no temp leftover files expected, got ${JSON.stringify(leftovers)}`,
+    );
   });
 });
 
