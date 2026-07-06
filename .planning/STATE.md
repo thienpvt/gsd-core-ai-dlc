@@ -2,14 +2,18 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Govern
-status: planning
-last_updated: "2026-07-06T00:00:00.000Z"
+current_phase: 06
+current_phase_name: v1.0 Tech-Debt Fold-In
+status: executing
+stopped_at: Completed 06-01-PLAN.md (atomicWriteFile shared helper, TD-03)
+last_updated: "2026-07-06T15:50:51.350Z"
 last_activity: 2026-07-06
+last_activity_desc: Phase 06 execution started
 progress:
   total_phases: 5
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 3
+  completed_plans: 1
   percent: 0
 ---
 
@@ -20,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-06)
 
 **Core value:** The rule selection engine injects only the relevant AI-DLC rule summaries for the current task and phase — enough governance to be safe, little enough to avoid context bloat.
-**Current focus:** v2.0 Govern roadmap defined (Phases 6-10). First phase owns v1.0 tech-debt fold-in atomically before new gate surface opens. Awaiting plan for Phase 6.
+**Current focus:** Phase 06 — v1.0 Tech-Debt Fold-In
 
 ## Current Position
 
-Phase: 6 — v1.0 Tech-Debt Fold-In (not started)
-Plan: —
-Status: Roadmap defined, awaiting plan
-Last activity: 2026-07-06 — v2.0 Govern roadmap created
+Phase: 06 (v1.0 Tech-Debt Fold-In) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
+Last activity: 2026-07-06 — Phase 06 execution started
 
 ## Performance Metrics
 
@@ -63,6 +67,7 @@ Last activity: 2026-07-06 — v2.0 Govern roadmap created
 - Trend: —
 
 *Updated after each plan completion*
+| Phase 06 P01 | 5 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -77,6 +82,8 @@ Recent decisions affecting current work:
 - [Roadmap v2.0]: Phase 8 gates consume Phase 7 contracts — plan gate reuses selection engine, verify gate routes through adapters, ship gate blocks on incomplete prior gates.
 - [Roadmap v2.0]: Phase 9 audit extends v1's GOVERNANCE.md writer — requirements covered, tests executed (real runner output, not narration), remaining risks, approvals required. APPR-01 human approval flows through the contract layer.
 - [Roadmap v2.0]: Phase 10 SEL-06 harness validates the whole — standing recall/precision check against the labeled eval set, repeatable and auditable, blocks ship on regression.
+- [Phase ?]: 06-01: atomicWriteFile shared helper uses .<pid>-<uuid>.tmp temp suffix (crypto.randomUUID) — concurrent writers cannot clobber; atomicWriteText/atomicWriteJson reduced to one-line wrappers (TD-03)
+- [Phase ?]: 06-01: concurrent-write test asserts content integrity (one payload, not merged/empty/truncated) not all-exit-0 — Windows renameSync race tolerated; losing writer temp cleaned up, winner payload intact
 
 ### Pending Todos
 
@@ -103,8 +110,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-06
-Stopped at: v2.0 Govern roadmap defined (Phases 6-10)
+Last session: 2026-07-06T15:50:51.344Z
+Stopped at: Completed 06-01-PLAN.md (atomicWriteFile shared helper, TD-03)
 Resume file: None
 
 ## Operator Next Steps

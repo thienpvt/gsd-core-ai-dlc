@@ -38,7 +38,7 @@ Requirements for milestone **v2.0 Govern**. Each maps to a roadmap phase (number
 
 - [ ] **TD-01**: `assertTimestamp` enforces ISO 8601 shape (rejects non-ISO like `"2026/07/06"`) in `src/governance/audit-artifact.ts` — fixes WR-01 (correctness)
 - [ ] **TD-02**: Consent integration test renders `verify:post` post-consent and asserts the audit hook fires — covers the `onError:halt` silent-failure path (WR-03, correctness)
-- [ ] **TD-03**: `atomicWriteText` uses a unique temp suffix (PID/counter) before atomic rename — closes the concurrent-writer race for v2 adapters (WR-05, correctness)
+- [x] **TD-03**: `atomicWriteText` uses a unique temp suffix (PID/counter) before atomic rename — closes the concurrent-writer race for v2 adapters (WR-05, correctness)
 - [ ] **TD-04**: `selector_reason` validation unified (single error shape) across `assertSelectionArrays` + `normalizeSkipReason` (WR-02, hygiene)
 - [ ] **TD-05**: `isDirectRun` narrowed to the dist entry path, not any `audit-artifact.js` (WR-04, hygiene)
 - [ ] **TD-06**: `buildAuditRecord` export narrowed to module-internal (IN-01, hygiene)
@@ -73,7 +73,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 |-------------|-------|--------|
 | TD-01 | Phase 6 | Pending |
 | TD-02 | Phase 6 | Pending |
-| TD-03 | Phase 6 | Pending |
+| TD-03 | Phase 6 | Complete |
 | TD-04 | Phase 6 | Pending |
 | TD-05 | Phase 6 | Pending |
 | TD-06 | Phase 6 | Pending |
@@ -94,6 +94,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SEL-06 | Phase 10 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 20 total
 - Mapped to phases: 20
 - Unmapped: 0 ✓
