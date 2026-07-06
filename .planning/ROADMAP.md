@@ -127,7 +127,7 @@ v2.0 Phases execute in numeric order: 6 → 7 → 8 → 9 → 10.
 | 3. Summary Injection & Lazy Detail Loading | v1.0 | 2/2 | Complete | 2026-07-06 |
 | 4. GSD Capability Integration & Persistence | v1.0 | 3/3 | Complete | 2026-07-06 |
 | 5. Audit-Artifact Writer | v1.0 | 2/2 | Complete | 2026-07-06 |
-| 6. v1.0 Tech-Debt Fold-In | v2.0 | 3/3 | Complete   | 2026-07-06 |
+| 6. v1.0 Tech-Debt Fold-In | v2.0 | 3/3 | Complete    | 2026-07-06 |
 | 7. Enforcement Contracts & Adapter Stubs | v2.0 | 0/? | Not started | - |
 | 8. Remaining Gate Hooks | v2.0 | 0/? | Not started | - |
 | 9. Complete Audit Record & Approval | v2.0 | 0/? | Not started | - |
