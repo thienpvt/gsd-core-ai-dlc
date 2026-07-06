@@ -19,7 +19,8 @@ export async function main(argv: string[]): Promise<void> {
     case "inject":
       return (await import("./commands/inject.js")).run(rest);
 
-    // Phase 3: case "rule-detail" → ./commands/rule-detail.js
+    case "rule-detail":
+      return (await import("./commands/rule-detail.js")).run(rest);
 
     default:
       process.stderr.write(`Unknown command: ${subcommand ?? "(none)"}\n`);
@@ -27,7 +28,8 @@ export async function main(argv: string[]): Promise<void> {
         "Usage:\n" +
           "  governance build-index [--root <dir>] [--out <file>]\n" +
           "  governance select --phase <p> [--index <f>] [--input <f>] [--domains a,b] [--budget <n>] [--format json|text]\n" +
-          "  governance inject [--input <file>]\n",
+          "  governance inject [--input <file>]\n" +
+          "  governance rule-detail <id> [--index <f>]\n",
       );
       process.exit(2);
   }
