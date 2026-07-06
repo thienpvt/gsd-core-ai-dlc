@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-06)
 
 **Core value:** The rule selection engine injects only the relevant AI-DLC rule summaries for the current task and phase — enough governance to be safe, little enough to avoid context bloat.
-**Current focus:** Phase 06 — v1.0 Tech-Debt Fold-In
+**Current focus:** Phase 07 — Enforcement Contracts & Adapter Stubs
 
 ## Current Position
 
 Phase: 7 — Enforcement Contracts & Adapter Stubs
 Plan: Not started
 Status: Ready to execute
-Last activity: 2026-07-06 — Phase 6 complete, transitioned to Phase 7
+Last activity: 2026-07-07 — Phase 7 planned (4 plans, 3 waves)
 
 ## Performance Metrics
 
@@ -56,8 +56,8 @@ Last activity: 2026-07-06 — Phase 6 complete, transitioned to Phase 7
 
 | Phase | Plans | Status |
 |-------|-------|--------|
-| 6. v1.0 Tech-Debt Fold-In | 0/? | Not started |
-| 7. Enforcement Contracts & Adapter Stubs | 0/? | Not started |
+| 6. v1.0 Tech-Debt Fold-In | 3/3 | Complete (verified 5/5) |
+| 7. Enforcement Contracts & Adapter Stubs | 0/4 | Planned — ready to execute |
 | 8. Remaining Gate Hooks | 0/? | Not started |
 | 9. Complete Audit Record & Approval | 0/? | Not started |
 | 10. Selection-Quality Harness | 0/? | Not started |
@@ -126,4 +126,4 @@ Resume file: None
 
 ## Operator Next Steps
 
-- Plan Phase 6 with `/gsd-plan-phase 6` (v1.0 tech-debt fold-in — 9 TD items, first v2.0 phase)
+- Execute Phase 7 with `/gsd-execute-phase 7` (Enforcement Contracts & Adapter Stubs — 4 plans, 3 waves; ENF-02/03/04)
