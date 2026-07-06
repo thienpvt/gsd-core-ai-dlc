@@ -100,6 +100,7 @@ function writeRuntimeShim(tmpRoot: string): { configDir: string; gsdTools: strin
 
   writeSkill(configDir, "gsd-aidlc-governance-discuss");
   writeSkill(configDir, "gsd-aidlc-governance-execute");
+  writeSkill(configDir, "gsd-aidlc-governance-audit");
 
   return {
     configDir,
