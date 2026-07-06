@@ -126,3 +126,36 @@ test("Case C (malformed): governance inject fails loud (non-zero) on a payload l
     assert.ok(proc.stderr.trim().length > 0, "malformed input writes a loud stderr message");
   });
 });
+
+test("Case D (prototype-key severity): governance inject rejects a severity that is an Object.prototype member (WR-01 regression)", () => {
+  // WR-01's first fix used `in`, which walks the prototype chain, so a severity
+  // like "toString" / "__proto__" / "constructor" passed validation and rendered
+  // bogus governance (and produced a NaN comparator, breaking determinism).
+  // The fix uses Object.hasOwn + a string guard; this asserts a prototype-name
+  // severity is rejected loud at the untrusted-input boundary.
+  const tmpDir = mkdtempSync(path.join(os.tmpdir(), "gsd-inject-proto-"));
+  try {
+    const protoPath = path.join(tmpDir, "proto.json");
+    // Valid JSON, arrays present, but severity is a prototype key — must fail loud.
+    writeFileSync(
+      protoPath,
+      JSON.stringify({ selected: [{ id: "evil", summary: "pwned", severity: "toString" }], skipped: [] }),
+      "utf8",
+    );
+    const proc = spawnSync(process.execPath, [CLI, "inject", "--input", protoPath], {
+      encoding: "utf8",
+    });
+    assert.notEqual(
+      proc.status,
+      0,
+      "a prototype-key severity must fail non-zero (WR-01: must not render [toString] evil)",
+    );
+    assert.ok(proc.stderr.trim().length > 0, "prototype-key severity writes a loud stderr message");
+    assert.ok(
+      !proc.stdout.includes("[toString]"),
+      "stdout must NOT carry a rendered prototype-key severity — that is exactly the bogus-governance failure WR-01 closes",
+    );
+  } finally {
+    rmSync(tmpDir, { recursive: true, force: true });
+  }
+});
