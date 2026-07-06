@@ -158,8 +158,12 @@ Plans:
 **Plans**: TBD
 
 Plans:
+**Wave 1**
 
 - [ ] 05-01: Audit writer → `GOVERNANCE.md` with machine-derived `rules_applied` from selector output
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 05-02: Skip-reason enum enforcement + provenance tags + reproducibility check
 
 ## Progress

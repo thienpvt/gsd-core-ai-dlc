@@ -46,13 +46,13 @@ The planner may choose frontmatter, fenced JSON, or a compact Markdown table as 
 
 ## Summary
 
-Phase 5 should be a small artifact writer over Phase 4 state: read `.planning/governance/selection-state.json` with `readSelection(projectRoot)`, map `selectionResult.selected` to `rules_applied`, map `selectionResult.skipped` to `rules_skipped`, normalize only `out-of-scope` to public audit reason `out-of-scope-by-trigger`, and write `<phase>/GOVERNANCE.md` atomically. No call path should import or call `select()`, `validateSignal()`, `classifyRisk()`, `discussHook()`, or `executeHook()` for audit generation. [VERIFIED: CodeGraph src/governance/state-store.ts; VERIFIED: CodeGraph src/types.ts; VERIFIED: .planning/phases/05-audit-artifact-writer/05-CONTEXT.md]
+Phase 5 should be a small artifact writer over Phase 4 state: read `.planning/governance/selection-state.json` with `readSelection(projectRoot)`, map `selectionResult.selected` to `rules_applied`, map `selectionResult.skipped` to `rules_skipped`, normalize only `out-of-scope` to public audit reason `out-of-scope-by-trigger`, and write `<phaseDir>/GOVERNANCE.md` atomically. No call path should import or call `select()`, `validateSignal()`, `classifyRisk()`, `discussHook()`, or `executeHook()` for audit generation. [VERIFIED: CodeGraph src/governance/state-store.ts; VERIFIED: CodeGraph src/types.ts; VERIFIED: .planning/phases/05-audit-artifact-writer/05-CONTEXT.md]
 
 Use fenced JSON inside Markdown as the v1 artifact format. It is shorter and easier to test than Markdown tables or YAML frontmatter, and it preserves exact array/object shapes for deep-equality tests. [VERIFIED: .planning/phases/05-audit-artifact-writer/05-CONTEXT.md; VERIFIED: package.json node:test usage]
 
-Add a `verify:post` step to `.gsd/capabilities/aidlc-governance/capability.json` because the roadmap acceptance criterion says the writer runs at `verify:post`, and the installed GSD runtime exposes `verify:post` as a canonical loop point. Keep it as a step only: `produces: ["GOVERNANCE.md"]`, `consumes: [".planning/governance/selection-state.json"]`, `when: "governance.enabled"`, `onError: "halt"`. Do not add gates, ship checks, adapters, SAST, lint, or test execution. [VERIFIED: .planning/ROADMAP.md; VERIFIED: C:/Users/thien/.codex/gsd-core/bin/lib/loop-host-contract.cjs; VERIFIED: gsd-tools loop render-hooks verify:post]
+Add a `verify:post` step to `.gsd/capabilities/aidlc-governance/capability.json` because the roadmap acceptance criterion says the writer runs at `verify:post`, and the installed GSD runtime exposes `verify:post` as a canonical loop point. The audit skill resolves `current_phase` from `.planning/STATE.md`, pads it to two digits, finds exactly one `.planning/phases/{NN}-*/` directory, and passes explicit `<phaseDir>/GOVERNANCE.md` to the writer. Keep the manifest as a step only: `produces: ["GOVERNANCE.md"]`, `consumes: [".planning/governance/selection-state.json"]`, `when: "governance.enabled"`, `onError: "halt"`. Do not add gates, ship checks, adapters, SAST, lint, or test execution. [VERIFIED: .planning/ROADMAP.md; VERIFIED: C:/Users/thien/.codex/gsd-core/bin/lib/loop-host-contract.cjs; VERIFIED: gsd-tools loop render-hooks verify:post]
 
-**Primary recommendation:** Build `src/governance/audit-artifact.ts` with pure `buildAuditRecord(record)` / `renderGovernanceMarkdown(audit)` plus a thin `writeGovernanceAudit({ projectRoot, outputPath })`; add one focused test file and one artifact-only `verify:post` skill/manifest update. [VERIFIED: CodeGraph src/governance/state-store.ts; VERIFIED: CodeGraph src/cli/index.ts]
+**Primary recommendation:** Build `src/governance/audit-artifact.ts` with pure `buildAuditRecord(record)` / `renderGovernanceMarkdown(audit)`, a thin `writeGovernanceAudit({ projectRoot, outputPath })`, and a mandatory ESM-safe direct runner for `node dist/governance/audit-artifact.js <projectRoot> <outputPath>`; add one focused test file and one artifact-only `verify:post` skill/manifest update. [VERIFIED: CodeGraph src/governance/state-store.ts; VERIFIED: CodeGraph src/cli/index.ts]
 
 ## Phase Requirements
 
@@ -99,9 +99,9 @@ Add a `verify:post` step to `.gsd/capabilities/aidlc-governance/capability.json`
 
 | Surface | Purpose | When to Use |
 |---------|---------|-------------|
-| `.claude/skills/aidlc-governance-audit/SKILL.md` | Thin project skill for hook invocation. | Add with manifest step so `verify:post` has a named skill. [VERIFIED: existing .claude/skills/aidlc-governance-execute/SKILL.md pattern] |
+| `.claude/skills/aidlc-governance-audit/SKILL.md` | Thin project skill for hook invocation. | Add with manifest step so `verify:post` has a named skill; resolve `current_phase` from `.planning/STATE.md`, pad to two digits, find exactly one `.planning/phases/{NN}-*/`, and pass `<phaseDir>/GOVERNANCE.md`. [VERIFIED: existing .claude/skills/aidlc-governance-execute/SKILL.md pattern] |
 | `gsd-tools loop render-hooks verify:post --raw --config-dir "$HOME/.codex"` | Verify manifest step is active. | Use in acceptance/manifest test after manifest update. [VERIFIED: gsd-tools loop render-hooks verify:post] |
-| Built CLI dispatch (`src/cli/index.ts`) | Optional manual command wiring. | Skip for Phase 5 unless planner wants `governance audit`; hook/function tests are enough for AUDIT-01/02. [VERIFIED: CodeGraph src/cli/index.ts] |
+| Direct module runner (`dist/governance/audit-artifact.js`) | Required verify:post invocation target. | Use `node dist/governance/audit-artifact.js <projectRoot> <outputPath>` from the audit skill; no CLI dispatch is needed. [VERIFIED: CodeGraph src/cli/index.ts] |
 
 ### Alternatives Considered
 
@@ -109,7 +109,7 @@ Add a `verify:post` step to `.gsd/capabilities/aidlc-governance/capability.json`
 |------------|-----------|----------|
 | Fenced JSON in Markdown | Markdown table | Tables are human-readable but harder to parse and can mangle optional provenance fields. [VERIFIED: 05-CONTEXT.md discretion] |
 | Fenced JSON in Markdown | YAML frontmatter | Frontmatter needs parser rules and can mix machine record with prose; fenced JSON uses stdlib `JSON.parse`. [VERIFIED: package.json; VERIFIED: 05-CONTEXT.md discretion] |
-| Direct hook module | New `governance audit` CLI | CLI adds dispatch file and smoke test; useful later, not required for verify-post acceptance. [VERIFIED: CodeGraph src/cli/index.ts; VERIFIED: ROADMAP Phase 5 criteria] |
+| Mandatory direct module runner | New `governance audit` CLI | The required runner is narrower: `node dist/governance/audit-artifact.js <projectRoot> <outputPath>` supports the verify:post skill without adding CLI dispatch surface. [VERIFIED: CodeGraph src/cli/index.ts; VERIFIED: ROADMAP Phase 5 criteria] |
 | `select()` rerun | Persisted `readSelection()` | Rerun can drift from discuss-time signal; Phase 5 is explicitly reload-not-rederive. [VERIFIED: 04-02-SUMMARY.md; VERIFIED: 05-CONTEXT.md] |
 
 **Installation:** none. This phase should add no external packages. [VERIFIED: package.json; VERIFIED: 05-CONTEXT.md]
@@ -152,7 +152,7 @@ GSD verify:post
         -> selectionResult.skipped -> normalizeSkipReason -> rules_skipped
       -> renderGovernanceMarkdown(audit)
         -> fenced JSON, deterministic stringify
-      -> atomic write <phase>/GOVERNANCE.md
+      -> atomic write <phaseDir>/GOVERNANCE.md
         -> return path/status
 ```
 
@@ -162,7 +162,7 @@ GSD verify:post
 
 ```text
 src/governance/
-  audit-artifact.ts        # pure audit build/render + thin write wrapper
+  audit-artifact.ts        # pure audit build/render + thin write wrapper + direct runner
   audit-artifact.test.ts   # AUDIT-01/02 unit + fixture integration coverage
 .claude/skills/
   aidlc-governance-audit/
@@ -232,7 +232,7 @@ export function normalizeSkipReason(selectorReason: string): AuditSkipReason {
 
 ### Pattern 3: Artifact-Only `verify:post` Step
 
-**What:** Add one manifest step and one skill; do not add gates. [VERIFIED: capability-registry.cjs first-party nyquist/security verify steps; VERIFIED: 05-CONTEXT.md]
+**What:** Add one manifest step and one skill; do not add gates. The skill reads `current_phase` from `.planning/STATE.md`, pads it to two digits, finds exactly one `.planning/phases/{NN}-*/` directory, and invokes the direct runner with `<phaseDir>/GOVERNANCE.md`. [VERIFIED: capability-registry.cjs first-party nyquist/security verify steps; VERIFIED: 05-CONTEXT.md]
 
 **Example:**
 
@@ -271,7 +271,7 @@ export function normalizeSkipReason(selectorReason: string): AuditSkipReason {
 
 | Plan Slice | Files | Tests | Acceptance Link |
 |------------|-------|-------|-----------------|
-| 05-01 Audit writer core | `src/governance/audit-artifact.ts`, `src/governance/audit-artifact.test.ts` | RED tests for selected mapping, missing-state throw, malformed-state propagation, deterministic render twice | AUDIT-01 [VERIFIED: ROADMAP.md] |
+| 05-01 Audit writer core | `src/governance/audit-artifact.ts`, `src/governance/audit-artifact.test.ts` | RED tests for selected mapping, missing-state throw, malformed-state propagation, deterministic render twice, direct runner basename and phase-dir containment | AUDIT-01 [VERIFIED: ROADMAP.md] |
 | 05-02 Skip enum + hook seam | same test file plus `.gsd/capabilities/aidlc-governance/capability.json`, `.claude/skills/aidlc-governance-audit/SKILL.md` | RED tests for `out-of-scope` normalization, invalid reason rejection, superseded provenance pass-through, manifest `verify:post` render | AUDIT-02 [VERIFIED: ROADMAP.md] |
 
 Recommended tests:
@@ -281,6 +281,7 @@ Recommended tests:
 - `normalizeSkipReason rejects unknown selector reason` casts test fixture as unsafe input and asserts throw. [VERIFIED: 05-CONTEXT.md]
 - `writeGovernanceAudit throws on missing selection-state.json` uses empty temp project root. [VERIFIED: execute-hook missing-state pattern]
 - `writeGovernanceAudit writes deterministic fenced JSON` writes same record twice and deep-equals parsed `rules_applied` / `rules_skipped`. [VERIFIED: 05-CONTEXT.md]
+- `node dist/governance/audit-artifact.js <projectRoot> <outputPath>` writes only when `outputPath` basename is `GOVERNANCE.md` and resolved output stays under `<projectRoot>/.planning/phases/`. [VERIFIED: ROADMAP Phase 5 criteria]
 - `manifest verify:post step is artifact-only` asserts no `gates` entry is added and the new step only produces `GOVERNANCE.md`. [VERIFIED: 05-CONTEXT.md; VERIFIED: capability.json]
 
 ## Common Pitfalls
@@ -446,7 +447,7 @@ Security enforcement is enabled in `.planning/config.json`; Phase 5 handles a lo
 | Pattern | STRIDE | Standard Mitigation |
 |---------|--------|---------------------|
 | Corrupted `selection-state.json` yields empty/success audit | Tampering | State store throws on malformed record; audit wrapper throws on `null`; add selected/skipped array and enum checks. [VERIFIED: src/governance/state-store.ts; VERIFIED: 05-CONTEXT.md] |
-| Path confusion writes artifact outside phase dir | Tampering | Prefer explicit `outputPath` from trusted phase resolver; if CLI accepts path, resolve/contain under `.planning/phases/`. [VERIFIED: paths.ts semantics; VERIFIED: ROADMAP target] |
+| Path confusion writes artifact outside phase dir | Tampering | Skill resolves `current_phase` from `.planning/STATE.md`, pads to two digits, finds one `.planning/phases/{NN}-*/`, passes explicit `<phaseDir>/GOVERNANCE.md`, and direct runner validates containment under `.planning/phases/`. [VERIFIED: paths.ts semantics; VERIFIED: ROADMAP target] |
 | v2 enforcement creep in v1 hook | Elevation of scope | Manifest step only, no gates/adapters/scan commands. [VERIFIED: REQUIREMENTS.md; VERIFIED: 05-CONTEXT.md] |
 | Prompt/model narration contaminates audit facts | Repudiation | Artifact fields derive only from persisted machine JSON. [VERIFIED: 05-CONTEXT.md; VERIFIED: PITFALLS.md] |
 
@@ -454,14 +455,14 @@ Security enforcement is enabled in `.planning/config.json`; Phase 5 handles a lo
 
 | # | Claim | Section | Risk if Wrong |
 |---|-------|---------|---------------|
-| A1 | The `aidlc-governance-audit` skill can resolve the current planning phase directory at runtime via existing GSD phase context or pass an explicit `outputPath` to the Node wrapper. [ASSUMED] | Architecture Patterns / Minimal Plan | If wrong, manifest render still passes but live hook needs a small skill argument/resolution adjustment. |
+| A1 | RESOLVED: The `aidlc-governance-audit` skill resolves `current_phase` from `.planning/STATE.md`, pads it to two digits, finds exactly one `.planning/phases/{NN}-*/` directory, and passes explicit `<phaseDir>/GOVERNANCE.md` to the Node wrapper. [VERIFIED: planner resolution 2026-07-06] | Architecture Patterns / Minimal Plan | If `.planning/STATE.md` lacks `current_phase` or multiple matching dirs exist, the skill must fail loud before invoking the writer. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Exact phase-dir source inside live `verify:post` skill**
-   - What we know: `verify:post` is canonical, and `init.phase-op 05` returns `.planning/phases/05-audit-artifact-writer`. [VERIFIED: init.phase-op; VERIFIED: loop-host-contract.cjs]
-   - What's unclear: whether the live skill receives the phase number as an argument or must infer from `.planning/STATE.md`. [ASSUMED]
-   - Recommendation: keep TypeScript writer accepting explicit `outputPath`; skill resolves phase dir separately, so core remains testable. [VERIFIED: existing thin skill pattern]
+   - Resolution: `verify:post` skill reads `current_phase` from `.planning/STATE.md`, pads it to two digits, finds exactly one `.planning/phases/{NN}-*/` directory, and passes explicit `<phaseDir>/GOVERNANCE.md` to `node dist/governance/audit-artifact.js <projectRoot> <outputPath>`. [VERIFIED: planner resolution 2026-07-06]
+   - Core writer remains decoupled by accepting explicit `outputPath`; it validates basename `GOVERNANCE.md` and resolved output under `<projectRoot>/.planning/phases/`. [VERIFIED: 05-01 plan alignment]
+   - Failure mode: if `current_phase` is absent, not parseable, or phase-dir glob has zero or multiple matches, the skill fails loud and does not write narrative fallback content. [VERIFIED: 05-02 plan alignment]
 
 ## Sources
 
