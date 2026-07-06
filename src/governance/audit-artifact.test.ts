@@ -359,6 +359,69 @@ test("compiled direct runner rejects output paths outside project .planning/phas
   });
 });
 
+test("writeGovernanceAudit rejects non-ISO-8601 timestamps so malformed metadata cannot enter the audit trail (TD-01)", () => {
+  withTempRoot((root) => {
+    for (const [label, badTimestamp, message] of [
+      ["slash separators", "2026/07/06", /timestamp must be an ISO 8601/i],
+      ["date-only no time", "2026-07-06", /timestamp must be an ISO 8601/i],
+      ["missing milliseconds", "2026-07-06T00:00:00Z", /timestamp must be an ISO 8601/i],
+      ["missing timezone", "2026-07-06T00:00:00.000", /timestamp must be an ISO 8601/i],
+      ["not a date", "not-a-date", /timestamp must be an ISO 8601/i],
+    ] as const) {
+      const caseRoot = path.join(root, label.replaceAll(" ", "-"));
+      const record = structuredClone(fixtureRecord()) as unknown as Record<string, unknown>;
+      record.timestamp = badTimestamp;
+      writeUnsafeState(caseRoot, record);
+
+      const outputPath = path.join(
+        caseRoot,
+        ".planning",
+        "phases",
+        "05-audit",
+        "GOVERNANCE.md",
+      );
+      assert.throws(
+        () => writeGovernanceAudit({ projectRoot: caseRoot, outputPath }),
+        message,
+      );
+      assert.equal(existsSync(outputPath), false);
+    }
+  });
+});
+
+test("writeGovernanceAudit accepts the canonical ISO-8601 timestamp (TD-01 positive case)", () => {
+  withTempRoot((root) => {
+    writeSelection(fixtureRecord(), root);
+    const outputPath = path.join(root, ".planning", "phases", "05-audit", "GOVERNANCE.md");
+    const result = writeGovernanceAudit({ projectRoot: root, outputPath });
+    assert.equal(existsSync(outputPath), true);
+    const audit = parseAuditMarkdown(readFileSync(outputPath, "utf8"));
+    assert.equal(audit.selection_timestamp, "2026-07-06T00:00:00.000Z");
+    void result;
+  });
+});
+
+test("writeGovernanceAudit validates selector_reason per-element with a single clear error before normalizeSkipReason runs (TD-04)", () => {
+  withTempRoot((root) => {
+    const selectionResult = fixtureSelectionResult();
+    selectionResult.skipped = [
+      {
+        id: "AIDLC-GARBAGE",
+        severity: "low",
+        reason: "garbage-reason",
+      } as unknown as SelectionResult["skipped"][number],
+    ];
+    writeSelection(fixtureRecord(selectionResult), root);
+
+    const outputPath = path.join(root, ".planning", "phases", "05-audit", "GOVERNANCE.md");
+    assert.throws(
+      () => writeGovernanceAudit({ projectRoot: root, outputPath }),
+      /selectionResult\.skipped\[0\]\.selector_reason must be one of/i,
+    );
+    assert.equal(existsSync(outputPath), false);
+  });
+});
+
 test("audit-artifact source does not import selector, risk, discuss, or execute derivation paths", () => {
   const source = readFileSync(path.join(process.cwd(), "src", "governance", "audit-artifact.ts"), "utf8");
 
