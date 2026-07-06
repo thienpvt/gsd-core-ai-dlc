@@ -9,7 +9,7 @@ This roadmap delivers Milestone 1 (Core / v1): proving the anti-bloat premise en
 - [x] **Phase 1: Rule-Pack Format & Index** - Author rules as Markdown+frontmatter across three scopes; compile a compact index (completed 2026-07-05)
 - [x] **Phase 2: Selection Engine** - Deterministic trigger+scope+phase matching with a labeled recall/precision eval set (completed 2026-07-05)
 - [x] **Phase 3: Summary Injection & Lazy Detail Loading** - Inject summaries only; load full rule bodies on demand by id (completed 2026-07-06)
-- [ ] **Phase 4: GSD Capability Integration & Persistence** - Register discuss/execute gate hooks as a capability; persist governance state to disk
+- [x] **Phase 4: GSD Capability Integration & Persistence** - Register discuss/execute gate hooks as a capability; persist governance state to disk (completed 2026-07-06)
 - [ ] **Phase 5: Audit-Artifact Writer** - Produce a machine-derived per-task audit of rules applied and skipped
 
 ## Phase Details
@@ -123,25 +123,25 @@ Plans:
   3. At the execute gate, the selected rule summaries are present in the executor/subagent context fragment (which otherwise inherits nothing).
   4. Selection decisions and state are written under `.planning/governance/` (`selection-state.json` + per-phase dirs) and reload correctly after a simulated compaction/subagent boundary, verifiable by a test that reads state back from disk.
 
-**Plans**: 2/3 plans executed
+**Plans**: 3/3 plans complete
 
 Plans:
 
 - [x] 04-01-PLAN.md — Capability manifest + discuss gate (risk heuristic, state-store, discuss-hook; GATE-01)
 - [x] 04-02-PLAN.md — Execute gate (reload-not-rederive, renderInjection, budget recheck) + reload-after-boundary integration test (GATE-02, ENF-01)
-- [ ] 04-03-PLAN.md — First-run project-scope consent (CB-3) + loader-driven integration test + runbook (GATE-01 consent gate)
+- [x] 04-03-PLAN.md — First-run project-scope consent (CB-3) + loader-driven integration test + runbook (GATE-01 consent gate)
 
 **Wave 1**
 
-- [ ] 04-01: Capability manifest (.gsd/capabilities/aidlc-governance/capability.json declaring discuss:pre + execute:pre) + discuss gate (classifyRisk, StateStore atomic write, discussHook; risk widens domain subscription — GATE-01)
+- [x] 04-01: Capability manifest (.gsd/capabilities/aidlc-governance/capability.json declaring discuss:pre + execute:pre) + discuss gate (classifyRisk, StateStore atomic write, discussHook; risk widens domain subscription — GATE-01)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 04-02: Execute gate (executeHook reloads persisted selectionResult — no re-derive; renderInjection + budget recheck) + reload-after-boundary integration test (GATE-02, ENF-01 criterion 4)
+- [x] 04-02: Execute gate (executeHook reloads persisted selectionResult — no re-derive; renderInjection + budget recheck) + reload-after-boundary integration test (GATE-02, ENF-01 criterion 4)
 
 **Wave 3** *(blocked on Wave 1 + Wave 2 completion)*
 
-- [ ] 04-03: First-run project-scope consent (CB-3 via loader's own verb) + loader-driven pre/post/tamper integration test + auditor runbook (GATE-01 consent gate — security load-bearer for the phase)
+- [x] 04-03: First-run project-scope consent (CB-3 via loader's own verb) + loader-driven pre/post/tamper integration test + auditor runbook (GATE-01 consent gate — security load-bearer for the phase)
 
 ### Phase 5: Audit-Artifact Writer
 
@@ -172,5 +172,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Rule-Pack Format & Index | 4/4 | Complete    | 2026-07-05 |
 | 2. Selection Engine | 3/3 | Complete    | 2026-07-05 |
 | 3. Summary Injection & Lazy Detail Loading | 2/2 | Complete    | 2026-07-06 |
-| 4. GSD Capability Integration & Persistence | 2/3 | In Progress|  |
+| 4. GSD Capability Integration & Persistence | 3/3 | Complete    | 2026-07-06 |
 | 5. Audit-Artifact Writer | 0/2 | Not started | - |

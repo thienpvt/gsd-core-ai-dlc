@@ -2,44 +2,44 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 04
-current_phase_name: GSD Capability Integration & Persistence
-status: executing
-stopped_at: Completed 04-02-PLAN.md
-last_updated: "2026-07-06T11:04:30.694Z"
+current_phase: 5
+current_phase_name: Audit-Artifact Writer
+status: planning
+stopped_at: Phase 04 complete, ready to plan Phase 05
+last_updated: "2026-07-06T11:46:10.821Z"
 last_activity: 2026-07-06
-last_activity_desc: Phase 04 execution started
+last_activity_desc: Phase 04 complete, transitioned to Phase 5
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 12
-  completed_plans: 11
-  percent: 60
+  completed_plans: 12
+  percent: 80
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-07-05)
+See: .planning/PROJECT.md (updated 2026-07-06)
 
 **Core value:** The rule selection engine injects only the relevant AI-DLC rule summaries for the current task and phase — enough governance to be safe, little enough to avoid context bloat.
-**Current focus:** Phase 04 — GSD Capability Integration & Persistence
+**Current focus:** Phase 05 — Audit-Artifact Writer
 
 ## Current Position
 
-Phase: 04 (GSD Capability Integration & Persistence) — EXECUTING
-Plan: 3 of 3
-Status: Ready to execute
-Last activity: 2026-07-06 — Phase 04 execution started
+Phase: 5 — Audit-Artifact Writer
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-07-06 — Phase 04 complete, transitioned to Phase 5
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [████████░░] 80%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 9
+- Total plans completed: 12
 - Average duration: — min
 - Total execution time: 0.0 hours
 
@@ -50,6 +50,7 @@ Progress: [░░░░░░░░░░] 0%
 | 01 | 4 | - | - |
 | 02 | 3 | - | - |
 | 03 | 2 | - | - |
+| 04 | 3 | - | - |
 
 **Recent Trend:**
 
@@ -67,6 +68,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 03-summary-injection-lazy-detail-loading P01 | 11 | 3 tasks | 6 files |
 | Phase 03-summary-injection-lazy-detail-loading P02 | 13 | 3 tasks | 11 files |
 | Phase 04 P02 | 8 | 3 tasks | 4 files |
+| Phase 04 P03 | 30 | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -94,6 +96,9 @@ Recent decisions affecting current work:
 - [Phase 04]: [Phase 04-02]: executeHook emits the governance fragment on stdout and returns it, preserving observable context even when budget overflow sets process.exitCode=1. — Matches Phase 3 inject CLI and prevents truncating the executor context fragment on overflow.
 - [Phase 04]: [Phase 04-02]: executeHook reads persisted selection through StateStore and renderInjection only; it does not import select, validateSignal, classifyRisk, or discussHook. — Preserves D-RELOAD and prevents execute-time re-derivation drift.
 - [Phase 04]: [Phase 04-02]: reload-boundary acceptance is test-only once 04-01 and executeHook exist; no fake RED failure was introduced. — The plan explicitly noted the test becomes green once both halves land; artificial failures would add no product proof.
+- [Phase 04]: [Phase 04-03]: aidlc-governance consent is CB-3-bound to (realpath(projectRoot), id, bundleContentHash); pre-consent hooks omit it, post-consent hooks render discuss/execute, and tamper flips inactive.
+- [Phase 04]: [Phase 04-03]: project install ledger is committed for discoverability, but the user-owned consent store remains the activation authority and lives outside the repo.
+- [Phase 04]: [Phase 04-03]: Codex runtime hook verification needs `--config-dir "$HOME/.codex"` in this shell so capability-state sees the Codex skill surface.
 
 ### Pending Todos
 
@@ -106,7 +111,6 @@ None yet.
 [Issues that affect future work]
 
 - [Phase 2]: Labeled eval-set construction methodology and the `critical`-rule recall threshold are novel and load-bearing — flagged for deeper research during Phase 2 planning.
-- [Phase 4]: Exact `capability.json` schema and the project-scope consent flow should be re-verified against installed `capability-loader.cjs` and the built-in `security` capability at planning time.
 
 ## Deferred Items
 
@@ -118,6 +122,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-06T11:04:30.689Z
-Stopped at: Completed 04-02-PLAN.md
+Last session: 2026-07-06T11:55:00Z
+Stopped at: Phase 04 complete, ready to plan Phase 05
 Resume file: None

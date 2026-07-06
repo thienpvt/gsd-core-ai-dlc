@@ -29,7 +29,7 @@ Requirements for the Core milestone. Each maps to a roadmap phase.
 
 ### Governance Gates
 
-- [ ] **GATE-01**: At the discuss gate, the overlay identifies task type and risk and attaches the relevant rule summaries to the discussion context
+- [x] **GATE-01**: At the discuss gate, the overlay identifies task type and risk and attaches the relevant rule summaries to the discussion context
 - [x] **GATE-02**: At the execute gate, the overlay injects the selected rule summaries into the executor/subagent context (which otherwise inherits nothing)
 
 ### Audit Artifacts
@@ -102,7 +102,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | SEL-03 | Phase 3 | Complete |
 | SEL-04 | Phase 2 | Complete |
 | SEL-05 | Phase 2 | Complete |
-| GATE-01 | Phase 4 | Pending |
+| GATE-01 | Phase 4 | Complete |
 | GATE-02 | Phase 4 | Complete |
 | AUDIT-01 | Phase 5 | Pending |
 | AUDIT-02 | Phase 5 | Pending |
