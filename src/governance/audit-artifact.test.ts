@@ -174,9 +174,11 @@ test("buildAuditRecord throws on a skipped rule reason outside the audit enum", 
     } as unknown as SelectionResult["skipped"][number],
   ];
 
+  // TD-04: assertSelectionArrays now validates selector_reason per-element with
+  // a single unified message before normalizeSkipReason ever runs.
   assert.throws(
     () => buildAuditRecord(fixtureRecord(selectionResult)),
-    /invalid audit skip reason/i,
+    /selector_reason must be one of/i,
   );
 });
 

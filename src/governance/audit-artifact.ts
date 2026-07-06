@@ -57,12 +57,11 @@ export interface WriteGovernanceAuditResult {
   audit: GovernanceAudit;
 }
 
+// TD-04: persisted selector_reason values are validated per-element in
+// assertSelectionArrays before this runs; the mapping here is total.
 function normalizeSkipReason(reason: string): AuditSkipReason {
   if (reason === "out-of-scope") return "out-of-scope-by-trigger";
-  if ((AUDIT_SKIP_REASONS as readonly string[]).includes(reason)) {
-    return reason as AuditSkipReason;
-  }
-  throw new Error(`invalid audit skip reason: ${reason}`);
+  return reason as AuditSkipReason;
 }
 
 function atomicWriteText(finalPath: string, content: string): void {
@@ -93,10 +92,36 @@ function assertOneOf<T extends readonly string[]>(
   }
 }
 
+// TD-04: selector_reason = the raw SkipReason persisted from selection
+// (selector provenance); normalizeSkipReason maps it to the public AuditSkipReason
+// (out-of-scope -> out-of-scope-by-trigger). assertSelectionArrays validates the
+// persisted shape per-element so a bad value fails there with one clear message,
+// before normalizeSkipReason ever sees it — the check below is dead defense for
+// any future direct caller and kept ponytail: short, one message, no second shape.
+const SELECTOR_REASONS = [
+  "out-of-phase",
+  "out-of-scope",
+  "out-of-scope-by-trigger",
+  "superseded",
+] as const;
+
+// TD-01: strict ISO 8601 — the canonical audit-trail shape. Date.parse alone
+// accepts "2026/07/06" and "2026-07-06", letting malformed timestamps cross the
+// persisted-state -> audit-record trust boundary (breaks AUDIT-02 machine-checkable).
+const ISO_8601_STRICT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
+
+/**
+ * Assert `value` is a strict ISO 8601 timestamp of the form
+ * `YYYY-MM-DDTHH:mm:ss.sssZ` (the canonical audit-trail shape). Rejects
+ * date-only, slash-separated, and timezone-less variants that `Date.parse`
+ * silently accepts. TD-01.
+ */
 function assertTimestamp(value: unknown, field: string): asserts value is string {
   assertString(value, field);
-  if (Number.isNaN(Date.parse(value))) {
-    throw new Error(`malformed governance state: ${field} must be an ISO timestamp`);
+  if (!ISO_8601_STRICT.test(value)) {
+    throw new Error(
+      `malformed governance state: ${field} must be an ISO 8601 timestamp (YYYY-MM-DDTHH:mm:ss.sssZ)`,
+    );
   }
 }
 
@@ -121,7 +146,14 @@ function assertSelectionArrays(record: GovernanceRecord): void {
     assertRecordObject(rule, `selectionResult.skipped[${index}]`);
     assertString(rule.id, `selectionResult.skipped[${index}].id`);
     assertOneOf(rule.severity, `selectionResult.skipped[${index}].severity`, SEVERITIES);
-    assertString(rule.reason, `selectionResult.skipped[${index}].reason`);
+    // TD-04: validate the raw SkipReason (persisted selector provenance) per-element
+    // so a garbage value fails here with one clear message naming selector_reason,
+    // before normalizeSkipReason ever maps it to the audit enum.
+    assertOneOf(
+      rule.reason,
+      `selectionResult.skipped[${index}].selector_reason`,
+      SELECTOR_REASONS,
+    );
     if (rule.detail !== undefined) {
       assertString(rule.detail, `selectionResult.skipped[${index}].detail`);
     }
