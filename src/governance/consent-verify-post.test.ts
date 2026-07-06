@@ -242,17 +242,15 @@ function grantConsent(
   capDir: string,
 ): ConsentModule {
   const consent = consentModule(gsdTools);
-  const proc = spawnGsd(gsdTools, projectRoot, configDir, [
-    "capability",
-    "install",
-    "./.gsd/capabilities/aidlc-governance",
-    "--scope",
-    "project",
-    "--yes",
-    "--raw",
-  ]);
-  if (proc.status === 0) return consent;
-
+  // ponytail: record consent directly via the consent module rather than the
+  // `gsd capability install` lifecycle, because the install path is not the
+  // contract under test here (consent binding is). The security binding is
+  // `contentHash` (recomputed via bundleContentHash); `integrity` and
+  // `disclosureSignature` are left empty because this test asserts content-hash
+  // tamper detection, not disclosure-signature binding. Ceiling: if a future
+  // gsd-core release tightens recordProjectConsent to require non-empty
+  // disclosureSignature (its docstring already names it the re-consent key),
+  // populate a non-empty signature here.
   consent.recordProjectConsent({
     gsdHome: configDir,
     projectRoot,
