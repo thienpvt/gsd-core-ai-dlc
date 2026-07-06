@@ -31,7 +31,13 @@ export async function main(argv: string[]): Promise<void> {
           "  governance inject [--input <file>]\n" +
           "  governance rule-detail <id> [--index <f>]\n",
       );
-      process.exit(2);
+      // CR-02 discipline (WR-02): set process.exitCode + return rather than
+      // process.exit(2). process.exit() forces an immediate exit that can truncate
+      // the buffered stderr usage text above on a Windows pipe; process.exitCode
+      // fires the same non-zero signal while letting the buffered writes drain.
+      // Every other command in this CLI already follows this pattern.
+      process.exitCode = 2;
+      return;
   }
 }
 
