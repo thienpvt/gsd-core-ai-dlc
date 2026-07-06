@@ -11,9 +11,11 @@
  * lives in 01-02; a throw that names the file is the wave-order-stable proof.
  *
  * Criterion 4 (D-06): a rule that declares a detailPath has that pointer carried
- * VERBATIM into the index record. Phase 1 never resolves, opens, stats, or
- * containment-checks the target (D-07/D-08 deferred to Phase 3) — the target file
- * is intentionally absent, and buildIndex still returns without throwing.
+ * VERBATIM into the index record. Phase 3 (D-07) now resolves + containment-checks
+ * the target and asserts it exists on disk at build time: with the target authored
+ * (test/fixtures/detailpath-store/enterprise/details/with-detail.md) buildIndex
+ * SUCCEEDS and still carries the pointer verbatim, while a missing / absolute /
+ * `..`-escaping detailPath fails the build loudly (D-07 / IN-05, naming id + path).
  *
  * Pitfall 5: emitted sourceFile/detailPath pointers are POSIX repo-relative — no
  * backslash, not absolute, not drive-rooted; sourceFile is repo-relative.
@@ -39,6 +41,24 @@ const DETAILPATH_STORE = path.resolve(
   "fixtures",
   "detailpath-store",
 );
+const DETAIL_MISSING_STORE = path.resolve(
+  process.cwd(),
+  "test",
+  "fixtures",
+  "detail-missing-store",
+);
+const DETAIL_ABSOLUTE_STORE = path.resolve(
+  process.cwd(),
+  "test",
+  "fixtures",
+  "detail-absolute-store",
+);
+const DETAIL_ESCAPE_STORE = path.resolve(
+  process.cwd(),
+  "test",
+  "fixtures",
+  "detail-escape-store",
+);
 
 /** A Windows drive-letter prefix like `C:` — a pointer must never start with one. */
 const DRIVE_LETTER = /^[A-Za-z]:/;
@@ -60,9 +80,10 @@ test("buildIndex fails loudly over a binding rule that names no enforcement cont
   );
 });
 
-test("buildIndex carries a detailPath pointer verbatim without resolving it (criterion 4 / D-06)", () => {
-  // buildIndex does NOT throw even though test/fixtures/detailpath-store/enterprise/
-  // details/with-detail.md was never authored — Phase 1 carries, never resolves.
+test("buildIndex succeeds and carries a detailPath pointer verbatim when the target exists (criterion 4 / D-06 + D-07)", () => {
+  // The target test/fixtures/detailpath-store/enterprise/details/with-detail.md is
+  // now authored (03-02 Task 1), so D-07 validation PASSES and buildIndex returns.
+  // The pointer is still carried verbatim (D-06 — the pointer, not the body).
   const index = buildIndex(DETAILPATH_STORE);
   const record = index.rules.find((r) => r.id === "with-detail");
   assert.ok(record, "with-detail record missing from the index");
@@ -70,6 +91,54 @@ test("buildIndex carries a detailPath pointer verbatim without resolving it (cri
     record.detailPath,
     "details/with-detail.md",
     "detailPath must be carried verbatim as authored (D-06)",
+  );
+});
+
+test("buildIndex fails loudly when a declared detailPath target does not exist (D-07)", () => {
+  assert.throws(
+    () => buildIndex(DETAIL_MISSING_STORE),
+    (err: unknown) => {
+      // D-07: the build must fail AND name the offending rule id + the bad path so
+      // a typo / moved detail file is caught at author time, not executor-request time.
+      assert.ok(err instanceof Error, "expected an Error");
+      assert.ok(
+        err.message.includes("missing-target"),
+        `D-07 build failure must name the rule id, got: ${err.message}`,
+      );
+      assert.ok(
+        err.message.includes("details/does-not-exist.md"),
+        `D-07 build failure must name the bad detailPath, got: ${err.message}`,
+      );
+      return true;
+    },
+  );
+});
+
+test("buildIndex rejects an absolute detailPath at build time (IN-05)", () => {
+  assert.throws(
+    () => buildIndex(DETAIL_ABSOLUTE_STORE),
+    (err: unknown) => {
+      assert.ok(err instanceof Error, "expected an Error");
+      assert.ok(
+        err.message.includes("/etc/passwd"),
+        `IN-05 build failure must name the absolute detailPath, got: ${err.message}`,
+      );
+      return true;
+    },
+  );
+});
+
+test("buildIndex rejects a `..`-escaping detailPath at build time (IN-05)", () => {
+  assert.throws(
+    () => buildIndex(DETAIL_ESCAPE_STORE),
+    (err: unknown) => {
+      assert.ok(err instanceof Error, "expected an Error");
+      assert.ok(
+        err.message.includes("../../escape.md"),
+        `IN-05 build failure must name the escaping detailPath, got: ${err.message}`,
+      );
+      return true;
+    },
   );
 });
 

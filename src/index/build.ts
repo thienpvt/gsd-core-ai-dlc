@@ -6,7 +6,7 @@
  * leak into the index by construction (Pitfall 4 / D-05). The no-body output
  * schema + fast-check property test that lock this are added in 01-04.
  */
-import { writeFileSync } from "node:fs";
+import { existsSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import type { RuleIndex, RuleIndexRecord } from "../types.js";
 import { loadRules } from "../rules/load.js";
@@ -15,6 +15,7 @@ import {
   resolvePrecedence,
   type ResolvedRule,
 } from "../rules/scope.js";
+import { resolveDetailPath } from "../rules/detail-path.js";
 import { validateIndex } from "./validate-index.js";
 
 /** Current on-disk index schema version. */
@@ -63,6 +64,26 @@ export function buildIndex(rootDir: string): RuleIndex {
     assertScopeMatchesDirectory(rule, absRoot);
   }
   const resolved = resolvePrecedence(rules);
+  // D-07: validate every declared detailPath BEFORE emitting the index. For each
+  // winner that names a detailPath, resolveDetailPath enforces the IN-05 traversal
+  // guard (rejects an absolute path or a `..`-escape outside absRoot — the STORE
+  // root, the authoritative containment boundary) and then the target must exist on
+  // disk. This is the PRIMARY guard: it catches a typo/moved detail file at author
+  // time, not at executor-request time (the rule-detail fetch is only a backstop).
+  // A rule with no detailPath (require-mfa, the eval corpus) is a no-op here, so
+  // the check is backward-compatible with the no-detailPath corpora.
+  for (const { winner } of resolved) {
+    const detailPath = winner.frontmatter.detailPath;
+    if (detailPath === undefined) continue;
+    const target = resolveDetailPath(winner.sourceFile, detailPath, absRoot);
+    if (!existsSync(target)) {
+      throw new Error(
+        `rule '${winner.frontmatter.id}' (${winner.sourceFile}): detailPath ` +
+          `'${detailPath}' does not exist (D-07 — a declared detailPath target must ` +
+          `exist at index-build time; resolved to ${target})`,
+      );
+    }
+  }
   const index: RuleIndex = {
     schemaVersion: SCHEMA_VERSION,
     generatedAt: new Date().toISOString(),
