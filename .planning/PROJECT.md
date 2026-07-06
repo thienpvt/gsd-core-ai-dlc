@@ -8,6 +8,20 @@ A working extension to GSD Core that layers AI-DLC-style enterprise SDLC governa
 
 The rule selection engine correctly injects only the relevant AI-DLC rule summaries for the current task and phase — enough governance to be safe, little enough to avoid context bloat. If this fails, the entire premise fails.
 
+## Current Milestone: v2.0 Govern
+
+**Goal:** Extend the validated Core to full enterprise SDLC control — remaining gate hooks, a complete audit record, tool-agnostic enforcement contracts with adapter stubs, and a human approval checkpoint — all layered on v1's selection/injection/audit foundation without re-opening the context window.
+
+**Target features:**
+- Fold 9 v1.0 tech-debt items (3 correctness: WR-01/03/05; 6 hygiene: WR-02/04, IN-01/02/03, config namespacing) into the first v2.0 phase before new gates open a fresh debt surface
+- Remaining GSD gate hooks: plan gate (GATE-03), verify gate (GATE-04), ship gate (GATE-05)
+- Complete audit record: AUDIT-03 (requirements covered), AUDIT-04 (tests executed), AUDIT-05 (remaining risks), AUDIT-06 (approvals)
+- Tool-agnostic enforcement contracts: ENF-02 (JSON Schema gate contracts), ENF-03 (`GateAdapter` interface + no-op/echo stubs named after AI-DLC-implied tools — semgrep, bandit, checkov, grype, gitleaks, generic CI, human approval), ENF-04 (binding rules route through named contracts)
+- SEL-06 standing recall/precision harness for the selection engine
+- APPR-01 human approval checkpoint schema
+
+**Phase numbering:** continues at 6 (no reset). First phase owns v1.0 tech-debt fold-in atomically.
+
 ## Requirements
 
 ### Validated
@@ -79,4 +93,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-06 after v1.0 milestone completion — Core milestone shipped, ready for v2.0 Govern*
+*Last updated: 2026-07-06 — v2.0 Govern milestone started (tech-debt fold-in + remaining gates + full audit + enforcement contracts + approval checkpoint)*
