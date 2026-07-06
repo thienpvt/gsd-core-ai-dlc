@@ -155,12 +155,16 @@ Plans:
   2. The audit records each skipped rule with a reason drawn from the fixed enum (`out-of-phase` / `out-of-scope-by-trigger` / `superseded` / `explicitly-waived`), and a reason outside the enum is rejected.
   3. The audit is reproducible — regenerating it from the same selection state yields identical applied/skipped records.
 
-**Plans**: TBD
+**Plans**: 1/2 plans executed
 
 Plans:
+
+- [x] 05-01-PLAN.md
+- [ ] 05-02-PLAN.md
+
 **Wave 1**
 
-- [ ] 05-01: Audit writer → `GOVERNANCE.md` with machine-derived `rules_applied` from selector output
+- [x] 05-01: Audit writer → `GOVERNANCE.md` with machine-derived `rules_applied` from selector output
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -177,4 +181,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. Selection Engine | 3/3 | Complete    | 2026-07-05 |
 | 3. Summary Injection & Lazy Detail Loading | 2/2 | Complete    | 2026-07-06 |
 | 4. GSD Capability Integration & Persistence | 3/3 | Complete    | 2026-07-06 |
-| 5. Audit-Artifact Writer | 0/2 | Not started | - |
+| 5. Audit-Artifact Writer | 1/2 | In Progress|  |

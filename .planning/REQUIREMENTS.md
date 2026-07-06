@@ -34,8 +34,8 @@ Requirements for the Core milestone. Each maps to a roadmap phase.
 
 ### Audit Artifacts
 
-- [ ] **AUDIT-01**: System produces a per-task audit artifact recording the rules applied, derived from actual selector output (not model narration)
-- [ ] **AUDIT-02**: The audit artifact records rules skipped and the reason for each skip, drawn from a machine-checkable reason enum (out-of-phase / out-of-scope-by-trigger / superseded / explicitly-waived)
+- [x] **AUDIT-01**: System produces a per-task audit artifact recording the rules applied, derived from actual selector output (not model narration)
+- [x] **AUDIT-02**: The audit artifact records rules skipped and the reason for each skip, drawn from a machine-checkable reason enum (out-of-phase / out-of-scope-by-trigger / superseded / explicitly-waived)
 
 ### Enforcement Boundary
 
@@ -104,8 +104,8 @@ Which phases cover which requirements. Populated during roadmap creation.
 | SEL-05 | Phase 2 | Complete |
 | GATE-01 | Phase 4 | Complete |
 | GATE-02 | Phase 4 | Complete |
-| AUDIT-01 | Phase 5 | Pending |
-| AUDIT-02 | Phase 5 | Pending |
+| AUDIT-01 | Phase 5 | Complete |
+| AUDIT-02 | Phase 5 | Complete |
 | ENF-01 | Phase 4 | Complete |
 
 **Coverage:**

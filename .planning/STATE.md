@@ -5,16 +5,16 @@ milestone_name: milestone
 current_phase: 5
 current_phase_name: Audit-Artifact Writer
 status: executing
-stopped_at: Phase 04 complete, ready to plan Phase 05
-last_updated: "2026-07-06T12:21:56.060Z"
+stopped_at: Completed 05-01-PLAN.md
+last_updated: "2026-07-06T12:33:58.159Z"
 last_activity: 2026-07-06
-last_activity_desc: Phase 04 complete, transitioned to Phase 5
+last_activity_desc: Completed 05-01-PLAN.md
 progress:
   total_phases: 5
   completed_phases: 4
-  total_plans: 12
-  completed_plans: 12
-  percent: 80
+  total_plans: 14
+  completed_plans: 13
+  percent: 93
 ---
 
 # Project State
@@ -29,17 +29,17 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 ## Current Position
 
 Phase: 5 — Audit-Artifact Writer
-Plan: Not started
+Plan: 2 of 2
 Status: Ready to execute
-Last activity: 2026-07-06 — Phase 04 complete, transitioned to Phase 5
+Last activity: 2026-07-06 — Completed 05-01-PLAN.md
 
-Progress: [████████░░] 80%
+Progress: [█████████░] 93%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 12
+- Total plans completed: 13
 - Average duration: — min
 - Total execution time: 0.0 hours
 
@@ -69,6 +69,7 @@ Progress: [████████░░] 80%
 | Phase 03-summary-injection-lazy-detail-loading P02 | 13 | 3 tasks | 11 files |
 | Phase 04 P02 | 8 | 3 tasks | 4 files |
 | Phase 04 P03 | 30 | 3 tasks | 5 files |
+| Phase 05-audit-artifact-writer P01 | 5 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -99,6 +100,9 @@ Recent decisions affecting current work:
 - [Phase 04]: [Phase 04-03]: aidlc-governance consent is CB-3-bound to (realpath(projectRoot), id, bundleContentHash); pre-consent hooks omit it, post-consent hooks render discuss/execute, and tamper flips inactive.
 - [Phase 04]: [Phase 04-03]: project install ledger is committed for discoverability, but the user-owned consent store remains the activation authority and lives outside the repo.
 - [Phase 04]: [Phase 04-03]: Codex runtime hook verification needs `--config-dir "$HOME/.codex"` in this shell so capability-state sees the Codex skill surface.
+- [Phase 05]: 05-01 audit records derive only from readSelection(projectRoot), never selector/risk/discuss/execute re-derivation.
+- [Phase 05]: 05-01 normalizes selector reason out-of-scope to audit reason out-of-scope-by-trigger while preserving selector_reason.
+- [Phase 05]: 05-01 direct audit runner validates basename GOVERNANCE.md and containment under <projectRoot>/.planning/phases/ before writing.
 
 ### Pending Todos
 
@@ -122,6 +126,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-06T11:55:00Z
-Stopped at: Phase 04 complete, ready to plan Phase 05
+Last session: 2026-07-06T12:33:25.718Z
+Stopped at: Completed 05-01-PLAN.md
 Resume file: None
