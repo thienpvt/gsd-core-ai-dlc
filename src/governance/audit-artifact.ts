@@ -11,6 +11,11 @@ export const AUDIT_SKIP_REASONS = [
   "explicitly-waived",
 ] as const;
 
+const PHASES = ["inception", "construction", "operations", "common"] as const;
+const RISK_TIERS = ["critical", "elevated", "baseline"] as const;
+const SEVERITIES = ["critical", "high", "medium", "low"] as const;
+const SCOPES = ["enterprise", "domain", "project"] as const;
+
 export type AuditSkipReason = (typeof AUDIT_SKIP_REASONS)[number];
 
 export interface AuditAppliedRule {
@@ -78,6 +83,25 @@ function assertString(value: unknown, field: string): asserts value is string {
   }
 }
 
+function assertOneOf<T extends readonly string[]>(
+  value: unknown,
+  field: string,
+  allowed: T,
+): asserts value is T[number] {
+  if (typeof value !== "string" || !allowed.includes(value)) {
+    throw new Error(
+      `malformed governance state: ${field} must be one of ${allowed.join(", ")}`,
+    );
+  }
+}
+
+function assertTimestamp(value: unknown, field: string): asserts value is string {
+  assertString(value, field);
+  if (Number.isNaN(Date.parse(value))) {
+    throw new Error(`malformed governance state: ${field} must be an ISO timestamp`);
+  }
+}
+
 function assertSelectionArrays(record: GovernanceRecord): void {
   if (!Array.isArray(record.selectionResult.selected)) {
     throw new Error("malformed governance state: selectionResult.selected must be an array");
@@ -89,7 +113,7 @@ function assertSelectionArrays(record: GovernanceRecord): void {
   record.selectionResult.selected.forEach((rule, index) => {
     assertRecordObject(rule, `selectionResult.selected[${index}]`);
     assertString(rule.id, `selectionResult.selected[${index}].id`);
-    assertString(rule.severity, `selectionResult.selected[${index}].severity`);
+    assertOneOf(rule.severity, `selectionResult.selected[${index}].severity`, SEVERITIES);
     assertString(rule.summary, `selectionResult.selected[${index}].summary`);
     assertString(rule.matchedAxis, `selectionResult.selected[${index}].matchedAxis`);
     assertString(rule.matchedValue, `selectionResult.selected[${index}].matchedValue`);
@@ -98,18 +122,25 @@ function assertSelectionArrays(record: GovernanceRecord): void {
   record.selectionResult.skipped.forEach((rule, index) => {
     assertRecordObject(rule, `selectionResult.skipped[${index}]`);
     assertString(rule.id, `selectionResult.skipped[${index}].id`);
-    assertString(rule.severity, `selectionResult.skipped[${index}].severity`);
+    assertOneOf(rule.severity, `selectionResult.skipped[${index}].severity`, SEVERITIES);
     assertString(rule.reason, `selectionResult.skipped[${index}].reason`);
     if (rule.detail !== undefined) {
       assertString(rule.detail, `selectionResult.skipped[${index}].detail`);
     }
     if (rule.scope !== undefined) {
-      assertString(rule.scope, `selectionResult.skipped[${index}].scope`);
+      assertOneOf(rule.scope, `selectionResult.skipped[${index}].scope`, SCOPES);
     }
     if (rule.sourceFile !== undefined) {
       assertString(rule.sourceFile, `selectionResult.skipped[${index}].sourceFile`);
     }
   });
+}
+
+function assertGovernanceRecord(record: GovernanceRecord): void {
+  assertOneOf(record.phase, "phase", PHASES);
+  assertOneOf(record.riskTier, "riskTier", RISK_TIERS);
+  assertTimestamp(record.timestamp, "timestamp");
+  assertSelectionArrays(record);
 }
 
 function assertGovernanceOutputPath(projectRoot: string, outputPath: string): void {
@@ -132,7 +163,7 @@ function assertGovernanceOutputPath(projectRoot: string, outputPath: string): vo
 }
 
 export function buildAuditRecord(record: GovernanceRecord): GovernanceAudit {
-  assertSelectionArrays(record);
+  assertGovernanceRecord(record);
   return {
     schema_version: 1,
     phase: record.phase,

@@ -116,6 +116,12 @@ function assertRunnerFails(args: string[]): void {
   );
 }
 
+function writeUnsafeState(root: string, record: unknown): void {
+  const statePath = selectionStatePath(root);
+  mkdirSync(path.dirname(statePath), { recursive: true });
+  writeFileSync(statePath, JSON.stringify(record, null, 2), "utf8");
+}
+
 test("buildAuditRecord maps selected rules one-to-one into rules_applied", () => {
   const record = fixtureRecord();
   const audit = buildAuditRecord(record);
@@ -193,6 +199,67 @@ test("writeGovernanceAudit rejects malformed selected rule rows without writing 
       /selectionResult\.selected\[0\]\.id/i,
     );
     assert.equal(existsSync(outputPath), false);
+  });
+});
+
+test("writeGovernanceAudit rejects malformed governance metadata and enum fields without writing", () => {
+  withTempRoot((root) => {
+    for (const [label, mutate, message] of [
+      [
+        "missing phase",
+        (record: Record<string, unknown>) => {
+          delete record.phase;
+        },
+        /phase/i,
+      ],
+      [
+        "missing timestamp",
+        (record: Record<string, unknown>) => {
+          delete record.timestamp;
+        },
+        /timestamp/i,
+      ],
+      [
+        "invalid selected severity",
+        (record: Record<string, unknown>) => {
+          const selectionResult = record.selectionResult as SelectionResult;
+          selectionResult.selected[0] = {
+            ...selectionResult.selected[0],
+            severity: "urgent",
+          } as unknown as SelectionResult["selected"][number];
+        },
+        /selected\[0\]\.severity/i,
+      ],
+      [
+        "invalid skipped scope",
+        (record: Record<string, unknown>) => {
+          const selectionResult = record.selectionResult as SelectionResult;
+          selectionResult.skipped[3] = {
+            ...selectionResult.skipped[3],
+            scope: "global",
+          } as unknown as SelectionResult["skipped"][number];
+        },
+        /skipped\[3\]\.scope/i,
+      ],
+    ] as const) {
+      const caseRoot = path.join(root, label.replaceAll(" ", "-"));
+      const outputPath = path.join(
+        caseRoot,
+        ".planning",
+        "phases",
+        "05-audit",
+        "GOVERNANCE.md",
+      );
+      const record = structuredClone(fixtureRecord()) as unknown as Record<string, unknown>;
+      mutate(record);
+      writeUnsafeState(caseRoot, record);
+
+      assert.throws(
+        () => writeGovernanceAudit({ projectRoot: caseRoot, outputPath }),
+        message,
+      );
+      assert.equal(existsSync(outputPath), false);
+    }
   });
 });
 
