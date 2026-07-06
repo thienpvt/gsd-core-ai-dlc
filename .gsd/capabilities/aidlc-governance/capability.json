@@ -1,0 +1,58 @@
+{
+  "id": "aidlc-governance",
+  "role": "feature",
+  "version": "0.1.0",
+  "title": "AI-DLC Governance Overlay",
+  "description": "Injects selected governance rule summaries at the discuss/execute gates and persists selection state to disk so it survives context compaction and subagent boundaries.",
+  "tier": "full",
+  "requires": [],
+  "engines": {
+    "gsd": ">=1.6.0"
+  },
+  "runtimeCompat": {
+    "supported": ["*"],
+    "unsupported": []
+  },
+  "skills": [
+    "aidlc-governance-discuss",
+    "aidlc-governance-execute"
+  ],
+  "agents": [],
+  "hooks": [],
+  "config": {
+    "governance.enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Master switch for the AI-DLC governance overlay. When false, the registry resolves both discuss:pre and execute:pre steps as inactive and the overlay stays dormant."
+    },
+    "governance.token_budget": {
+      "type": "number",
+      "default": 2000,
+      "description": "Per-request governance token budget. The discuss hook resolves the same key via the CLI budget resolution order (flag > config > default 2000)."
+    }
+  },
+  "steps": [
+    {
+      "point": "discuss:pre",
+      "ref": {
+        "skill": "aidlc-governance-discuss"
+      },
+      "produces": ["CONTEXT.md"],
+      "consumes": ["STATE.md", "rule-index.json"],
+      "when": "governance.enabled",
+      "onError": "skip"
+    },
+    {
+      "point": "execute:pre",
+      "ref": {
+        "skill": "aidlc-governance-execute"
+      },
+      "produces": ["executor-context"],
+      "consumes": [".planning/governance/selection-state.json"],
+      "when": "governance.enabled",
+      "onError": "skip"
+    }
+  ],
+  "contributions": [],
+  "gates": []
+}
