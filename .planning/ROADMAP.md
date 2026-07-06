@@ -48,7 +48,12 @@ Phase numbering continues at 6 (no reset). First phase owns the v1.0 tech-debt f
   4. `gsd-tools` no longer emits warnings on unrelated config keys (`tavily_search`, `ref_search`, `perplexity`, `jina`, `quick_branch_template`) — governance keys are namespaced or split (TD-09).
   5. Hygiene items are merged: unified `selector_reason` validation shape (TD-04), `isDirectRun` narrowed to the dist entry path (TD-05), `buildAuditRecord` export narrowed to module-internal (TD-06), `writeGovernanceAudit` returns the resolved absolute path (TD-07), `resolveGsdTools` handles the `undefined` fallback explicitly (TD-08).
 
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 06-01-PLAN.md — Extract shared atomicWriteFile helper with unique temp suffix; delegate atomicWriteText/atomicWriteJson (TD-03)
+- [ ] 06-02-PLAN.md — Tighten assertTimestamp to ISO 8601, unify selector_reason, narrow isDirectRun, de-export buildAuditRecord, return resolved path (TD-01, TD-04, TD-05, TD-06, TD-07)
+- [ ] 06-03-PLAN.md — Namespace config keys, consent-gated verify:post integration test, explicit resolveGsdTools fallback (TD-02, TD-08, TD-09)
 
 ### Phase 7: Enforcement Contracts & Adapter Stubs
 
