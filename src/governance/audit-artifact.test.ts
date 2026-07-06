@@ -13,7 +13,6 @@ import os from "node:os";
 import path from "node:path";
 import {
   AUDIT_SKIP_REASONS,
-  buildAuditRecord,
   renderGovernanceMarkdown,
   writeGovernanceAudit,
   type GovernanceAudit,
@@ -122,15 +121,36 @@ function writeUnsafeState(root: string, record: unknown): void {
   writeFileSync(statePath, JSON.stringify(record, null, 2), "utf8");
 }
 
+// TD-06: buildAuditRecord is module-internal now — tests exercise it via the
+// public writeGovernanceAudit end-to-end and read the audit field off the return.
+function auditFromRecord(record: GovernanceRecord): GovernanceAudit {
+  const root = mkdtempSync(path.join(os.tmpdir(), "gsd-audit-from-record-"));
+  try {
+    writeSelection(record, root);
+    const outputPath = path.join(root, ".planning", "phases", "05-audit", "GOVERNANCE.md");
+    return writeGovernanceAudit({ projectRoot: root, outputPath }).audit;
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+}
+
+// Variant that writes the state file unsafely (for malformed-payload tests)
+// then runs the public writer and returns its audit.
+function auditFromUnsafeRecord(root: string, record: unknown): GovernanceAudit {
+  writeUnsafeState(root, record);
+  const outputPath = path.join(root, ".planning", "phases", "05-audit", "GOVERNANCE.md");
+  return writeGovernanceAudit({ projectRoot: root, outputPath }).audit;
+}
+
 test("buildAuditRecord maps selected rules one-to-one into rules_applied", () => {
   const record = fixtureRecord();
-  const audit = buildAuditRecord(record);
+  const audit = auditFromRecord(record);
 
   assert.deepEqual(audit.rules_applied, record.selectionResult.selected);
 });
 
 test("buildAuditRecord normalizes skipped reasons to the public audit enum and preserves selector provenance", () => {
-  const audit = buildAuditRecord(fixtureRecord());
+  const audit = auditFromRecord(fixtureRecord());
   assert.deepEqual(AUDIT_SKIP_REASONS, [
     "out-of-phase",
     "out-of-scope-by-trigger",
@@ -177,7 +197,7 @@ test("buildAuditRecord throws on a skipped rule reason outside the audit enum", 
   // TD-04: assertSelectionArrays now validates selector_reason per-element with
   // a single unified message before normalizeSkipReason ever runs.
   assert.throws(
-    () => buildAuditRecord(fixtureRecord(selectionResult)),
+    () => auditFromRecord(fixtureRecord(selectionResult)),
     /selector_reason must be one of/i,
   );
 });
@@ -278,8 +298,8 @@ test("writeGovernanceAudit rejects malformed governance metadata and enum fields
 
 test("renderGovernanceMarkdown is deterministic for rules_applied and rules_skipped", () => {
   const record = fixtureRecord();
-  const first = parseAuditMarkdown(renderGovernanceMarkdown(buildAuditRecord(record)));
-  const second = parseAuditMarkdown(renderGovernanceMarkdown(buildAuditRecord(record)));
+  const first = parseAuditMarkdown(renderGovernanceMarkdown(auditFromRecord(record)));
+  const second = parseAuditMarkdown(renderGovernanceMarkdown(auditFromRecord(record)));
 
   assert.deepEqual(second.rules_applied, first.rules_applied);
   assert.deepEqual(second.rules_skipped, first.rules_skipped);
@@ -399,7 +419,9 @@ test("writeGovernanceAudit accepts the canonical ISO-8601 timestamp (TD-01 posit
     assert.equal(existsSync(outputPath), true);
     const audit = parseAuditMarkdown(readFileSync(outputPath, "utf8"));
     assert.equal(audit.selection_timestamp, "2026-07-06T00:00:00.000Z");
-    void result;
+    // TD-07: return reports the resolved absolute path actually written, not the input.
+    assert.equal(result.outputPath, path.resolve(outputPath));
+    assert.ok(path.isAbsolute(result.outputPath), "TD-07: outputPath must be absolute");
   });
 });
 

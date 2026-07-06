@@ -192,7 +192,7 @@ function assertGovernanceOutputPath(projectRoot: string, outputPath: string): vo
   }
 }
 
-export function buildAuditRecord(record: GovernanceRecord): GovernanceAudit {
+function buildAuditRecord(record: GovernanceRecord): GovernanceAudit {
   assertGovernanceRecord(record);
   return {
     schema_version: 1,
@@ -234,7 +234,8 @@ export function writeGovernanceAudit(args: WriteGovernanceAuditArgs): WriteGover
 
   const audit = buildAuditRecord(record);
   atomicWriteText(args.outputPath, renderGovernanceMarkdown(audit));
-  return { outputPath: args.outputPath, audit };
+  // TD-07: return the resolved absolute path actually written, not the input.
+  return { outputPath: path.resolve(args.outputPath), audit };
 }
 
 function runDirect(argv: string[]): void {
@@ -246,9 +247,14 @@ function runDirect(argv: string[]): void {
   writeGovernanceAudit({ projectRoot, outputPath });
 }
 
+// TD-05: match THIS compiled dist entry specifically, not any file named
+// audit-artifact.js elsewhere on the PATH. __filename is the runtime path of
+// this module under CJS, so a same-basename sibling elsewhere no longer trips
+// runDirect.
 function isDirectRun(): boolean {
   const invokedPath = process.argv[1];
-  return invokedPath !== undefined && path.basename(invokedPath) === "audit-artifact.js";
+  if (invokedPath === undefined) return false;
+  return path.resolve(invokedPath) === __filename;
 }
 
 if (isDirectRun()) {
