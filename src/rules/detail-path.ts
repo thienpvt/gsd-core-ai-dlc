@@ -16,7 +16,45 @@
  * absolute detailPath and any `..`-escape that leaves `packRoot`, throwing a loud
  * error naming the offending path (scope.ts error-message style).
  */
+import { realpathSync } from "node:fs";
 import path from "node:path";
+
+/**
+ * True when `rel` (a `path.relative` result) points OUTSIDE its base — the shared
+ * IN-05 containment predicate. Single-sourced so the lexical check and the
+ * realpath-canonicalized check below apply IDENTICAL logic and cannot drift
+ * (Pitfall 8). A relative path escapes when it is `..`, starts with `..<sep>` (or
+ * a literal `../` on any OS), or is itself absolute (a different Windows drive).
+ */
+function escapesRoot(rel: string): boolean {
+  return (
+    rel === ".." ||
+    rel.startsWith(`..${path.sep}`) ||
+    rel.startsWith("../") ||
+    path.isAbsolute(rel)
+  );
+}
+
+/**
+ * Canonicalize `p` by following every symlink to its true on-disk path
+ * (realpathSync). This is the CR-01 anti-symlink-bypass primitive: the lexical
+ * containment check operates on the path STRING and does NOT follow links, but the
+ * callers' existsSync/readFileSync DO — so a symlinked target (or symlinked parent
+ * dir) that is textually in-pack yet points on disk at an arbitrary file must be
+ * caught here. Falls back to the input path when it does not resolve yet (a
+ * fetch-time missing target, or a synthetic/not-yet-created root) so the resolver
+ * stays usable before the file exists — the caller's own existsSync/readFileSync
+ * then fails loud on the genuinely-missing file rather than reading anything.
+ * realpathSync reads filesystem link METADATA only, never file CONTENTS, so the
+ * no-body guarantee (D-05) is untouched.
+ */
+function canonicalize(p: string): string {
+  try {
+    return realpathSync(p);
+  } catch {
+    return p;
+  }
+}
 
 /**
  * Resolve `detailPath` (declared in the rule at `sourceFile`) to an absolute path,
@@ -46,19 +84,36 @@ export function resolveDetailPath(
   // root or the cwd — so a pack subtree can be relocated wholesale.
   const resolved = path.resolve(path.dirname(path.resolve(sourceFile)), detailPath);
 
-  // IN-05 (part 2): the resolved target must stay inside packRoot. A `..`-escape
-  // yields a relative path that is `..`, starts with `../` (or `..\` on Windows),
-  // or is itself absolute (different drive) — reject any of those loudly.
+  // IN-05 (part 2 — LEXICAL first line of defense): the resolved target must stay
+  // inside packRoot. A `..`-escape yields a relative path that is `..`, starts with
+  // `../` (or `..\` on Windows), or is itself absolute (different drive) — reject
+  // any of those loudly. This is textual only; the realpath check below closes the
+  // symlink gap it cannot see.
   const rel = path.relative(path.resolve(packRoot), resolved);
-  if (
-    rel === ".." ||
-    rel.startsWith(`..${path.sep}`) ||
-    rel.startsWith("../") ||
-    path.isAbsolute(rel)
-  ) {
+  if (escapesRoot(rel)) {
     throw new Error(
       `detailPath '${detailPath}' escapes the rule pack root ` +
         `(IN-05 — a detailPath must not resolve outside its pack via '..')`,
+    );
+  }
+
+  // IN-05 (part 3 — SYMLINK canonicalization, CR-01): the lexical check above is
+  // string math and does NOT follow symlinks, but the callers' existsSync (build,
+  // D-07) and readFileSync (fetch) BOTH follow them. So a symlink planted inside a
+  // portable/third-party pack (e.g. details/leak.md -> /etc/passwd, or a symlinked
+  // parent dir) is textually in-pack yet points on disk at an arbitrary file —
+  // defeating the whole IN-05 guarantee. Re-run the SAME containment predicate on
+  // the realpath-canonicalized target vs the canonicalized packRoot so a link that
+  // escapes on disk is rejected at BOTH build and fetch time. canonicalize() reads
+  // only link metadata (never file contents), so the no-body guarantee (D-05) holds.
+  const realTarget = canonicalize(resolved);
+  const realRoot = canonicalize(path.resolve(packRoot));
+  const realRel = path.relative(realRoot, realTarget);
+  if (escapesRoot(realRel)) {
+    throw new Error(
+      `detailPath '${detailPath}' escapes the rule pack root via a symlink ` +
+        `(IN-05 — a detailPath's real on-disk target must stay inside its pack; ` +
+        `resolved through links to '${realTarget}')`,
     );
   }
 

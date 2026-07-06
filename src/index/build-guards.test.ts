@@ -26,6 +26,14 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import {
+  mkdtempSync,
+  mkdirSync,
+  writeFileSync,
+  symlinkSync,
+  rmSync,
+} from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { buildIndex } from "./build.js";
 
@@ -140,6 +148,77 @@ test("buildIndex rejects a `..`-escaping detailPath at build time (IN-05)", () =
       return true;
     },
   );
+});
+
+test("buildIndex rejects a detailPath whose real target escapes the store via a symlink (CR-01 / IN-05)", (t) => {
+  // The symlink case cannot be a committed fixture: a symlink does not survive a
+  // cross-platform checkout (Windows without privilege materializes it as a plain
+  // file), so the store is BUILT on disk at test time. Layout mirrors the committed
+  // detailpath-store: <store>/enterprise/with-detail.md declares
+  // `detailPath: details/leak.md`, but details/leak.md is a SYMLINK to a file
+  // OUTSIDE the store. Lexically the path is in-store (passes the textual guard);
+  // only realpath canonicalization (CR-01) follows the link to the on-disk escape
+  // that build-time existsSync would otherwise dereference into an arbitrary read.
+  const base = mkdtempSync(path.join(os.tmpdir(), "gsd-build-symlink-"));
+  try {
+    const store = path.join(base, "store");
+    const detailsDir = path.join(store, "enterprise", "details");
+    mkdirSync(detailsDir, { recursive: true });
+    writeFileSync(
+      path.join(store, "enterprise", "with-detail.md"),
+      [
+        "---",
+        "id: with-detail",
+        "scope: enterprise",
+        "triggers: {}",
+        "phases:",
+        "  - construction",
+        "severity: medium",
+        "summary: Declares a detail pointer that is a symlink out of the store.",
+        "classification: advisory",
+        "detailPath: details/leak.md",
+        "---",
+        "",
+        "## Rule ENT-SYM: symlink-escape negative fixture",
+        "",
+        "The detail target is a symlink pointing outside the store.",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+
+    const outsideFile = path.join(base, "outside-secret.md");
+    writeFileSync(outsideFile, "SECRET_CANARY body\n", "utf8");
+
+    const link = path.join(detailsDir, "leak.md");
+    try {
+      symlinkSync(outsideFile, link);
+    } catch (err) {
+      const code = (err as NodeJS.ErrnoException).code;
+      if (code === "EPERM" || code === "EACCES") {
+        // Windows without symlink-creation privilege — skip gracefully so the suite
+        // stays green cross-platform (the guard is still exercised on POSIX and on
+        // privileged Windows). It must SKIP here, never FAIL.
+        t.skip("symlink creation not permitted on this platform (EPERM/EACCES)");
+        return;
+      }
+      throw err;
+    }
+
+    assert.throws(
+      () => buildIndex(store),
+      (err: unknown) => {
+        assert.ok(err instanceof Error, "expected an Error");
+        assert.ok(
+          err.message.includes("symlink"),
+          `the build must reject the symlink escape at D-07 (CR-01), got: ${err.message}`,
+        );
+        return true;
+      },
+    );
+  } finally {
+    rmSync(base, { recursive: true, force: true });
+  }
 });
 
 test("emitted sourceFile and detailPath pointers are POSIX repo-relative (Pitfall 5)", () => {
