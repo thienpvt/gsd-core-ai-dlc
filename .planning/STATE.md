@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 3
+current_phase: 03
 current_phase_name: Summary Injection & Lazy Detail Loading
 status: executing
 stopped_at: Phase 1 context gathered
-last_updated: "2026-07-06T00:30:21.209Z"
-last_activity: 2026-07-05
-last_activity_desc: Phase 02 complete, transitioned to Phase 3
+last_updated: "2026-07-06T00:45:15.250Z"
+last_activity: 2026-07-06
+last_activity_desc: Phase 03 execution started
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 7
-  completed_plans: 7
+  total_plans: 9
+  completed_plans: 8
   percent: 40
 ---
 
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-05)
 
 **Core value:** The rule selection engine injects only the relevant AI-DLC rule summaries for the current task and phase — enough governance to be safe, little enough to avoid context bloat.
-**Current focus:** Phase 02 — Selection Engine
+**Current focus:** Phase 03 — Summary Injection & Lazy Detail Loading
 
 ## Current Position
 
-Phase: 3 — Summary Injection & Lazy Detail Loading
-Plan: Not started
+Phase: 03 (Summary Injection & Lazy Detail Loading) — EXECUTING
+Plan: 2 of 2
 Status: Ready to execute
-Last activity: 2026-07-05 — Phase 02 complete, transitioned to Phase 3
+Last activity: 2026-07-06 — Phase 03 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -63,6 +63,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02-selection-engine P01 | 4 | 2 tasks | 13 files |
 | Phase 02 P02 | 20 | 2 tasks | 6 files |
 | Phase 02-selection-engine P03 | 25 | 3 tasks | 9 files |
+| Phase 03-summary-injection-lazy-detail-loading P01 | 11 | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -81,6 +82,9 @@ Recent decisions affecting current work:
 - [Phase ?]: [Phase 02-02]: select() is a pure function (no clock/random/IO) running a fixed phase->scope->trigger->superseded gate order; the first failing gate sets the AUDIT-02-aligned skip reason and output is sorted by id ascending (T-2-NONDET mitigation)
 - [Phase ?]: [Phase 02-02]: validateSignal (Ajv 2020) rejects a malformed TaskSignal loudly at the boundary and is kept OUT of select() so the core stays pure over an already-typed signal (T-2-BADSIGNAL mitigation)
 - [Phase ?]: [Phase 02-02]: empty-triggers (D-03) selections record matchedAxis and matchedValue both as 'always-in-phase'; multi-axis matches record the first axis in order taskType->keywords->paths; superseded losers inherit the winner's severity and are never re-matched (D-11)
+- [Phase ?]: [Phase 03-01]: renderInjection is a pure SEL-02 core importing only ../types.js (no node:fs, no gray-matter) — summary-only injection is true by construction (no body-read path), proven belt-and-suspenders by a fast-check no-body-canary property (success criterion 3)
+- [Phase ?]: [Phase 03-01]: SEVERITY_ORDINAL (critical=0..low=3) declared in inject.ts as the injector's OWN axis, NOT the scope ORDINAL from scope.ts (Pitfall 6); fragment sorts severity-desc then id-asc
+- [Phase ?]: [Phase 03-01]: governance inject CLI emits the <governance> fragment to stdout FIRST, then on budgetExceeded warns to stderr + sets process.exitCode=1 (never process.exit — CR-02); malformed input fails loud via a lightweight selected[]+skipped[] shape guard, never a silent empty fragment (Pitfall 7)
 
 ### Pending Todos
 
@@ -105,6 +109,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-05T16:42:31.134Z
+Last session: 2026-07-06T00:44:09.467Z
 Stopped at: Phase 1 context gathered
 Resume file: .planning/phases/01-rule-pack-format-index/01-CONTEXT.md
