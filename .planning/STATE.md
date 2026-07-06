@@ -4,17 +4,17 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 03
 current_phase_name: Summary Injection & Lazy Detail Loading
-status: executing
+status: verifying
 stopped_at: Phase 1 context gathered
-last_updated: "2026-07-06T00:45:15.250Z"
+last_updated: "2026-07-06T01:05:30.365Z"
 last_activity: 2026-07-06
 last_activity_desc: Phase 03 execution started
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 9
-  completed_plans: 8
-  percent: 40
+  completed_plans: 9
+  percent: 60
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-07-05)
 
 Phase: 03 (Summary Injection & Lazy Detail Loading) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-07-06 — Phase 03 execution started
 
 Progress: [░░░░░░░░░░] 0%
@@ -64,6 +64,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02 P02 | 20 | 2 tasks | 6 files |
 | Phase 02-selection-engine P03 | 25 | 3 tasks | 9 files |
 | Phase 03-summary-injection-lazy-detail-loading P01 | 11 | 3 tasks | 6 files |
+| Phase 03-summary-injection-lazy-detail-loading P02 | 13 | 3 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -85,6 +86,9 @@ Recent decisions affecting current work:
 - [Phase ?]: [Phase 03-01]: renderInjection is a pure SEL-02 core importing only ../types.js (no node:fs, no gray-matter) — summary-only injection is true by construction (no body-read path), proven belt-and-suspenders by a fast-check no-body-canary property (success criterion 3)
 - [Phase ?]: [Phase 03-01]: SEVERITY_ORDINAL (critical=0..low=3) declared in inject.ts as the injector's OWN axis, NOT the scope ORDINAL from scope.ts (Pitfall 6); fragment sorts severity-desc then id-asc
 - [Phase ?]: [Phase 03-01]: governance inject CLI emits the <governance> fragment to stdout FIRST, then on budgetExceeded warns to stderr + sets process.exitCode=1 (never process.exit — CR-02); malformed input fails loud via a lightweight selected[]+skipped[] shape guard, never a silent empty fragment (Pitfall 7)
+- [Phase 03]: [Phase 03-02]: resolveDetailPath is the single-sourced D-08 resolver + IN-05 traversal guard (pure path math, reads no file), imported by BOTH buildIndex (build-time D-07) and rule-detail (fetch-time backstop) so the guards cannot drift (Pitfall 8)
+- [Phase 03]: [Phase 03-02]: D-07 build-time validation (scoped to the store root absRoot) is the AUTHORITATIVE guard; rule-detail fetch-time guard is an intentional coarse backstop scoped to process.cwd(), documented as looser and never claimed to match the build boundary
+- [Phase 03]: [Phase 03-02]: governance rule-detail <id> is the ONE sanctioned body surface (SEL-03): reads ONLY the one requested id target via gray-matter, D-06 no-detail rule returns summary + signal (exit 0), unknown id fails loud non-zero, never pre-fetches another body
 
 ### Pending Todos
 
@@ -109,6 +113,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-06T00:44:09.467Z
+Last session: 2026-07-06T01:02:40.494Z
 Stopped at: Phase 1 context gathered
 Resume file: .planning/phases/01-rule-pack-format-index/01-CONTEXT.md

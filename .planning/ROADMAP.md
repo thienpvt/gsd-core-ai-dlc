@@ -8,7 +8,7 @@ This roadmap delivers Milestone 1 (Core / v1): proving the anti-bloat premise en
 
 - [x] **Phase 1: Rule-Pack Format & Index** - Author rules as Markdown+frontmatter across three scopes; compile a compact index (completed 2026-07-05)
 - [x] **Phase 2: Selection Engine** - Deterministic trigger+scope+phase matching with a labeled recall/precision eval set (completed 2026-07-05)
-- [ ] **Phase 3: Summary Injection & Lazy Detail Loading** - Inject summaries only; load full rule bodies on demand by id
+- [x] **Phase 3: Summary Injection & Lazy Detail Loading** - Inject summaries only; load full rule bodies on demand by id (completed 2026-07-06)
 - [ ] **Phase 4: GSD Capability Integration & Persistence** - Register discuss/execute gate hooks as a capability; persist governance state to disk
 - [ ] **Phase 5: Audit-Artifact Writer** - Produce a machine-derived per-task audit of rules applied and skipped
 
@@ -95,16 +95,16 @@ Plans:
   2. Running `governance rule-detail <id>` returns exactly one full rule body for the requested id and does not pre-fetch any other bodies (lazy load verifiable).
   3. A property test confirms summary-only injection never emits a full body regardless of selection input.
 
-**Plans**: 1/2 plans executed
+**Plans**: 2/2 plans complete
 
 Plans:
 
 - [x] 03-01-PLAN.md — Summary injector: pure renderInjection + `<governance>` fragment (summaries only) + `governance inject` CLI + no-body-leak property (SEL-02)
-- [ ] 03-02-PLAN.md — Lazy detail loader: `governance rule-detail <id>` single-body fetch + single-sourced resolveDetailPath guard (D-06/07/08 + IN-05) (SEL-03)
+- [x] 03-02-PLAN.md — Lazy detail loader: `governance rule-detail <id>` single-body fetch + single-sourced resolveDetailPath guard (D-06/07/08 + IN-05) (SEL-03)
 
 **Wave 1**
 
-- [ ] 03-01: Summary injector — render selected summaries into a `<governance>` fragment; `governance inject` CLI; fast-check no-body property (SEL-02)
+- [x] 03-01: Summary injector — render selected summaries into a `<governance>` fragment; `governance inject` CLI; fast-check no-body property (SEL-02)
 
 **Wave 2** *(blocked on Wave 1 — shares src/cli/index.ts dispatch)*
 
@@ -159,6 +159,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Rule-Pack Format & Index | 4/4 | Complete    | 2026-07-05 |
 | 2. Selection Engine | 3/3 | Complete    | 2026-07-05 |
-| 3. Summary Injection & Lazy Detail Loading | 1/2 | In Progress|  |
+| 3. Summary Injection & Lazy Detail Loading | 2/2 | Complete   | 2026-07-06 |
 | 4. GSD Capability Integration & Persistence | 0/3 | Not started | - |
 | 5. Audit-Artifact Writer | 0/2 | Not started | - |
