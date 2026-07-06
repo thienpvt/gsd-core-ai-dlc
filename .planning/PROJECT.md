@@ -54,6 +54,7 @@ The rule selection engine correctly injects only the relevant AI-DLC rule summar
 - The central problem: naïvely injecting all AI-DLC steering markdown per request causes context bloat and degrades the long-running loop. The solution is indexing + trigger-based selection + summary injection + lazy detail loading.
 - Governance must survive context compaction and long-running work, so audit artifacts and rule-selection state are persisted to `.planning/governance/`, not held only in context.
 - Known tech debt (advisory, non-blocking): see `.planning/milestones/v1.0-MILESTONE-AUDIT.md` — 8 Phase 5 hardening items (WR-01..05, IN-01..03) + 1 cross-phase config-namespacing item, deferred to v2.
+- **Phase 6 complete (2026-07-06):** v1.0 tech-debt folded — 3 correctness fixes (TD-01 strict ISO-8601 `assertTimestamp`, TD-02 consent-gated `verify:post` onError:halt test, TD-03 shared `atomicWriteFile` with PID+UUID suffix eliminating the concurrent-write race) + 6 hygiene cleanups (TD-04 unified `selector_reason` shape, TD-05 `isDirectRun` narrowed to dist entry, TD-06 `buildAuditRecord` de-exported, TD-07 `writeGovernanceAudit` returns resolved absolute path, TD-08 `resolveGsdTools` explicit `string|null` fallback, TD-09 config keys namespaced so gsd-tools no longer warns). 193 tests, 0 fail. Phases 7-10 open on a clean foundation.
 
 ## Constraints
 
