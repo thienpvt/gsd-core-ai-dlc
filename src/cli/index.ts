@@ -16,6 +16,9 @@ export async function main(argv: string[]): Promise<void> {
     case "select":
       return (await import("./commands/select.js")).run(rest);
 
+    case "inject":
+      return (await import("./commands/inject.js")).run(rest);
+
     // Phase 3: case "rule-detail" → ./commands/rule-detail.js
 
     default:
@@ -23,7 +26,8 @@ export async function main(argv: string[]): Promise<void> {
       process.stderr.write(
         "Usage:\n" +
           "  governance build-index [--root <dir>] [--out <file>]\n" +
-          "  governance select --phase <p> [--index <f>] [--input <f>] [--domains a,b] [--budget <n>] [--format json|text]\n",
+          "  governance select --phase <p> [--index <f>] [--input <f>] [--domains a,b] [--budget <n>] [--format json|text]\n" +
+          "  governance inject [--input <file>]\n",
       );
       process.exit(2);
   }
