@@ -94,7 +94,8 @@ export async function run(rest: string[]): Promise<void> {
       r === null ||
       typeof r.id !== "string" ||
       typeof r.summary !== "string" ||
-      !(r.severity in SEVERITY_ORDINAL)
+      typeof r.severity !== "string" ||
+      !Object.hasOwn(SEVERITY_ORDINAL, r.severity)
     ) {
       throw new Error(
         "malformed inject input: each selected rule needs a string `id`, a string " +
