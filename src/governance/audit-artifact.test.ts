@@ -134,14 +134,6 @@ function auditFromRecord(record: GovernanceRecord): GovernanceAudit {
   }
 }
 
-// Variant that writes the state file unsafely (for malformed-payload tests)
-// then runs the public writer and returns its audit.
-function auditFromUnsafeRecord(root: string, record: unknown): GovernanceAudit {
-  writeUnsafeState(root, record);
-  const outputPath = path.join(root, ".planning", "phases", "05-audit", "GOVERNANCE.md");
-  return writeGovernanceAudit({ projectRoot: root, outputPath }).audit;
-}
-
 test("buildAuditRecord maps selected rules one-to-one into rules_applied", () => {
   const record = fixtureRecord();
   const audit = auditFromRecord(record);
