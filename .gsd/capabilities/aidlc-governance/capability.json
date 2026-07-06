@@ -15,7 +15,8 @@
   },
   "skills": [
     "aidlc-governance-discuss",
-    "aidlc-governance-execute"
+    "aidlc-governance-execute",
+    "aidlc-governance-audit"
   ],
   "agents": [],
   "hooks": [],
@@ -51,6 +52,16 @@
       "consumes": [".planning/governance/selection-state.json"],
       "when": "governance.enabled",
       "onError": "skip"
+    },
+    {
+      "point": "verify:post",
+      "ref": {
+        "skill": "aidlc-governance-audit"
+      },
+      "produces": ["GOVERNANCE.md"],
+      "consumes": [".planning/governance/selection-state.json"],
+      "when": "governance.enabled",
+      "onError": "halt"
     }
   ],
   "contributions": [],
