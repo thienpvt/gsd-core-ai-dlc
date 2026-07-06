@@ -142,6 +142,7 @@ test("readSelection returns null when the file does not exist yet (no record —
 test("readSelection THROWS on a malformed (non-JSON) file — never silently returns null/empty (Pitfall 7)", () => {
   withTempRoot((root) => {
     const finalPath = selectionStatePath(root);
+    mkdirSync(path.dirname(finalPath), { recursive: true });
     writeFileSync(finalPath, "{not valid json", "utf8");
     assert.throws(
       () => readSelection(root),
@@ -154,6 +155,7 @@ test("readSelection THROWS on a malformed (non-JSON) file — never silently ret
 test("readSelection THROWS on a JSON record missing selectionResult — a partial record must NOT masquerade as valid (Pitfall 7)", () => {
   withTempRoot((root) => {
     const finalPath = selectionStatePath(root);
+    mkdirSync(path.dirname(finalPath), { recursive: true });
     // Valid JSON, but missing the selectionResult field — a corrupt ledger
     // must fail loud, not silently coerce into a null/empty record.
     writeFileSync(
