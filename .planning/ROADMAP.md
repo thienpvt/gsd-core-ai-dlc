@@ -123,12 +123,12 @@ Plans:
   3. At the execute gate, the selected rule summaries are present in the executor/subagent context fragment (which otherwise inherits nothing).
   4. Selection decisions and state are written under `.planning/governance/` (`selection-state.json` + per-phase dirs) and reload correctly after a simulated compaction/subagent boundary, verifiable by a test that reads state back from disk.
 
-**Plans**: 0/3 plans complete
+**Plans**: 2/3 plans executed
 
 Plans:
 
-- [ ] 04-01-PLAN.md — Capability manifest + discuss gate (risk heuristic, state-store, discuss-hook; GATE-01)
-- [ ] 04-02-PLAN.md — Execute gate (reload-not-rederive, renderInjection, budget recheck) + reload-after-boundary integration test (GATE-02, ENF-01)
+- [x] 04-01-PLAN.md — Capability manifest + discuss gate (risk heuristic, state-store, discuss-hook; GATE-01)
+- [x] 04-02-PLAN.md — Execute gate (reload-not-rederive, renderInjection, budget recheck) + reload-after-boundary integration test (GATE-02, ENF-01)
 - [ ] 04-03-PLAN.md — First-run project-scope consent (CB-3) + loader-driven integration test + runbook (GATE-01 consent gate)
 
 **Wave 1**
@@ -172,5 +172,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Rule-Pack Format & Index | 4/4 | Complete    | 2026-07-05 |
 | 2. Selection Engine | 3/3 | Complete    | 2026-07-05 |
 | 3. Summary Injection & Lazy Detail Loading | 2/2 | Complete    | 2026-07-06 |
-| 4. GSD Capability Integration & Persistence | 0/3 | Not started | - |
+| 4. GSD Capability Integration & Persistence | 2/3 | In Progress|  |
 | 5. Audit-Artifact Writer | 0/2 | Not started | - |

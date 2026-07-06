@@ -30,7 +30,7 @@ Requirements for the Core milestone. Each maps to a roadmap phase.
 ### Governance Gates
 
 - [ ] **GATE-01**: At the discuss gate, the overlay identifies task type and risk and attaches the relevant rule summaries to the discussion context
-- [ ] **GATE-02**: At the execute gate, the overlay injects the selected rule summaries into the executor/subagent context (which otherwise inherits nothing)
+- [x] **GATE-02**: At the execute gate, the overlay injects the selected rule summaries into the executor/subagent context (which otherwise inherits nothing)
 
 ### Audit Artifacts
 
@@ -39,7 +39,7 @@ Requirements for the Core milestone. Each maps to a roadmap phase.
 
 ### Enforcement Boundary
 
-- [ ] **ENF-01**: Governance state (selection decisions and audit records) persists to disk under `.planning/governance/` and survives context compaction and subagent boundaries
+- [x] **ENF-01**: Governance state (selection decisions and audit records) persists to disk under `.planning/governance/` and survives context compaction and subagent boundaries
 
 ## v2 Requirements
 
@@ -103,10 +103,10 @@ Which phases cover which requirements. Populated during roadmap creation.
 | SEL-04 | Phase 2 | Complete |
 | SEL-05 | Phase 2 | Complete |
 | GATE-01 | Phase 4 | Pending |
-| GATE-02 | Phase 4 | Pending |
+| GATE-02 | Phase 4 | Complete |
 | AUDIT-01 | Phase 5 | Pending |
 | AUDIT-02 | Phase 5 | Pending |
-| ENF-01 | Phase 4 | Pending |
+| ENF-01 | Phase 4 | Complete |
 
 **Coverage:**
 

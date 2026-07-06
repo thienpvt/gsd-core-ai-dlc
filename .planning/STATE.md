@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 4
+current_phase: 04
 current_phase_name: GSD Capability Integration & Persistence
 status: executing
-stopped_at: Phase 1 context gathered
-last_updated: "2026-07-06T07:07:20.088Z"
+stopped_at: Completed 04-02-PLAN.md
+last_updated: "2026-07-06T11:04:30.694Z"
 last_activity: 2026-07-06
-last_activity_desc: Phase 03 complete, transitioned to Phase 4
+last_activity_desc: Phase 04 execution started
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 9
-  completed_plans: 9
+  total_plans: 12
+  completed_plans: 11
   percent: 60
 ---
 
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-05)
 
 **Core value:** The rule selection engine injects only the relevant AI-DLC rule summaries for the current task and phase — enough governance to be safe, little enough to avoid context bloat.
-**Current focus:** Phase 03 — Summary Injection & Lazy Detail Loading
+**Current focus:** Phase 04 — GSD Capability Integration & Persistence
 
 ## Current Position
 
-Phase: 4 — GSD Capability Integration & Persistence
-Plan: Not started
+Phase: 04 (GSD Capability Integration & Persistence) — EXECUTING
+Plan: 3 of 3
 Status: Ready to execute
-Last activity: 2026-07-06 — Phase 03 complete, transitioned to Phase 4
+Last activity: 2026-07-06 — Phase 04 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -66,6 +66,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02-selection-engine P03 | 25 | 3 tasks | 9 files |
 | Phase 03-summary-injection-lazy-detail-loading P01 | 11 | 3 tasks | 6 files |
 | Phase 03-summary-injection-lazy-detail-loading P02 | 13 | 3 tasks | 11 files |
+| Phase 04 P02 | 8 | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -90,6 +91,9 @@ Recent decisions affecting current work:
 - [Phase 03]: [Phase 03-02]: resolveDetailPath is the single-sourced D-08 resolver + IN-05 traversal guard (pure path math, reads no file), imported by BOTH buildIndex (build-time D-07) and rule-detail (fetch-time backstop) so the guards cannot drift (Pitfall 8)
 - [Phase 03]: [Phase 03-02]: D-07 build-time validation (scoped to the store root absRoot) is the AUTHORITATIVE guard; rule-detail fetch-time guard is an intentional coarse backstop scoped to process.cwd(), documented as looser and never claimed to match the build boundary
 - [Phase 03]: [Phase 03-02]: governance rule-detail <id> is the ONE sanctioned body surface (SEL-03): reads ONLY the one requested id target via gray-matter, D-06 no-detail rule returns summary + signal (exit 0), unknown id fails loud non-zero, never pre-fetches another body
+- [Phase 04]: [Phase 04-02]: executeHook emits the governance fragment on stdout and returns it, preserving observable context even when budget overflow sets process.exitCode=1. — Matches Phase 3 inject CLI and prevents truncating the executor context fragment on overflow.
+- [Phase 04]: [Phase 04-02]: executeHook reads persisted selection through StateStore and renderInjection only; it does not import select, validateSignal, classifyRisk, or discussHook. — Preserves D-RELOAD and prevents execute-time re-derivation drift.
+- [Phase 04]: [Phase 04-02]: reload-boundary acceptance is test-only once 04-01 and executeHook exist; no fake RED failure was introduced. — The plan explicitly noted the test becomes green once both halves land; artificial failures would add no product proof.
 
 ### Pending Todos
 
@@ -114,6 +118,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-06T01:02:40.494Z
-Stopped at: Phase 1 context gathered
-Resume file: .planning/phases/01-rule-pack-format-index/01-CONTEXT.md
+Last session: 2026-07-06T11:04:30.689Z
+Stopped at: Completed 04-02-PLAN.md
+Resume file: None
