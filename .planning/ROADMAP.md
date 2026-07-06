@@ -10,7 +10,7 @@ This roadmap delivers Milestone 1 (Core / v1): proving the anti-bloat premise en
 - [x] **Phase 2: Selection Engine** - Deterministic trigger+scope+phase matching with a labeled recall/precision eval set (completed 2026-07-05)
 - [x] **Phase 3: Summary Injection & Lazy Detail Loading** - Inject summaries only; load full rule bodies on demand by id (completed 2026-07-06)
 - [x] **Phase 4: GSD Capability Integration & Persistence** - Register discuss/execute gate hooks as a capability; persist governance state to disk (completed 2026-07-06)
-- [ ] **Phase 5: Audit-Artifact Writer** - Produce a machine-derived per-task audit of rules applied and skipped
+- [x] **Phase 5: Audit-Artifact Writer** - Produce a machine-derived per-task audit of rules applied and skipped (completed 2026-07-06)
 
 ## Phase Details
 
@@ -155,12 +155,12 @@ Plans:
   2. The audit records each skipped rule with a reason drawn from the fixed enum (`out-of-phase` / `out-of-scope-by-trigger` / `superseded` / `explicitly-waived`), and a reason outside the enum is rejected.
   3. The audit is reproducible — regenerating it from the same selection state yields identical applied/skipped records.
 
-**Plans**: 1/2 plans executed
+**Plans**: 2/2 plans complete
 
 Plans:
 
 - [x] 05-01-PLAN.md
-- [ ] 05-02-PLAN.md
+- [x] 05-02-PLAN.md
 
 **Wave 1**
 
@@ -168,7 +168,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 05-02: Skip-reason enum enforcement + provenance tags + reproducibility check
+- [x] 05-02: Skip-reason enum enforcement + provenance tags + reproducibility check
 
 ## Progress
 
@@ -181,4 +181,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. Selection Engine | 3/3 | Complete    | 2026-07-05 |
 | 3. Summary Injection & Lazy Detail Loading | 2/2 | Complete    | 2026-07-06 |
 | 4. GSD Capability Integration & Persistence | 3/3 | Complete    | 2026-07-06 |
-| 5. Audit-Artifact Writer | 1/2 | In Progress|  |
+| 5. Audit-Artifact Writer | 2/2 | Complete   | 2026-07-06 |
