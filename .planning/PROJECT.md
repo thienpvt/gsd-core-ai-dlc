@@ -33,11 +33,13 @@ The rule selection engine correctly injects only the relevant AI-DLC rule summar
 
 ## Context
 
-- Two source systems inform the design:
+- **Shipped v1.0 (2026-07-06):** 13,378 LOC TypeScript (8,141 src + 5,237 test), 178 tests passing (0 fail), across 5 phases / 14 plans / 38 tasks over 2 days. The anti-bloat premise is validated end-to-end: rule packs → deterministic selection → summary-only injection → lazy detail → consent-gated persistence → reproducible audit.
+- Two source systems informed the design:
   - **GSD Core** (https://github.com/open-gsd/gsd-core) — the runtime for context management, phase/state tracking, planning, execution, verification, shipping. Provides `.planning/`, roadmap, STATE.md, and the execution loop this overlay hooks into.
   - **AI-DLC Workflows** (https://github.com/awslabs/aidlc-workflows) — the governance model: SDLC control, enterprise rules, compliance checks, approval checkpoints, audit artifacts. Contributes the rule semantics, not its delivery mechanism.
 - The central problem: naïvely injecting all AI-DLC steering markdown per request causes context bloat and degrades the long-running loop. The solution is indexing + trigger-based selection + summary injection + lazy detail loading.
-- Governance must survive context compaction and long-running work, so audit artifacts and rule-selection state need to be persisted, not held only in context.
+- Governance must survive context compaction and long-running work, so audit artifacts and rule-selection state are persisted to `.planning/governance/`, not held only in context.
+- Known tech debt (advisory, non-blocking): see `.planning/milestones/v1.0-MILESTONE-AUDIT.md` — 8 Phase 5 hardening items (WR-01..05, IN-01..03) + 1 cross-phase config-namespacing item, deferred to v2.
 
 ## Constraints
 
@@ -51,8 +53,8 @@ The rule selection engine correctly injects only the relevant AI-DLC rule summar
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| GSD Core = runtime, AI-DLC = governance overlay | Separation of concerns; keeps GSD upgradable and governance pluggable | — Pending |
-| Deliverable is a working GSD extension (not a design doc) | User needs runnable tooling: rule packs, selection engine, hooks, audit generation | — Pending |
+| GSD Core = runtime, AI-DLC = governance overlay | Separation of concerns; keeps GSD upgradable and governance pluggable | ✓ Validated (v1.0) — overlay shipped as a declarative `capability.json` hooking GSD's discuss/execute/verify:post; no second runtime introduced |
+| Deliverable is a working GSD extension (not a design doc) | User needs runnable tooling: rule packs, selection engine, hooks, audit generation | ✓ Validated (v1.0) — `governance build-index`/`select`/`inject`/`rule-detail` CLI + audit writer all runnable end-to-end |
 | Rule selection engine is the riskiest core to build first | If summary selection is wrong, the anti-bloat premise collapses | ✓ Validated (Phase 2) — deterministic `select()` + per-rule reasons + eval set gating 100% critical recall + token budget shipped |
 | Tool-agnostic gate contracts + adapter stubs | Broadest applicability, avoids vendor lock-in for enforcement | ✓ Validated (Phase 5) — audit artifact schema + `writeGovernanceAudit` shipped as the engine-neutral audit contract; enforcement adapter stubs remain Active |
 | Rules scoped enterprise / domain / project, indexed by trigger + phase + severity | Enables precise, minimal selection per task | ✓ Validated (Phase 1) — frontmatter format + scope precedence + body-free index shipped |
@@ -77,4 +79,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-06 after Phase 5 completion (Audit-Artifact Writer) — all 5 v1 phases complete, milestone v1.0 ready for completion*
+*Last updated: 2026-07-06 after v1.0 milestone completion — Core milestone shipped, ready for v2.0 Govern*

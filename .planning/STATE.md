@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 05
-status: verifying
+current_phase: 0
+status: Awaiting next milestone
 stopped_at: Completed 05-02-PLAN.md
-last_updated: "2026-07-06T13:44:39.205Z"
+last_updated: "2026-07-06T14:08:06.192Z"
 last_activity: 2026-07-06
-last_activity_desc: Phase 05 complete
+last_activity_desc: Milestone v1.0 completed and archived
 progress:
   total_phases: 5
   completed_phases: 5
@@ -24,16 +24,14 @@ current_phase_name: Audit-Artifact Writer
 See: .planning/PROJECT.md (updated 2026-07-06)
 
 **Core value:** The rule selection engine injects only the relevant AI-DLC rule summaries for the current task and phase — enough governance to be safe, little enough to avoid context bloat.
-**Current focus:** Phase 05 — Audit-Artifact Writer
+**Current focus:** v1.0 Core shipped (2026-07-06) — all 5 phases / 14 plans verified. Awaiting next milestone (`/gsd-new-milestone` for v2.0 Govern).
 
 ## Current Position
 
-Phase: 05
-Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-07-06 — Phase 05 complete
-
-Progress: [██████████] 100%
+Phase: Milestone v1.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-07-06 — Milestone v1.0 completed and archived
 
 ## Performance Metrics
 
@@ -134,3 +132,7 @@ Items acknowledged and carried forward from previous milestone close:
 Last session: 2026-07-06T12:47:58.635Z
 Stopped at: Completed 05-02-PLAN.md
 Resume file: None
+
+## Operator Next Steps
+
+- Start the next milestone with /gsd-new-milestone
