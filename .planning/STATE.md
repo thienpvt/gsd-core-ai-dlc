@@ -106,7 +106,7 @@ None yet.
 [Issues that affect future work]
 
 - [Phase 2]: Labeled eval-set construction methodology and the `critical`-rule recall threshold are novel and load-bearing — flagged for deeper research during Phase 2 planning. (Resolved in v1.0; SEL-06 in Phase 10 will formalize the standing harness.)
-- [Phase 6]: TD-02 consent integration test must cover the `onError:halt` silent-failure path — verify the audit hook actually fires post-consent, not just that consent activates.
+- [Phase 6]: TD-02 consent integration test must cover the `onError:halt` silent-failure path — verify the audit hook actually fires post-consent, not just that consent activates. (Resolved 2026-07-06 — `consent-verify-post.test.ts` shipped in Phase 6, asserts hook fires post-consent + revoke/tamper fail closed; verification passed 5/5.)
 - [Phase 7]: Adapter stubs must be schema-valid by Ajv at runtime — a stub that emits malformed output must hard-fail, not silently corrupt the audit trail.
 
 ## Deferred Items
@@ -121,7 +121,7 @@ Items acknowledged and carried forward from previous milestone close:
 ## Session Continuity
 
 Last session: 2026-07-06T16:20:52.511Z
-Stopped at: Completed 06-03-PLAN.md (TD-02/08/09 tech-debt fold-in)
+Stopped at: Phase 6 complete (v1.0 tech-debt folded — TD-01..09 shipped, verification passed 5/5), ready to discuss Phase 7
 Resume file: None
 
 ## Operator Next Steps
