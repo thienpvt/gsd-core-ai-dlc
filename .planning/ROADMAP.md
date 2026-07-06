@@ -51,9 +51,14 @@ Phase numbering continues at 6 (no reset). First phase owns the v1.0 tech-debt f
 **Plans**: 3 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 06-01-PLAN.md — Extract shared atomicWriteFile helper with unique temp suffix; delegate atomicWriteText/atomicWriteJson (TD-03)
-- [ ] 06-02-PLAN.md — Tighten assertTimestamp to ISO 8601, unify selector_reason, narrow isDirectRun, de-export buildAuditRecord, return resolved path (TD-01, TD-04, TD-05, TD-06, TD-07)
 - [ ] 06-03-PLAN.md — Namespace config keys, consent-gated verify:post integration test, explicit resolveGsdTools fallback (TD-02, TD-08, TD-09)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 06-02-PLAN.md — Tighten assertTimestamp to ISO 8601, unify selector_reason, narrow isDirectRun, de-export buildAuditRecord, return resolved path (TD-01, TD-04, TD-05, TD-06, TD-07)
 
 ### Phase 7: Enforcement Contracts & Adapter Stubs
 
