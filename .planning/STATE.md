@@ -4,17 +4,17 @@ milestone: v2.0
 milestone_name: Govern
 current_phase: 06
 current_phase_name: v1.0 Tech-Debt Fold-In
-status: executing
+status: verifying
 stopped_at: Completed 06-03-PLAN.md (TD-02/08/09 tech-debt fold-in)
-last_updated: "2026-07-06T15:58:26.462Z"
+last_updated: "2026-07-06T16:21:17.065Z"
 last_activity: 2026-07-06
 last_activity_desc: Phase 06 execution started
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 2
-  percent: 0
+  completed_plans: 3
+  percent: 20
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 
 Phase: 06 (v1.0 Tech-Debt Fold-In) — EXECUTING
 Plan: 3 of 3
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-07-06 — Phase 06 execution started
 
 ## Performance Metrics
@@ -69,6 +69,7 @@ Last activity: 2026-07-06 — Phase 06 execution started
 *Updated after each plan completion*
 | Phase 06 P01 | 5 | 2 tasks | 5 files |
 | Phase 06 P03 | 5 | 3 tasks | 4 files |
+| Phase 06 P02 | 12 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -88,6 +89,10 @@ Recent decisions affecting current work:
 - [Phase ?]: 06-03: TD-09 removed top-level warned config keys (tavily_search/ref_search/perplexity/jina/quick_branch_template) rather than namespacing — keys were inert, removal is zero-surface fix; git.quick_branch_template stays as namespaced form
 - [Phase ?]: 06-03: TD-02 wrote self-contained consent-verify-post test (duplicated helpers) instead of extracting to test/fixtures/consent-helpers.ts — test/ not compiled by tsconfig (src/** only), and extraction adds regression risk to passing consent.test.ts for zero functional gain
 - [Phase ?]: 06-03: TD-08 resolveGsdTools returns string | null with caller null-guard (not thrown error) — matches existing t.skip pattern for absent runtime
+- [Phase ?]: TD-01: assertTimestamp strict ISO 8601 regex replaces Date.parse-only check
+- [Phase ?]: TD-04: per-element selector_reason validation in assertSelectionArrays; normalizeSkipReason mapping now total
+- [Phase ?]: TD-06: buildAuditRecord de-exported; tests exercise writeGovernanceAudit end-to-end
+- [Phase ?]: TD-07: writeGovernanceAudit returns path.resolve(args.outputPath) absolute path
 
 ### Pending Todos
 
@@ -114,7 +119,7 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-06T15:58:26.456Z
+Last session: 2026-07-06T16:20:52.511Z
 Stopped at: Completed 06-03-PLAN.md (TD-02/08/09 tech-debt fold-in)
 Resume file: None
 

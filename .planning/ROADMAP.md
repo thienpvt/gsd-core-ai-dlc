@@ -27,7 +27,7 @@ The Govern milestone extends the validated Core to full enterprise SDLC control:
 
 Phase numbering continues at 6 (no reset). First phase owns the v1.0 tech-debt fold-in atomically before new gate surface opens a fresh debt surface. Requirements live in `.planning/REQUIREMENTS.md`.
 
-- [ ] **Phase 6: v1.0 Tech-Debt Fold-In** - Pay down 9 v1.0 debt items (3 correctness, 6 hygiene) before new gate surface opens
+- [x] **Phase 6: v1.0 Tech-Debt Fold-In** - Pay down 9 v1.0 debt items (3 correctness, 6 hygiene) before new gate surface opens (completed 2026-07-06)
 - [ ] **Phase 7: Enforcement Contracts & Adapter Stubs** - JSON Schema gate contracts + GateAdapter interface + no-op stubs named after AI-DLC-implied tools
 - [ ] **Phase 8: Remaining Gate Hooks** - Plan, verify, and ship gates consume Phase 7 contracts and produce per-rule pass/fail records
 - [ ] **Phase 9: Complete Audit Record & Approval** - Audit artifact records requirements, tests, risks, approvals; human approval flows through contracts
@@ -48,7 +48,7 @@ Phase numbering continues at 6 (no reset). First phase owns the v1.0 tech-debt f
   4. `gsd-tools` no longer emits warnings on unrelated config keys (`tavily_search`, `ref_search`, `perplexity`, `jina`, `quick_branch_template`) — governance keys are namespaced or split (TD-09).
   5. Hygiene items are merged: unified `selector_reason` validation shape (TD-04), `isDirectRun` narrowed to the dist entry path (TD-05), `buildAuditRecord` export narrowed to module-internal (TD-06), `writeGovernanceAudit` returns the resolved absolute path (TD-07), `resolveGsdTools` handles the `undefined` fallback explicitly (TD-08).
 
-**Plans**: 2/3 plans executed
+**Plans**: 3/3 plans complete
 
 Plans:
 **Wave 1**
@@ -58,7 +58,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 06-02-PLAN.md — Tighten assertTimestamp to ISO 8601, unify selector_reason, narrow isDirectRun, de-export buildAuditRecord, return resolved path (TD-01, TD-04, TD-05, TD-06, TD-07)
+- [x] 06-02-PLAN.md — Tighten assertTimestamp to ISO 8601, unify selector_reason, narrow isDirectRun, de-export buildAuditRecord, return resolved path (TD-01, TD-04, TD-05, TD-06, TD-07)
 
 ### Phase 7: Enforcement Contracts & Adapter Stubs
 
@@ -127,7 +127,7 @@ v2.0 Phases execute in numeric order: 6 → 7 → 8 → 9 → 10.
 | 3. Summary Injection & Lazy Detail Loading | v1.0 | 2/2 | Complete | 2026-07-06 |
 | 4. GSD Capability Integration & Persistence | v1.0 | 3/3 | Complete | 2026-07-06 |
 | 5. Audit-Artifact Writer | v1.0 | 2/2 | Complete | 2026-07-06 |
-| 6. v1.0 Tech-Debt Fold-In | v2.0 | 2/3 | In Progress|  |
+| 6. v1.0 Tech-Debt Fold-In | v2.0 | 3/3 | Complete   | 2026-07-06 |
 | 7. Enforcement Contracts & Adapter Stubs | v2.0 | 0/? | Not started | - |
 | 8. Remaining Gate Hooks | v2.0 | 0/? | Not started | - |
 | 9. Complete Audit Record & Approval | v2.0 | 0/? | Not started | - |
