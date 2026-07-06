@@ -302,12 +302,10 @@ module.exports = {
 
 test("TD-02: consent gate keeps verify:post inactive pre-consent (fails closed)", () => {
   const tmpRoot = mkdtempSync(path.join(os.tmpdir(), "gsd-consent-vp-"));
-  let consent: ConsentModule | undefined;
-  let projectRoot = "";
   try {
     const { configDir, gsdTools } = writeRuntimeShim(tmpRoot);
     const fixture = writeProjectFixture(tmpRoot);
-    projectRoot = fixture.projectRoot;
+    const projectRoot = fixture.projectRoot;
     installProjectLedger(gsdTools, projectRoot);
 
     assert.equal(rowFor(capabilityRows(gsdTools, projectRoot, configDir)).status, "inactive");
@@ -318,13 +316,6 @@ test("TD-02: consent gate keeps verify:post inactive pre-consent (fails closed)"
       "verify:post must omit aidlc-governance-audit hook pre-consent (fail closed)",
     );
   } finally {
-    if (consent && projectRoot) {
-      try {
-        consent.revokeProjectConsent({ gsdHome: path.join(tmpRoot, "runtime"), projectRoot, id: CAP_ID });
-      } catch {
-        // Best-effort cleanup.
-      }
-    }
     rmSync(tmpRoot, { recursive: true, force: true });
   }
 });
