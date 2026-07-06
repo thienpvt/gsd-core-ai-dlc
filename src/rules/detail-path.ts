@@ -106,7 +106,23 @@ export function resolveDetailPath(
   // the realpath-canonicalized target vs the canonicalized packRoot so a link that
   // escapes on disk is rejected at BOTH build and fetch time. canonicalize() reads
   // only link metadata (never file contents), so the no-body guarantee (D-05) holds.
-  const realTarget = canonicalize(resolved);
+  // CR-01 symlink guard (cont.): only run the realpath containment check when the
+  // target actually resolves. If it doesn't (ENOENT — a not-yet-existing or dangling
+  // leaf), fall through with the LEXICAL path the lexical guard above already proved
+  // in-pack, and let the caller's existsSync/readFileSync fail loud with the true
+  // "missing" cause. Canonicalizing packRoot but not a missing target would otherwise
+  // diverge under a symlinked packRoot prefix (e.g. macOS /var -> /private/var) and
+  // mislabel a benign missing file as a symlink escape.
+  let realTarget: string;
+  try {
+    realTarget = realpathSync(resolved);
+  } catch {
+    // Target missing: lexical guard above already proved in-pack. Caller's
+    // existsSync/readFileSync fails loud on existence. No symlink hole here —
+    // a dangling symlink that resolved ENOENT-on-the-link-target cannot carry
+    // an arbitrary-read payload because the caller never opens it.
+    return resolved;
+  }
   const realRoot = canonicalize(path.resolve(packRoot));
   const realRel = path.relative(realRoot, realTarget);
   if (escapesRoot(realRel)) {
