@@ -108,7 +108,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 — shares src/cli/index.ts dispatch)*
 
-- [ ] 03-02: Lazy detail loader — `governance rule-detail <id>` fetches a single body; D-07 build-time detailPath validation; IN-05 traversal guard (SEL-03)
+- [x] 03-02: Lazy detail loader — `governance rule-detail <id>` fetches a single body; D-07 build-time detailPath validation; IN-05 traversal guard (SEL-03)
 
 ### Phase 4: GSD Capability Integration & Persistence
 
@@ -159,6 +159,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Rule-Pack Format & Index | 4/4 | Complete    | 2026-07-05 |
 | 2. Selection Engine | 3/3 | Complete    | 2026-07-05 |
-| 3. Summary Injection & Lazy Detail Loading | 2/2 | Complete   | 2026-07-06 |
+| 3. Summary Injection & Lazy Detail Loading | 2/2 | Complete    | 2026-07-06 |
 | 4. GSD Capability Integration & Persistence | 0/3 | Not started | - |
 | 5. Audit-Artifact Writer | 0/2 | Not started | - |
