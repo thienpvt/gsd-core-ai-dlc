@@ -123,13 +123,25 @@ Plans:
   3. At the execute gate, the selected rule summaries are present in the executor/subagent context fragment (which otherwise inherits nothing).
   4. Selection decisions and state are written under `.planning/governance/` (`selection-state.json` + per-phase dirs) and reload correctly after a simulated compaction/subagent boundary, verifiable by a test that reads state back from disk.
 
-**Plans**: TBD
+**Plans**: 0/3 plans complete
 
 Plans:
 
-- [ ] 04-01: `capability.json` + fragments registering `discuss:pre` (task type + risk) and `execute:pre` (subagent injection) hooks
-- [ ] 04-02: Disk-backed governance ledger under `.planning/governance/` (selection-state + per-phase dirs)
-- [ ] 04-03: First-run project-scope consent handling + forced compaction/subagent persistence test
+- [ ] 04-01-PLAN.md — Capability manifest + discuss gate (risk heuristic, state-store, discuss-hook; GATE-01)
+- [ ] 04-02-PLAN.md — Execute gate (reload-not-rederive, renderInjection, budget recheck) + reload-after-boundary integration test (GATE-02, ENF-01)
+- [ ] 04-03-PLAN.md — First-run project-scope consent (CB-3) + loader-driven integration test + runbook (GATE-01 consent gate)
+
+**Wave 1**
+
+- [ ] 04-01: Capability manifest (.gsd/capabilities/aidlc-governance/capability.json declaring discuss:pre + execute:pre) + discuss gate (classifyRisk, StateStore atomic write, discussHook; risk widens domain subscription — GATE-01)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 04-02: Execute gate (executeHook reloads persisted selectionResult — no re-derive; renderInjection + budget recheck) + reload-after-boundary integration test (GATE-02, ENF-01 criterion 4)
+
+**Wave 3** *(blocked on Wave 1 + Wave 2 completion)*
+
+- [ ] 04-03: First-run project-scope consent (CB-3 via loader's own verb) + loader-driven pre/post/tamper integration test + auditor runbook (GATE-01 consent gate — security load-bearer for the phase)
 
 ### Phase 5: Audit-Artifact Writer
 
