@@ -74,9 +74,17 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 07-01-PLAN.md — Publish 3 JSON Schema (draft 2020-12) contract files + enforcement TypeScript types (GateId, GateRequest, GateResult, GateFinding) + schema-compile smoke test
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 07-02-PLAN.md — Implement validateGateResult assert (Ajv 2020 runtime validator, 4th instance of the validate.ts pattern) — ENF-02 integrity gate (TDD)
 - [ ] 07-03-PLAN.md — Implement GateAdapter interface + noopAdapter/echoAdapter factories + 7 named stubs + static ADAPTERS/ECHO_ADAPTERS Maps — ENF-03 (TDD)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 07-04-PLAN.md — Implement runAdapter hard-fail boundary wrapper + append malformed-fixture contract tests — ENF-02 + ENF-04 boundary (TDD)
 
 ### Phase 8: Remaining Gate Hooks
