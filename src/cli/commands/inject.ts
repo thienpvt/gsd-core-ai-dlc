@@ -25,8 +25,8 @@
 import { parseArgs } from "node:util";
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { renderInjection } from "../../inject/inject.js";
-import type { SelectionResult } from "../../types.js";
+import { renderInjection, SEVERITY_ORDINAL } from "../../inject/inject.js";
+import type { SelectedRule, SelectionResult } from "../../types.js";
 
 /** Read the whole of process.stdin as a UTF-8 string (result delivered via a pipe). */
 async function readStdin(): Promise<string> {
@@ -77,6 +77,30 @@ export async function run(rest: string[]): Promise<void> {
     throw new Error(
       "malformed inject input: expected a SelectionResult with `selected` and `skipped` arrays",
     );
+  }
+
+  // Per-element guard (WR-01): array-ness alone is not enough. renderInjection
+  // reads id/severity/summary off each selected rule, so a hand-crafted or
+  // upstream-corrupted element like {"id":"x"} (no summary, no severity) would
+  // otherwise render literal "[undefined] x: undefined" straight into the
+  // <governance> context — silently emitting WRONG governance is exactly the
+  // fail-loud lesson this command already applies to malformed JSON. Validate the
+  // three rendered fields (full Ajv SelectionResult schema still deferred) and
+  // throw loud otherwise. skipped[] is audit-only (Phase 5) and NOT rendered here,
+  // so it needs no per-element check at this seam.
+  for (const r of candidate.selected as SelectedRule[]) {
+    if (
+      typeof r !== "object" ||
+      r === null ||
+      typeof r.id !== "string" ||
+      typeof r.summary !== "string" ||
+      !(r.severity in SEVERITY_ORDINAL)
+    ) {
+      throw new Error(
+        "malformed inject input: each selected rule needs a string `id`, a string " +
+          "`summary`, and a valid `severity` (critical|high|medium|low)",
+      );
+    }
   }
   const result = candidate as SelectionResult;
 
