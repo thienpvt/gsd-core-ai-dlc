@@ -1,0 +1,7 @@
+# Test fixture marker — keeps the empty governance-store fixture dir in git
+# while ignoring any runtime state a real-corpus integration test might
+# write under .planning/governance/ here. The 04-01 acceptance gate runs the
+# hook via direct node:test calls with mkdtempSync project roots, not this
+# directory; 04-03 will own the live-loop integration test.
+*
+!.gitignore
