@@ -22,6 +22,9 @@ const SKILL_PATH = path.join(
 );
 const CODEX_CONFIG_DIR = process.env.CODEX_HOME ?? path.join(os.homedir(), ".codex");
 const GSD_TOOLS = resolveGsdTools();
+// TD-08: resolveGsdTools now returns string | null. The local render-hooks test
+// below guards GSD_TOOLS === null explicitly — no `as string` cast hiding a
+// missing runtime behind a candidate[0] fallback that may point nowhere.
 
 type CapabilityStep = {
   point?: string;
@@ -58,14 +61,17 @@ function auditSteps(capability: CapabilityManifest): CapabilityStep[] {
   );
 }
 
-function resolveGsdTools(): string {
+function resolveGsdTools(): string | null {
   const candidates = [
     path.join(CODEX_CONFIG_DIR, "gsd-core", "bin", "gsd-tools.cjs"),
     path.join(os.homedir(), ".codex", "gsd-core", "bin", "gsd-tools.cjs"),
     path.join(os.homedir(), ".claude", "gsd-core", "bin", "gsd-tools.cjs"),
   ];
 
-  return candidates.find((candidate) => existsSync(candidate)) ?? candidates[0] as string;
+  // TD-08: explicit null when no candidate exists — previously fell back to
+  // candidates[0] as string, which hid a missing runtime behind a non-existent
+  // path. Callers must guard against null before spawning.
+  return candidates.find((candidate) => existsSync(candidate)) ?? null;
 }
 
 test("capability manifest declares one artifact-only audit verify:post step", () => {
@@ -112,7 +118,9 @@ test("audit skill delegates phase resolution and writing to the built audit arti
 });
 
 test("local render-hooks verify:post output references aidlc-governance-audit when runtime exists", (t) => {
-  if (!existsSync(GSD_TOOLS)) {
+  // TD-08: guard null explicitly — resolveGsdTools returns string | null, never
+  // a candidates[0] fallback. Skip cleanly when no runtime is found.
+  if (GSD_TOOLS === null || !existsSync(GSD_TOOLS)) {
     t.skip("local GSD runtime is not installed");
     return;
   }
