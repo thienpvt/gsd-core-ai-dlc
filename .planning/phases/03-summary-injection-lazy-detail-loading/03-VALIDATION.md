@@ -1,8 +1,8 @@
 ---
 phase: 3
 slug: summary-injection-lazy-detail-loading
-status: draft
-nyquist_compliant: false
+status: approved
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-07-05
 ---
@@ -91,6 +91,6 @@ Projected against the ROADMAP sub-plans (03-01 summary injector, 03-02 lazy deta
 - [ ] Wave 0 covers all MISSING references
 - [ ] No watch-mode flags
 - [ ] Feedback latency < 3s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-07-05 (both plans carry `<automated>` verify blocks; sampling continuity holds — no 3 consecutive tasks without an automated verify; no watch-mode flags; feedback latency ~1–3s)
