@@ -95,12 +95,20 @@ Plans:
   2. Running `governance rule-detail <id>` returns exactly one full rule body for the requested id and does not pre-fetch any other bodies (lazy load verifiable).
   3. A property test confirms summary-only injection never emits a full body regardless of selection input.
 
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 
-- [ ] 03-01: Summary injector — render selected summaries into a markdown fragment (summaries only)
-- [ ] 03-02: Lazy detail loader — `governance rule-detail <id>` fetches a single body by id
+- [ ] 03-01-PLAN.md — Summary injector: pure renderInjection + `<governance>` fragment (summaries only) + `governance inject` CLI + no-body-leak property (SEL-02)
+- [ ] 03-02-PLAN.md — Lazy detail loader: `governance rule-detail <id>` single-body fetch + single-sourced resolveDetailPath guard (D-06/07/08 + IN-05) (SEL-03)
+
+**Wave 1**
+
+- [ ] 03-01: Summary injector — render selected summaries into a `<governance>` fragment; `governance inject` CLI; fast-check no-body property (SEL-02)
+
+**Wave 2** *(blocked on Wave 1 — shares src/cli/index.ts dispatch)*
+
+- [ ] 03-02: Lazy detail loader — `governance rule-detail <id>` fetches a single body; D-07 build-time detailPath validation; IN-05 traversal guard (SEL-03)
 
 ### Phase 4: GSD Capability Integration & Persistence
 
