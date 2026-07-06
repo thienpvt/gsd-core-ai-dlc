@@ -37,8 +37,8 @@
       "ref": {
         "skill": "aidlc-governance-discuss"
       },
-      "produces": ["CONTEXT.md"],
-      "consumes": ["STATE.md", "rule-index.json"],
+      "produces": ["CONTEXT.md", ".planning/governance/selection-state.json"],
+      "consumes": [],
       "when": "governance.enabled",
       "onError": "skip"
     },
