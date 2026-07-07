@@ -29,7 +29,7 @@ Phase numbering continues at 6 (no reset). First phase owns the v1.0 tech-debt f
 
 - [x] **Phase 6: v1.0 Tech-Debt Fold-In** - Pay down 9 v1.0 debt items (3 correctness, 6 hygiene) before new gate surface opens (completed 2026-07-06)
 - [x] **Phase 7: Enforcement Contracts & Adapter Stubs** - JSON Schema gate contracts + GateAdapter interface + no-op stubs named after AI-DLC-implied tools (completed 2026-07-07)
-- [x] **Phase 8: Remaining Gate Hooks** - Plan, verify, and ship gates consume Phase 7 contracts and produce per-rule pass/fail records (completed 2026-07-07)
+- [ ] **Phase 8: Remaining Gate Hooks** - Plan, verify, and ship gates consume Phase 7 contracts and produce per-rule pass/fail records
 - [ ] **Phase 9: Complete Audit Record & Approval** - Audit artifact records requirements, tests, risks, approvals; human approval flows through contracts
 - [ ] **Phase 10: Selection-Quality Harness** - Standing recall/precision harness against the labeled eval set as a repeatable auditable check
 

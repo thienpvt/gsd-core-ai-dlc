@@ -31,12 +31,12 @@ The rule selection engine correctly injects only the relevant AI-DLC rule summar
 - [x] Summary injection + on-demand detail: summaries injected into the working context (never bodies), and full rule text fetched only when a summary is insufficient — **Validated in Phase 3: Summary Injection & Lazy Detail Loading** (SEL-02/03: `renderInjection()` rendering a body-free `<governance>` fragment by construction, `governance inject` CLI honoring the budget signal, `governance rule-detail <id>` lazy-fetching one body through a single-sourced traversal-guarded resolver with build-time detailPath validation)
 - [x] Consent-gated GSD capability integration and persisted governance state: project overlay registers discuss/execute hooks only after CB-3 user consent, discuss computes and persists selection state, execute reloads it without re-deriving — **Validated in Phase 4: GSD Capability Integration & Persistence** (GATE-01/02 + ENF-01: loader-driven consent test, live `render-hooks` verification, atomic `.planning/governance/selection-state.json`, boundary reload test)
 - [x] Audit-artifact generation: for every governed task the system produces a machine-derived audit artifact recording which rules applied and which were skipped, each skip reason drawn from a machine-checkable enum, and the record reproducible — **Validated in Phase 5: Audit-Artifact Writer** (AUDIT-01/02: deterministic `writeGovernanceAudit` building `GOVERNANCE.md` from persisted `selection-state.json` (no selector/risk/narration imports), `AUDIT_SKIP_REASONS` enum rejecting out-of-enum reasons with `selector_reason` provenance, byte-identical regeneration, `verify:post` capability step wired via `.gsd/capabilities/aidlc-governance/capability.json`)
+- [x] Tool-agnostic gate contracts + audit schemas that any CI/SAST/policy engine can satisfy, with pluggable adapter stubs (no engine lock-in) — **Validated in Phase 7: Enforcement Contracts & Adapter Stubs** (ENF-02/03/04: draft 2020-12 gate-request/gate-result/audit-artifact schemas, Ajv runtime hard-fail for malformed adapter output, `GateAdapter` + 7 no-op/echo stubs, and `runAdapter` as the binding boundary)
+- [x] Enforcement boundary honored: markdown steering is advisory context; critical enforcement is delegated to CI/CD, SAST, tests, policy-as-code, and human approval via the contracts — **Validated in Phase 7: Enforcement Contracts & Adapter Stubs** (`x-binding` marks gate request/result as binding and audit artifact as advisory; frontmatter schema requires named `enforcement` for binding rules; Phase 8 consumes the boundary in live gate hooks)
 
 ### Active
 
 - [ ] Remaining GSD gate hooks beyond v1: plan (requirements, risks, acceptance criteria, impacted modules), verify (tests, lint, security scans, policy checks), ship (audit records, approvals, rollback plan, test evidence)
-- [ ] Tool-agnostic gate contracts + audit schemas that any CI/SAST/policy engine can satisfy, with pluggable adapter stubs (no engine lock-in)
-- [ ] Enforcement boundary honored: markdown steering is advisory context; critical enforcement is delegated to CI/CD, SAST, tests, policy-as-code, and human approval via the contracts
 
 ### Out of Scope
 
@@ -55,6 +55,7 @@ The rule selection engine correctly injects only the relevant AI-DLC rule summar
 - Governance must survive context compaction and long-running work, so audit artifacts and rule-selection state are persisted to `.planning/governance/`, not held only in context.
 - Known tech debt (advisory, non-blocking): see `.planning/milestones/v1.0-MILESTONE-AUDIT.md` — 8 Phase 5 hardening items (WR-01..05, IN-01..03) + 1 cross-phase config-namespacing item, deferred to v2.
 - **Phase 6 complete (2026-07-06):** v1.0 tech-debt folded — 3 correctness fixes (TD-01 strict ISO-8601 `assertTimestamp`, TD-02 consent-gated `verify:post` onError:halt test, TD-03 shared `atomicWriteFile` with PID+UUID suffix eliminating the concurrent-write race) + 6 hygiene cleanups (TD-04 unified `selector_reason` shape, TD-05 `isDirectRun` narrowed to dist entry, TD-06 `buildAuditRecord` de-exported, TD-07 `writeGovernanceAudit` returns resolved absolute path, TD-08 `resolveGsdTools` explicit `string|null` fallback, TD-09 config keys namespaced so gsd-tools no longer warns). 193 tests, 0 fail. Phases 7-10 open on a clean foundation.
+- **Phase 7 complete (2026-07-07):** enforcement contracts and adapter boundary shipped — ENF-02/03/04 satisfied by draft 2020-12 gate schemas, strict Ajv validation, `GateAdapter` + semgrep/bandit/checkov/grype/gitleaks/generic-exit-ci/human-approval no-op and echo stubs, and `runAdapter` hard-fail validation before consumers see gate results. 262 tests, 259 pass, 0 fail, 3 skipped. Phase 8 now owns consuming `ADAPTERS` and `runAdapter` in plan/verify/ship hooks.
 
 ## Constraints
 
@@ -71,9 +72,9 @@ The rule selection engine correctly injects only the relevant AI-DLC rule summar
 | GSD Core = runtime, AI-DLC = governance overlay | Separation of concerns; keeps GSD upgradable and governance pluggable | ✓ Validated (v1.0) — overlay shipped as a declarative `capability.json` hooking GSD's discuss/execute/verify:post; no second runtime introduced |
 | Deliverable is a working GSD extension (not a design doc) | User needs runnable tooling: rule packs, selection engine, hooks, audit generation | ✓ Validated (v1.0) — `governance build-index`/`select`/`inject`/`rule-detail` CLI + audit writer all runnable end-to-end |
 | Rule selection engine is the riskiest core to build first | If summary selection is wrong, the anti-bloat premise collapses | ✓ Validated (Phase 2) — deterministic `select()` + per-rule reasons + eval set gating 100% critical recall + token budget shipped |
-| Tool-agnostic gate contracts + adapter stubs | Broadest applicability, avoids vendor lock-in for enforcement | ✓ Validated (Phase 5) — audit artifact schema + `writeGovernanceAudit` shipped as the engine-neutral audit contract; enforcement adapter stubs remain Active |
+| Tool-agnostic gate contracts + adapter stubs | Broadest applicability, avoids vendor lock-in for enforcement | ✓ Validated (Phase 7) — gate-request/gate-result/audit-artifact schemas + `GateAdapter` + 7 no-op/echo stubs shipped; `runAdapter` validates adapter output before consumers receive it |
 | Rules scoped enterprise / domain / project, indexed by trigger + phase + severity | Enables precise, minimal selection per task | ✓ Validated (Phase 1) — frontmatter format + scope precedence + body-free index shipped |
-| Markdown steering is advisory, not enforcement | Real enforcement belongs in CI/SAST/tests/policy-as-code/human approval | — Pending |
+| Markdown steering is advisory, not enforcement | Real enforcement belongs in CI/SAST/tests/policy-as-code/human approval | ✓ Contract boundary validated (Phase 7) — `x-binding` separates binding gate contracts from advisory audit artifacts; live gate hook consumption remains Phase 8 scope |
 | Project-scope overlay activation uses user-owned CB-3 consent bound to bundle hash | Keeps project overlays discoverable in git while preventing untrusted or tampered hook activation | ✓ Validated (Phase 4) — `.gsd-capabilities.json` is discoverability; consent store outside repo is activation authority |
 
 ## Evolution
@@ -94,4 +95,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-06 — v2.0 Govern milestone started (tech-debt fold-in + remaining gates + full audit + enforcement contracts + approval checkpoint)*
+*Last updated: 2026-07-07 — Phase 7 completed (tool-agnostic enforcement contracts, adapter stubs, and binding/advisory boundary validated)*
