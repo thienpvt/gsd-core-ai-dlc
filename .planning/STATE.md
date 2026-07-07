@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Govern
-current_phase: 8
-current_phase_name: Remaining Gate Hooks
+current_phase: 08
+current_phase_name: remaining-gate-hooks
 status: executing
-stopped_at: Phase 8 planned; ready to execute
-last_updated: "2026-07-07T04:29:52.382Z"
+stopped_at: Completed 08-01-PLAN.md
+last_updated: "2026-07-07T04:46:05.823Z"
 last_activity: 2026-07-07
-last_activity_desc: Phase 8 context gathered
+last_activity_desc: Phase 08 execution started
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 12
-  completed_plans: 7
+  completed_plans: 8
   percent: 40
 ---
 
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-07)
 
 **Core value:** The rule selection engine injects only the relevant AI-DLC rule summaries for the current task and phase — enough governance to be safe, little enough to avoid context bloat.
-**Current focus:** Phase 8 — Remaining Gate Hooks
+**Current focus:** Phase 08 — remaining-gate-hooks
 
 ## Current Position
 
-Phase: 8 — Remaining Gate Hooks
-Plan: Not started
+Phase: 08 (remaining-gate-hooks) — EXECUTING
+Plan: 2 of 5
 Status: Ready to execute
-Last activity: 2026-07-07 — Phase 8 context gathered
+Last activity: 2026-07-07 — Phase 08 execution started
 
 ## Performance Metrics
 
@@ -76,6 +76,7 @@ Last activity: 2026-07-07 — Phase 8 context gathered
 | Phase 07 P02 | 4 | 2 tasks | 2 files |
 | Phase 07 P03 | 13 min | 2 tasks | 4 files |
 | Phase 07 P04 | 11 min | 3 tasks | 3 files |
+| Phase 08 P01 | 8 min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -109,6 +110,8 @@ Recent decisions affecting current work:
 - [Phase ?]: 07-03: reference stubs are intentionally no-op/echo only and never execute external scanner tools
 - [Phase 07]: runAdapter is the sanctioned adapter-output boundary; adapter runtime errors propagate unchanged, while malformed GateResult output fails through validateGateResult before consumers see it. — Preserves diagnosability of tool failures and hard-fails corrupted audit-trail output at ENF-02 boundary.
 - [Phase 07]: Phase 8 gate hooks should call runAdapter(adapter, request), not direct adapter evaluation. — Keeps all binding gate-result output behind the ENF-02 validation choke point.
+- [Phase ?]: 08-01: Gate evidence path single-sourced under .planning/governance/gates/{NN}-{gate}.json.
+- [Phase ?]: 08-01: GateEvidence stays minimal ({request,result,metadata}); Phase 9 owns full audit rollup.
 
 ### Pending Todos
 
@@ -136,9 +139,9 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-07T04:29:52.368Z
-Stopped at: Phase 8 planned; ready to execute
-Resume file: .planning/phases/08-remaining-gate-hooks/08-01-PLAN.md
+Last session: 2026-07-07T04:45:01.541Z
+Stopped at: Completed 08-01-PLAN.md
+Resume file: None
 
 ## Operator Next Steps
 

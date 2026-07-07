@@ -9,9 +9,9 @@ Requirements for milestone **v2.0 Govern**. Each maps to a roadmap phase (number
 
 ### Gates — Remaining GSD Loop Hooks
 
-- [ ] **GATE-03**: At the plan gate, the overlay surfaces rules relevant to requirements, risks, acceptance criteria, and impacted modules into the planner's context (summary-only, same selection engine as discuss/execute)
-- [ ] **GATE-04**: At the verify gate, the overlay collects verification evidence (tests run, lint, scans, policy) through enforcement adapters and records pass/fail per rule
-- [ ] **GATE-05**: At the ship gate, the overlay checks audit records, approvals, rollback plan, and test evidence before release and blocks on incomplete gates
+- [x] **GATE-03**: At the plan gate, the overlay surfaces rules relevant to requirements, risks, acceptance criteria, and impacted modules into the planner's context (summary-only, same selection engine as discuss/execute)
+- [x] **GATE-04**: At the verify gate, the overlay collects verification evidence (tests run, lint, scans, policy) through enforcement adapters and records pass/fail per rule
+- [x] **GATE-05**: At the ship gate, the overlay checks audit records, approvals, rollback plan, and test evidence before release and blocks on incomplete gates
 
 ### Audit — Complete Audit Record
 
@@ -83,9 +83,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ENF-02 | Phase 7 | Complete |
 | ENF-03 | Phase 7 | Complete |
 | ENF-04 | Phase 7 | Complete |
-| GATE-03 | Phase 8 | Pending |
-| GATE-04 | Phase 8 | Pending |
-| GATE-05 | Phase 8 | Pending |
+| GATE-03 | Phase 8 | Complete |
+| GATE-04 | Phase 8 | Complete |
+| GATE-05 | Phase 8 | Complete |
 | AUDIT-03 | Phase 9 | Pending |
 | AUDIT-04 | Phase 9 | Pending |
 | AUDIT-05 | Phase 9 | Pending |
