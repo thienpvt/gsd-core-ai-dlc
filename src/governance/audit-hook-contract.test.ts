@@ -13,13 +13,9 @@ const MANIFEST_PATH = path.join(
   "aidlc-governance",
   "capability.json",
 );
-const SKILL_PATH = path.join(
-  REPO_ROOT,
-  ".claude",
-  "skills",
-  "aidlc-governance-audit",
-  "SKILL.md",
-);
+function skillPath(skill: string): string {
+  return path.join(REPO_ROOT, ".claude", "skills", skill, "SKILL.md");
+}
 const CODEX_CONFIG_DIR = process.env.CODEX_HOME ?? path.join(os.homedir(), ".codex");
 const GSD_TOOLS = resolveGsdTools();
 // TD-08: resolveGsdTools now returns string | null. The local render-hooks test
@@ -80,6 +76,18 @@ function resolveGsdTools(): string | null {
   return candidates.find((candidate) => existsSync(candidate)) ?? null;
 }
 
+function stepBySkill(
+  capability: CapabilityManifest,
+  point: string,
+  skill: string,
+): CapabilityStep {
+  const step = (capability.steps ?? []).find(
+    (candidate) => candidate.point === point && candidate.ref?.skill === skill,
+  );
+  assert.ok(step, `${point} includes ${skill}`);
+  return step;
+}
+
 function localProjectCapabilityStatus(): string | null {
   if (GSD_TOOLS === null || !existsSync(GSD_TOOLS)) return null;
 
@@ -134,8 +142,62 @@ test("capability manifest declares one artifact-only audit verify:post step", ()
   }
 });
 
+test("capability manifest registers remaining governance gates additively", () => {
+  const capability = manifest();
+
+  for (const skill of [
+    "aidlc-governance-discuss",
+    "aidlc-governance-execute",
+    "aidlc-governance-audit",
+    "aidlc-governance-plan",
+    "aidlc-governance-verify",
+    "aidlc-governance-ship",
+  ]) {
+    assert.ok(capability.skills?.includes(skill), `skills includes ${skill}`);
+  }
+
+  const plan = stepBySkill(capability, "plan:pre", "aidlc-governance-plan");
+  assert.deepEqual(plan.produces, [
+    "planner-context",
+    ".planning/governance/gates/{NN}-plan.json",
+  ]);
+  assert.deepEqual(plan.consumes, [
+    ".planning/ROADMAP.md",
+    ".planning/REQUIREMENTS.md",
+    ".planning/STATE.md",
+    ".planning/phases/{NN}-*/{NN}-CONTEXT.md",
+    ".planning/phases/{NN}-*/{NN}-RESEARCH.md",
+    ".planning/phases/{NN}-*/{NN}-VALIDATION.md",
+    ".planning/phases/{NN}-*/{NN}-PATTERNS.md",
+  ]);
+  assert.equal(plan.when, "governance.enabled");
+  assert.equal(plan.onError, "skip");
+
+  const verify = stepBySkill(capability, "verify:post", "aidlc-governance-verify");
+  assert.deepEqual(verify.produces, [".planning/governance/gates/{NN}-verify.json"]);
+  assert.deepEqual(verify.consumes, [".planning/governance/selection-state.json"]);
+  assert.equal(verify.when, "governance.enabled");
+  assert.equal(verify.onError, "halt");
+
+  const ship = stepBySkill(capability, "ship:pre", "aidlc-governance-ship");
+  assert.deepEqual(ship.produces, [".planning/governance/gates/{NN}-ship.json"]);
+  assert.deepEqual(ship.consumes, [
+    ".planning/governance/gates/{NN}-plan.json",
+    ".planning/governance/gates/{NN}-verify.json",
+  ]);
+  assert.equal(ship.when, "governance.enabled");
+  assert.equal(ship.onError, "halt");
+
+  const verifySteps = capability.steps ?? [];
+  const verifyIndex = verifySteps.indexOf(verify);
+  const auditIndex = verifySteps.indexOf(
+    stepBySkill(capability, "verify:post", "aidlc-governance-audit"),
+  );
+  assert.ok(verifyIndex < auditIndex, "verify evidence step appears before audit step");
+});
+
 test("audit skill delegates phase resolution and writing to the built audit artifact runner", () => {
-  const source = readFileSync(SKILL_PATH, "utf8");
+  const source = readFileSync(skillPath("aidlc-governance-audit"), "utf8");
 
   for (const required of [
     "selection-state.json",
@@ -155,6 +217,32 @@ test("audit skill delegates phase resolution and writing to the built audit arti
     "explicitly-waived",
   ]) {
     assert.doesNotMatch(source, new RegExp(escapeRegExp(duplicatedMapping)));
+  }
+});
+
+test("plan skill contract names all D-02 planner input sources before invoking plan-hook", () => {
+  const source = readFileSync(skillPath("aidlc-governance-plan"), "utf8");
+
+  for (const required of [
+    "phaseGoal",
+    "requirementIds",
+    "riskThreatModel",
+    "acceptanceCriteria",
+    "impactedFiles",
+    "impactedModules",
+    "PlanTaskSignalInputs",
+    "dist/governance/plan-hook.js",
+  ]) {
+    assert.match(source, new RegExp(escapeRegExp(required)));
+  }
+
+  for (const duplicatedLogic of [
+    "select(",
+    "renderInjection",
+    "classifyRisk",
+    "riskAdjustedDomains",
+  ]) {
+    assert.doesNotMatch(source, new RegExp(escapeRegExp(duplicatedLogic)));
   }
 });
 

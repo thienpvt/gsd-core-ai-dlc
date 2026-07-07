@@ -34,6 +34,7 @@ type ActiveHook = {
   ref?: { skill?: string };
   produces?: string[];
   consumes?: string[];
+  onError?: string;
 };
 
 type RenderHooksEnvelope = {
@@ -101,6 +102,9 @@ function writeRuntimeShim(tmpRoot: string): { configDir: string; gsdTools: strin
   writeSkill(configDir, "gsd-aidlc-governance-discuss");
   writeSkill(configDir, "gsd-aidlc-governance-execute");
   writeSkill(configDir, "gsd-aidlc-governance-audit");
+  writeSkill(configDir, "gsd-aidlc-governance-plan");
+  writeSkill(configDir, "gsd-aidlc-governance-verify");
+  writeSkill(configDir, "gsd-aidlc-governance-ship");
 
   return {
     configDir,
@@ -314,7 +318,9 @@ test("CB-3 consent gate keeps project capability inactive until loader consent, 
 
     assert.equal(rowFor(capabilityRows(gsdTools, projectRoot, configDir)).status, "inactive");
     assertNoGovernanceHook(renderHooks(gsdTools, projectRoot, configDir, "discuss:pre"));
+    assertNoGovernanceHook(renderHooks(gsdTools, projectRoot, configDir, "plan:pre"));
     assertNoGovernanceHook(renderHooks(gsdTools, projectRoot, configDir, "execute:pre"));
+    assertNoGovernanceHook(renderHooks(gsdTools, projectRoot, configDir, "ship:pre"));
 
     consent = grantConsent(gsdTools, projectRoot, configDir, fixture.capDir);
 
@@ -325,10 +331,33 @@ test("CB-3 consent gate keeps project capability inactive until loader consent, 
       ["CONTEXT.md", ".planning/governance/selection-state.json"],
     );
     assertGovernanceHook(
+      renderHooks(gsdTools, projectRoot, configDir, "plan:pre"),
+      "aidlc-governance-plan",
+      ["planner-context", ".planning/governance/gates/{NN}-plan.json"],
+      [
+        ".planning/ROADMAP.md",
+        ".planning/REQUIREMENTS.md",
+        ".planning/STATE.md",
+        ".planning/phases/{NN}-*/{NN}-CONTEXT.md",
+        ".planning/phases/{NN}-*/{NN}-RESEARCH.md",
+        ".planning/phases/{NN}-*/{NN}-VALIDATION.md",
+        ".planning/phases/{NN}-*/{NN}-PATTERNS.md",
+      ],
+    );
+    assertGovernanceHook(
       renderHooks(gsdTools, projectRoot, configDir, "execute:pre"),
       "aidlc-governance-execute",
       ["executor-context"],
       [".planning/governance/selection-state.json"],
+    );
+    assertGovernanceHook(
+      renderHooks(gsdTools, projectRoot, configDir, "ship:pre"),
+      "aidlc-governance-ship",
+      [".planning/governance/gates/{NN}-ship.json"],
+      [
+        ".planning/governance/gates/{NN}-plan.json",
+        ".planning/governance/gates/{NN}-verify.json",
+      ],
     );
     assertHelperRuns(gsdTools, projectRoot, configDir);
 
@@ -340,6 +369,8 @@ test("CB-3 consent gate keeps project capability inactive until loader consent, 
     const tamperedRow = rowFor(capabilityRows(gsdTools, projectRoot, configDir));
     assert.equal(tamperedRow.status, "inactive");
     assert.match(tamperedRow.reason ?? "", /no user consent record/);
+    assertNoGovernanceHook(renderHooks(gsdTools, projectRoot, configDir, "plan:pre"));
+    assertNoGovernanceHook(renderHooks(gsdTools, projectRoot, configDir, "ship:pre"));
   } finally {
     if (consent && projectRoot) {
       try {

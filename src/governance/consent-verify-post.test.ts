@@ -108,6 +108,9 @@ function writeRuntimeShim(tmpRoot: string): { configDir: string; gsdTools: strin
   writeSkill(configDir, "gsd-aidlc-governance-discuss");
   writeSkill(configDir, "gsd-aidlc-governance-execute");
   writeSkill(configDir, "gsd-aidlc-governance-audit");
+  writeSkill(configDir, "gsd-aidlc-governance-plan");
+  writeSkill(configDir, "gsd-aidlc-governance-verify");
+  writeSkill(configDir, "gsd-aidlc-governance-ship");
 
   return {
     configDir,
@@ -211,10 +214,16 @@ function rowFor(rows: CapabilityRow[]): CapabilityRow {
   return row;
 }
 
-function verifyPostHook(envelope: RenderHooksEnvelope): ActiveHook | undefined {
+function verifyPostHook(envelope: RenderHooksEnvelope, skill: string): ActiveHook | undefined {
   return (envelope.activeHooks ?? []).find(
     (hook) =>
-      hook.capId === CAP_ID && hook.ref?.skill === "aidlc-governance-audit",
+      hook.capId === CAP_ID && hook.ref?.skill === skill,
+  );
+}
+
+function verifyPostIndex(envelope: RenderHooksEnvelope, skill: string): number {
+  return (envelope.activeHooks ?? []).findIndex(
+    (hook) => hook.capId === CAP_ID && hook.ref?.skill === skill,
   );
 }
 
@@ -311,9 +320,14 @@ test("TD-02: consent gate keeps verify:post inactive pre-consent (fails closed)"
     assert.equal(rowFor(capabilityRows(gsdTools, projectRoot, configDir)).status, "inactive");
     const preConsentEnvelope = renderHooks(gsdTools, projectRoot, configDir, "verify:post");
     assert.equal(
-      verifyPostHook(preConsentEnvelope),
+      verifyPostHook(preConsentEnvelope, "aidlc-governance-audit"),
       undefined,
       "verify:post must omit aidlc-governance-audit hook pre-consent (fail closed)",
+    );
+    assert.equal(
+      verifyPostHook(preConsentEnvelope, "aidlc-governance-verify"),
+      undefined,
+      "verify:post must omit aidlc-governance-verify hook pre-consent (fail closed)",
     );
   } finally {
     rmSync(tmpRoot, { recursive: true, force: true });
@@ -334,15 +348,24 @@ test("TD-02: post-consent verify:post fires aidlc-governance-audit hook with onE
     assert.equal(rowFor(capabilityRows(gsdTools, projectRoot, configDir)).status, "active");
 
     const envelope = renderHooks(gsdTools, projectRoot, configDir, "verify:post");
-    const hook = verifyPostHook(envelope);
-    assert.ok(hook, "verify:post post-consent must include aidlc-governance-audit hook");
-    assert.equal(hook.ref?.skill, "aidlc-governance-audit");
-    assert.deepEqual(hook.produces ?? [], ["GOVERNANCE.md"]);
-    assert.deepEqual(hook.consumes ?? [], [".planning/governance/selection-state.json"]);
+    const verifyHook = verifyPostHook(envelope, "aidlc-governance-verify");
+    const auditHook = verifyPostHook(envelope, "aidlc-governance-audit");
+    assert.ok(verifyHook, "verify:post post-consent must include aidlc-governance-verify hook");
+    assert.ok(auditHook, "verify:post post-consent must include aidlc-governance-audit hook");
+    assert.deepEqual(verifyHook.produces ?? [], [".planning/governance/gates/{NN}-verify.json"]);
+    assert.deepEqual(verifyHook.consumes ?? [], [".planning/governance/selection-state.json"]);
+    assert.equal(verifyHook.onError, "halt");
+    assert.deepEqual(auditHook.produces ?? [], ["GOVERNANCE.md"]);
+    assert.deepEqual(auditHook.consumes ?? [], [".planning/governance/selection-state.json"]);
     assert.equal(
-      hook.onError,
+      auditHook.onError,
       "halt",
       "verify:post audit hook must carry onError=halt (TD-02 silent-failure path)",
+    );
+    assert.ok(
+      verifyPostIndex(envelope, "aidlc-governance-verify") <
+        verifyPostIndex(envelope, "aidlc-governance-audit"),
+      "verify evidence hook must render before audit hook",
     );
   } finally {
     if (consent && projectRoot) {
@@ -368,15 +391,23 @@ test("TD-02: consent revocation deactivates verify:post (revert fails closed)", 
 
     consent = grantConsent(gsdTools, projectRoot, configDir, fixture.capDir);
     assert.equal(rowFor(capabilityRows(gsdTools, projectRoot, configDir)).status, "active");
-    assert.ok(verifyPostHook(renderHooks(gsdTools, projectRoot, configDir, "verify:post")));
+    assert.ok(verifyPostHook(
+      renderHooks(gsdTools, projectRoot, configDir, "verify:post"),
+      "aidlc-governance-audit",
+    ));
 
     consent.revokeProjectConsent({ gsdHome: path.join(tmpRoot, "runtime"), projectRoot, id: CAP_ID });
     assert.equal(rowFor(capabilityRows(gsdTools, projectRoot, configDir)).status, "inactive");
     const postRevokeEnvelope = renderHooks(gsdTools, projectRoot, configDir, "verify:post");
     assert.equal(
-      verifyPostHook(postRevokeEnvelope),
+      verifyPostHook(postRevokeEnvelope, "aidlc-governance-audit"),
       undefined,
       "verify:post must omit aidlc-governance-audit after consent revocation",
+    );
+    assert.equal(
+      verifyPostHook(postRevokeEnvelope, "aidlc-governance-verify"),
+      undefined,
+      "verify:post must omit aidlc-governance-verify after consent revocation",
     );
   } finally {
     rmSync(tmpRoot, { recursive: true, force: true });
@@ -395,7 +426,10 @@ test("TD-02: tamper with capability manifest deactivates verify:post (fails clos
 
     consent = grantConsent(gsdTools, projectRoot, configDir, fixture.capDir);
     assert.equal(rowFor(capabilityRows(gsdTools, projectRoot, configDir)).status, "active");
-    assert.ok(verifyPostHook(renderHooks(gsdTools, projectRoot, configDir, "verify:post")));
+    assert.ok(verifyPostHook(
+      renderHooks(gsdTools, projectRoot, configDir, "verify:post"),
+      "aidlc-governance-audit",
+    ));
 
     const manifestPath = path.join(fixture.capDir, "capability.json");
     const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as { description: string };
@@ -407,9 +441,14 @@ test("TD-02: tamper with capability manifest deactivates verify:post (fails clos
     assert.match(tamperedRow.reason ?? "", /no user consent record/);
     const postTamperEnvelope = renderHooks(gsdTools, projectRoot, configDir, "verify:post");
     assert.equal(
-      verifyPostHook(postTamperEnvelope),
+      verifyPostHook(postTamperEnvelope, "aidlc-governance-audit"),
       undefined,
       "verify:post must omit aidlc-governance-audit after tamper (fail closed)",
+    );
+    assert.equal(
+      verifyPostHook(postTamperEnvelope, "aidlc-governance-verify"),
+      undefined,
+      "verify:post must omit aidlc-governance-verify after tamper (fail closed)",
     );
   } finally {
     if (consent && projectRoot) {
