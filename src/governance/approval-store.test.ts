@@ -159,7 +159,7 @@ test("D-07 writeApproval rejects decision='approved' with no decidedBy", () => {
     delete (bad as Partial<ApprovalRecord>).decidedBy;
     assert.throws(
       () => writeApproval(root, "09", bad),
-      /invalid approval.*decidedBy/i,
+      /invalid approval[\s\S]*decidedBy/i,
     );
   });
 });
@@ -170,7 +170,7 @@ test("D-07 writeApproval rejects decision='rejected' with no decidedBy", () => {
     delete (bad as Partial<ApprovalRecord>).decidedBy;
     assert.throws(
       () => writeApproval(root, "09", bad),
-      /invalid approval.*decidedBy/i,
+      /invalid approval[\s\S]*decidedBy/i,
     );
   });
 });
@@ -180,7 +180,7 @@ test("D-07 writeApproval rejects decision='approved' with empty-string decidedBy
     const bad = approval({ decision: "approved", decidedBy: "" as unknown as string });
     assert.throws(
       () => writeApproval(root, "09", bad),
-      /invalid approval.*decidedBy/i,
+      /invalid approval[\s\S]*decidedBy/i,
     );
   });
 });

@@ -156,7 +156,7 @@ test("D-07 rejects a non-pending decision without decidedBy (anti-auto-approve)"
   // decidedBy intentionally absent
   assert.throws(
     () => validateApproval(r),
-    /invalid approval.*decidedBy/i,
+    /invalid approval[\s\S]*decidedBy/i,
   );
 });
 
@@ -166,7 +166,7 @@ test("D-07 rejects a non-pending decision with empty-string decidedBy", () => {
   r.decidedBy = "";
   assert.throws(
     () => validateApproval(r),
-    /invalid approval.*decidedBy/i,
+    /invalid approval[\s\S]*decidedBy/i,
   );
 });
 

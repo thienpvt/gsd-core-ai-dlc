@@ -64,3 +64,29 @@ export function gateEvidencePath(
   }
   return path.join(governanceDir(projectRoot), "gates", `${phaseNumber}-${gateId}.json`);
 }
+
+/**
+ * Path to a per-phase approval record (APPR-01, D-06). One file per phase under
+ * `.planning/governance/approvals/{NN}.json`. PHASE_NUMBER_RE-validated to catch
+ * drift. The ship gate (09-04) writes pending records here; the audit (09-03)
+ * reads the resolved record to embed an approval summary.
+ */
+export function approvalPath(projectRoot: string, phaseNumber: string): string {
+  if (!PHASE_NUMBER_RE.test(phaseNumber)) {
+    throw new Error(`invalid approval phase number: ${phaseNumber}`);
+  }
+  return path.join(governanceDir(projectRoot), "approvals", `${phaseNumber}.json`);
+}
+
+/**
+ * Path to a per-phase test-evidence record (AUDIT-04, D-02). One file per phase
+ * under `.planning/governance/tests/{NN}.json`. PHASE_NUMBER_RE-validated.
+ * Plan 02 consumes this helper without modifying paths.ts again — paths.ts is
+ * the single source of the governance layout.
+ */
+export function testEvidencePath(projectRoot: string, phaseNumber: string): string {
+  if (!PHASE_NUMBER_RE.test(phaseNumber)) {
+    throw new Error(`invalid test evidence phase number: ${phaseNumber}`);
+  }
+  return path.join(governanceDir(projectRoot), "tests", `${phaseNumber}.json`);
+}
