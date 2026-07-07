@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Govern
 current_phase: 07
-current_phase_name: Enforcement Contracts & Adapter Stubs
+current_phase_name: enforcement-contracts-adapter-stubs
 status: executing
-stopped_at: Completed 07-02-PLAN.md (validateGateResult assert — ENF-02 runtime integrity gate)
-last_updated: "2026-07-07T00:15:00.000Z"
+stopped_at: Completed 07-03-PLAN.md
+last_updated: "2026-07-07T02:01:25.877Z"
 last_activity: 2026-07-07
-last_activity_desc: Phase 07 plan 2 executed — validateGateResult (4th instance of validate.ts pattern)
+last_activity_desc: 07-03 GateAdapter stubs shipped; ready for 07-04
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 7
-  completed_plans: 4
-  percent: 20
+  completed_plans: 6
+  percent: 86
 ---
 
 # Project State
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-06)
 
 **Core value:** The rule selection engine injects only the relevant AI-DLC rule summaries for the current task and phase — enough governance to be safe, little enough to avoid context bloat.
-**Current focus:** Phase 07 — Enforcement Contracts & Adapter Stubs
+**Current focus:** Phase 07 — enforcement-contracts-adapter-stubs
 
 ## Current Position
 
-Phase: 07 (Enforcement Contracts & Adapter Stubs) — EXECUTING
-Plan: 3 of 4
-Status: Plan 2 complete; ready for 07-03 (GateAdapter interface + 7 stubs)
-Last activity: 2026-07-07 — 07-02 validateGateResult shipped (RED→GREEN, 12 cases, 215/0 tests)
+Phase: 07 (enforcement-contracts-adapter-stubs) — EXECUTING
+Plan: 4 of 4
+Status: Plan 3 complete; ready for 07-04 (runAdapter hard-fail boundary wrapper)
+Last activity: 2026-07-07 — 07-03 GateAdapter stubs shipped (RED→GREEN, 20 adapter tests; full-suite audit-hook issue deferred)
 
 ## Performance Metrics
 
@@ -73,6 +73,7 @@ Last activity: 2026-07-07 — 07-02 validateGateResult shipped (RED→GREEN, 12 
 | Phase 06 P02 | 12 | 2 tasks | 2 files |
 | Phase 07 P01 | 5 | 3 tasks | 5 files |
 | Phase 07 P02 | 4 | 2 tasks | 2 files |
+| Phase 07 P03 | 13 min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -101,6 +102,9 @@ Recent decisions affecting current work:
 - [Phase ?]: 07-01: gate-request taskSignal uses $ref to task-signal $id (not inline) — requires addSchema before compile in every Ajv instance compiling it
 - [Phase ?]: 07-02: validateGateResult is the 4th instance of validate.ts pattern — mirrors validate-signal.ts exactly (Ajv 2020 + addFormats + compile-once + formatErrors); x-binding keyword registered via addKeyword before compile (Ajv 2020 strict rejects unknown keywords); gate-result has no $ref so no addSchema needed
 - [Phase ?]: 07-02: strictRequired:false matches validate.ts (canonical first instance) — future-proof for if/then branches; harmless now
+- [Phase ?]: 07-03: GateAdapter reference stubs live in one adapters.ts file; STUB_NAMES is the single source of truth for ADAPTERS and ECHO_ADAPTERS
+- [Phase ?]: 07-03: echoAdapter marks non-empty selected rules as fail so findings are observable; real adapters replace echo semantics later
+- [Phase ?]: 07-03: reference stubs are intentionally no-op/echo only and never execute external scanner tools
 
 ### Pending Todos
 
@@ -124,11 +128,12 @@ Items acknowledged and carried forward from previous milestone close:
 |----------|------|--------|-------------|
 | Milestone 2 (v2) | Remaining gates (GATE-03/04/05), full audit (AUDIT-03..06), enforcement contracts (ENF-02/03/04), SEL-06 harness, APPR-01 | Now in v2.0 roadmap (Phases 6-10) | 2026-07-05 |
 | Future milestone | OPS-01 operations-phase governance | Deferred | 2026-07-06 |
+| Phase 7 | `audit-hook-contract.test.ts` local render-hooks expects `aidlc-governance-audit`, but current Codex render-hooks returns only validate/security hooks | Deferred | 2026-07-07 |
 
 ## Session Continuity
 
-Last session: 2026-07-07T00:08:29.887Z
-Stopped at: Phase 6 complete (v1.0 tech-debt folded — TD-01..09 shipped, verification passed 5/5), ready to discuss Phase 7
+Last session: 2026-07-07T02:01:25.867Z
+Stopped at: Completed 07-03-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
