@@ -1,4 +1,4 @@
-import { execFileSync } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
@@ -15,7 +15,7 @@ import { readGateEvidence, writeGateEvidence, type GateEvidence } from "./gate-e
 import { shipGateHook } from "./ship-gate-hook.js";
 import { gateEvidencePath } from "./paths.js";
 
-const RUNNER = path.resolve(process.cwd(), "dist", "governance", "ship-gate-hook.js");
+const RUNNER = path.resolve(process.cwd(), "dist-test", "governance", "ship-gate-hook.js");
 const STRICT_ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
 
 function withTempRoot<T>(fn: (root: string) => T): T {
@@ -189,9 +189,8 @@ test("compiled direct runner fails with stderr and non-zero exit on blocking evi
   withTempRoot((root) => {
     writeGateEvidence(root, "08", evidence("verify"));
 
-    assert.throws(
-      () => execFileSync(process.execPath, [RUNNER, root, "08"], { encoding: "utf8" }),
-      /08-plan\.json/,
-    );
+    const child = spawnSync(process.execPath, [RUNNER, root, "08"], { encoding: "utf8" });
+    assert.equal(child.status, 1);
+    assert.match(child.stderr, /08-plan\.json/);
   });
 });
