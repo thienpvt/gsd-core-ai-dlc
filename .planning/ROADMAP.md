@@ -71,7 +71,7 @@ Plans:
   2. A single `GateAdapter` TypeScript interface (`evaluate(request) → Promise<GateResult>`) ships with reference no-op/echo stubs named semgrep, bandit, checkov, grype, gitleaks, generic-exit-ci, and human-approval — as stubs, not first-class integrations (ENF-03).
   3. Binding rules route enforcement through the named gate contracts; markdown steering stays advisory, and the boundary between advisory context and binding enforcement is explicit in the contracts (ENF-04).
 
-**Plans**: 1/4 plans executed
+**Plans**: 2/4 plans executed
 
 Plans:
 **Wave 1**
@@ -80,7 +80,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 07-02-PLAN.md — Implement validateGateResult assert (Ajv 2020 runtime validator, 4th instance of the validate.ts pattern) — ENF-02 integrity gate (TDD)
+- [x] 07-02-PLAN.md — Implement validateGateResult assert (Ajv 2020 runtime validator, 4th instance of the validate.ts pattern) — ENF-02 integrity gate (TDD)
 - [ ] 07-03-PLAN.md — Implement GateAdapter interface + noopAdapter/echoAdapter factories + 7 named stubs + static ADAPTERS/ECHO_ADAPTERS Maps — ENF-03 (TDD)
 
 **Wave 3** *(blocked on Wave 2 completion)*
@@ -142,7 +142,7 @@ v2.0 Phases execute in numeric order: 6 → 7 → 8 → 9 → 10.
 | 4. GSD Capability Integration & Persistence | v1.0 | 3/3 | Complete | 2026-07-06 |
 | 5. Audit-Artifact Writer | v1.0 | 2/2 | Complete | 2026-07-06 |
 | 6. v1.0 Tech-Debt Fold-In | v2.0 | 3/3 | Complete    | 2026-07-06 |
-| 7. Enforcement Contracts & Adapter Stubs | v2.0 | 1/4 | In Progress|  |
+| 7. Enforcement Contracts & Adapter Stubs | v2.0 | 2/4 | In Progress|  |
 | 8. Remaining Gate Hooks | v2.0 | 0/? | Not started | - |
 | 9. Complete Audit Record & Approval | v2.0 | 0/? | Not started | - |
 | 10. Selection-Quality Harness | v2.0 | 0/? | Not started | - |

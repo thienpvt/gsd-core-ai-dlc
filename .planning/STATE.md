@@ -5,10 +5,10 @@ milestone_name: Govern
 current_phase: 07
 current_phase_name: Enforcement Contracts & Adapter Stubs
 status: executing
-stopped_at: Completed 06-03-PLAN.md (TD-02/08/09 tech-debt fold-in)
-last_updated: "2026-07-07T00:08:42.667Z"
-last_activity: 2026-07-06
-last_activity_desc: Phase 07 execution started
+stopped_at: Completed 07-02-PLAN.md (validateGateResult assert — ENF-02 runtime integrity gate)
+last_updated: "2026-07-07T00:15:00.000Z"
+last_activity: 2026-07-07
+last_activity_desc: Phase 07 plan 2 executed — validateGateResult (4th instance of validate.ts pattern)
 progress:
   total_phases: 5
   completed_phases: 1
@@ -29,9 +29,9 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 ## Current Position
 
 Phase: 07 (Enforcement Contracts & Adapter Stubs) — EXECUTING
-Plan: 2 of 4
-Status: Ready to execute
-Last activity: 2026-07-06 — Phase 07 execution started
+Plan: 3 of 4
+Status: Plan 2 complete; ready for 07-03 (GateAdapter interface + 7 stubs)
+Last activity: 2026-07-07 — 07-02 validateGateResult shipped (RED→GREEN, 12 cases, 215/0 tests)
 
 ## Performance Metrics
 
@@ -72,6 +72,7 @@ Last activity: 2026-07-06 — Phase 07 execution started
 | Phase 06 P03 | 5 | 3 tasks | 4 files |
 | Phase 06 P02 | 12 | 2 tasks | 2 files |
 | Phase 07 P01 | 5 | 3 tasks | 5 files |
+| Phase 07 P02 | 4 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -98,6 +99,8 @@ Recent decisions affecting current work:
 - [Phase ?]: 07-01: 3 enforcement contract schemas (gate-request/gate-result/audit-artifact) published — draft 2020-12, x-binding marks binding vs advisory boundary (ENF-04)
 - [Phase ?]: 07-01: GateRequest.rules reuses AuditAppliedRule imported from governance/audit-artifact.ts (DRY) — GateAdapter interface deferred to 07-03
 - [Phase ?]: 07-01: gate-request taskSignal uses $ref to task-signal $id (not inline) — requires addSchema before compile in every Ajv instance compiling it
+- [Phase ?]: 07-02: validateGateResult is the 4th instance of validate.ts pattern — mirrors validate-signal.ts exactly (Ajv 2020 + addFormats + compile-once + formatErrors); x-binding keyword registered via addKeyword before compile (Ajv 2020 strict rejects unknown keywords); gate-result has no $ref so no addSchema needed
+- [Phase ?]: 07-02: strictRequired:false matches validate.ts (canonical first instance) — future-proof for if/then branches; harmless now
 
 ### Pending Todos
 
