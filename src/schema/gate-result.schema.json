@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gsd.dev/schemas/gate-result.schema.json",
+  "title": "Enforcement Gate Result",
+  "description": "Binding contract for a gate evaluation result (ENF-02). Produced by GateAdapter.evaluate(); consumed by Phase 8 gate routing. status pass|fail|waived is the enforcement decision — the binding boundary. findings[] carry structured SAST-style evidence. x-binding: binding — pass/fail/waived IS the enforcement decision; validateGateResult (07-02) hard-fails on schema-invalid output so no adapter can silently corrupt the audit trail.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["gateId", "status", "findings", "evaluatedBy", "evaluatedAt"],
+  "properties": {
+    "gateId": {
+      "type": "string",
+      "enum": ["discuss", "plan", "execute", "verify", "ship"]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["pass", "fail", "waived"],
+      "description": "The enforcement decision. `fail` blocks the gate; `waived` records an explicit override (audit-flagged)."
+    },
+    "findings": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/finding" },
+      "description": "Zero or more findings. Empty array is valid (the noop-adapter `pass` contract)."
+    },
+    "evaluatedBy": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Adapter name — maps to GateAdapter.name (e.g. 'semgrep', 'human-approval')."
+    },
+    "evaluatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 strict timestamp (TD-01 shape)."
+    }
+  },
+  "$defs": {
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "A single gate finding. Mirrors SAST tool output shape (id + severity + message + optional structured evidence).",
+      "required": ["id", "severity", "message"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "severity": {
+          "type": "string",
+          "enum": ["critical", "high", "medium", "low"]
+        },
+        "message": { "type": "string", "minLength": 1 },
+        "evidence": { "$ref": "#/$defs/evidence" }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Structured evidence pointer. Object form (per 07-CONTEXT.md Claude's Discretion recommendation) — matches SAST tool output; path + optional 1-based [startLine, endLine] range + optional URI.",
+      "required": ["path"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "lineRange": {
+          "type": "array",
+          "items": { "type": "integer", "minimum": 1 },
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "1-based [startLine, endLine]."
+        },
+        "url": { "type": "string", "format": "uri" }
+      }
+    }
+  },
+  "x-binding": "binding"
+}

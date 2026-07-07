@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gsd.dev/schemas/audit-artifact.schema.json",
+  "title": "Governance Audit Artifact",
+  "description": "Advisory contract formalizing the EXISTING GovernanceAudit shape emitted by src/governance/audit-artifact.ts (Phase 5 writeGovernanceAudit). This schema documents what ships — it does NOT invent a new shape. Drift here breaks byte-identical audit regeneration. x-binding: advisory — the artifact RECORDS governance (evidence), not enforcement; enforcement lives in gate-request/gate-result. This is the ENF-04 boundary made explicit.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "phase",
+    "riskTier",
+    "selection_timestamp",
+    "generated_from",
+    "rules_applied",
+    "rules_skipped"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1,
+      "description": "Audit schema version. Matches GovernanceAudit.schema_version literal type."
+    },
+    "phase": {
+      "type": "string",
+      "enum": ["inception", "construction", "operations", "common"],
+      "description": "Mirrors GovernanceRecord['phase']."
+    },
+    "riskTier": {
+      "type": "string",
+      "enum": ["critical", "elevated", "baseline"],
+      "description": "Mirrors GovernanceRecord['riskTier'] (src/governance/state-store.ts)."
+    },
+    "selection_timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 strict timestamp (TD-01 shape). Maps from GovernanceRecord.timestamp."
+    },
+    "generated_from": {
+      "type": "string",
+      "const": ".planning/governance/selection-state.json",
+      "description": "Literal type from GovernanceAudit.generated_from — the persisted selection state path."
+    },
+    "rules_applied": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/appliedRule" }
+    },
+    "rules_skipped": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/skippedRule" }
+    }
+  },
+  "$defs": {
+    "appliedRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Mirrors AuditAppliedRule (src/governance/audit-artifact.ts lines 22-28) field-for-field.",
+      "required": ["id", "severity", "summary", "matchedAxis", "matchedValue"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "severity": {
+          "type": "string",
+          "enum": ["critical", "high", "medium", "low"]
+        },
+        "summary": { "type": "string", "minLength": 1 },
+        "matchedAxis": {
+          "type": "string",
+          "enum": ["taskType", "keywords", "paths", "always-in-phase"]
+        },
+        "matchedValue": { "type": "string", "minLength": 1 }
+      }
+    },
+    "skippedRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Mirrors AuditSkippedRule (src/governance/audit-artifact.ts lines 30-38). reason is the AUDIT_SKIP_REASONS public enum (line 7); selector_reason is the raw SkipReason enum persisted from selection (types.ts).",
+      "required": ["id", "severity", "reason", "selector_reason"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "severity": {
+          "type": "string",
+          "enum": ["critical", "high", "medium", "low"]
+        },
+        "reason": {
+          "type": "string",
+          "enum": [
+            "out-of-phase",
+            "out-of-scope-by-trigger",
+            "superseded",
+            "explicitly-waived"
+          ],
+          "description": "AUDIT_SKIP_REASONS public enum from audit-artifact.ts. 'explicitly-waived' is the reconcile-only value NOT present in the raw SkipReason enum."
+        },
+        "selector_reason": {
+          "type": "string",
+          "enum": [
+            "out-of-phase",
+            "out-of-scope",
+            "out-of-scope-by-trigger",
+            "superseded"
+          ],
+          "description": "Raw SkipReason enum from src/types.ts — selector provenance, persisted verbatim."
+        },
+        "detail": { "type": "string" },
+        "scope": {
+          "type": "string",
+          "enum": ["enterprise", "domain", "project"]
+        },
+        "sourceFile": { "type": "string" }
+      }
+    }
+  },
+  "x-binding": "advisory"
+}

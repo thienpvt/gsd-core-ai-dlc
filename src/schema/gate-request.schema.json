@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gsd.dev/schemas/gate-request.schema.json",
+  "title": "Enforcement Gate Request",
+  "description": "Binding contract for a gate evaluation request (ENF-02). Produced by Phase 8 gate hooks; consumed by GateAdapter.evaluate(). taskSignal single-sources the caller matchable signal via $ref to the existing task-signal schema $id (no inline copy). rules[] carries the selected rule summaries that flowed into this gate. x-binding: binding — enforcement routes through this contract.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["gateId", "phase", "taskSignal", "rules", "requestedAt"],
+  "properties": {
+    "gateId": {
+      "type": "string",
+      "enum": ["discuss", "plan", "execute", "verify", "ship"],
+      "description": "The GSD loop gate being requested (5-step loop)."
+    },
+    "phase": {
+      "type": "string",
+      "enum": ["inception", "construction", "operations", "common"],
+      "description": "Current AI-DLC phase. Mirrors src/types.ts Phase enum."
+    },
+    "taskSignal": {
+      "$ref": "https://gsd.dev/schemas/task-signal.schema.json",
+      "description": "The caller-supplied matchable signal (SEL-01). $ref to the existing task-signal schema by $id — single-sources the signal contract; Ajv must have task-signal.schema.json registered via addSchema before this schema is compiled."
+    },
+    "rules": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/appliedRule" },
+      "description": "Selected rule summaries flowing into this gate (AuditAppliedRule shape from src/governance/audit-artifact.ts)."
+    },
+    "requestedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 strict timestamp (TD-01 shape YYYY-MM-DDTHH:mm:ss.sssZ)."
+    }
+  },
+  "$defs": {
+    "appliedRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "A selected rule summary. Mirrors AuditAppliedRule (src/governance/audit-artifact.ts lines 22-28) field-for-field — the same shape the audit writer emits.",
+      "required": ["id", "severity", "summary", "matchedAxis", "matchedValue"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "severity": {
+          "type": "string",
+          "enum": ["critical", "high", "medium", "low"],
+          "description": "D-13 severity."
+        },
+        "summary": { "type": "string", "minLength": 1 },
+        "matchedAxis": {
+          "type": "string",
+          "enum": ["taskType", "keywords", "paths", "always-in-phase"],
+          "description": "The trigger axis that fired (MatchedAxis enum)."
+        },
+        "matchedValue": { "type": "string", "minLength": 1 }
+      }
+    }
+  },
+  "x-binding": "binding"
+}
