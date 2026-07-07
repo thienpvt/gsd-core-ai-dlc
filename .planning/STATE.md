@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Govern
-current_phase: 07
-current_phase_name: enforcement-contracts-adapter-stubs
-status: ready_for_verification
+current_phase: 8
+current_phase_name: Remaining Gate Hooks
+status: verifying
 stopped_at: Completed 07-04-PLAN.md
-last_updated: "2026-07-07T02:34:02.060Z"
+last_updated: "2026-07-07T03:12:59.747Z"
 last_activity: 2026-07-07
-last_activity_desc: 07-04 runAdapter hard-fail boundary shipped; Phase 7 complete and ready for verification
+last_activity_desc: Phase 07 complete, transitioned to Phase 8
 progress:
   total_phases: 5
   completed_phases: 2
@@ -28,16 +28,16 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 
 ## Current Position
 
-Phase: 07 (enforcement-contracts-adapter-stubs) — READY FOR VERIFICATION
-Plan: 4 of 4
+Phase: 8 — Remaining Gate Hooks
+Plan: Not started
 Status: Plan 4 complete; Phase 7 enforcement contracts and adapter boundary are ready for verification
-Last activity: 2026-07-07 — 07-04 runAdapter hard-fail boundary shipped (RED→GREEN, 8 runAdapter tests; 15 gate-contracts cases)
+Last activity: 2026-07-07 — Phase 07 complete, transitioned to Phase 8
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 17 (v1.0)
+- Total plans completed: 21 (v1.0)
 - Average duration: — min
 - Total execution time: 0.0 hours
 
@@ -51,6 +51,7 @@ Last activity: 2026-07-07 — 07-04 runAdapter hard-fail boundary shipped (RED�
 | 04 | 3 | - | - |
 | 05 | 2 | - | - |
 | 6 | 3 | - | - |
+| 07 | 4 | - | - |
 
 **v2.0 Phases (not started):**
 
