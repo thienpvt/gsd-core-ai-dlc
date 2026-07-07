@@ -119,7 +119,7 @@ Plans:
   4. The audit artifact records approvals required and who granted them (AUDIT-06).
   5. A human approval checkpoint schema captures approval requests, the approver, the artifact under approval, and the decision — produced and consumed through the tool-agnostic contract layer (APPR-01).
 
-**Plans**: 5/5 plans complete (4 original + 1 gap-closure)
+**Plans**: 5/5 plans complete
 
 Plans:
 **Wave 1**
@@ -134,7 +134,7 @@ Plans:
 
 **Gap Closure** *(AUDIT-04 producer-side wiring — VERIFICATION gaps)*
 
-- [ ] 09-05-PLAN.md — Wire capture-test-evidence producer into verify:post (AUDIT-04) — capture-test-evidence.ts spawns node --test TAP, parseTapSummary + writeTestEvidence gain production callers; aidlc-governance-verify SKILL.md step 4 invokes capture before audit reads tests/{NN}.json
+- [x] 09-05-PLAN.md — Wire capture-test-evidence producer into verify:post (AUDIT-04) — capture-test-evidence.ts spawns node --test TAP, parseTapSummary + writeTestEvidence gain production callers; aidlc-governance-verify SKILL.md step 4 invokes capture before audit reads tests/{NN}.json
 
 ### Phase 10: Selection-Quality Harness
 
@@ -165,7 +165,7 @@ v2.0 Phases execute in numeric order: 6 → 7 → 8 → 9 → 10.
 | 6. v1.0 Tech-Debt Fold-In | v2.0 | 3/3 | Complete    | 2026-07-06 |
 | 7. Enforcement Contracts & Adapter Stubs | v2.0 | 4/4 | Complete    | 2026-07-07 |
 | 8. Remaining Gate Hooks | v2.0 | 5/5 | Complete    | 2026-07-07 |
-| 9. Complete Audit Record & Approval | v2.0 | 4/4 | Complete   | 2026-07-07 |
+| 9. Complete Audit Record & Approval | v2.0 | 5/5 | Complete   | 2026-07-07 |
 | 10. Selection-Quality Harness | v2.0 | 0/? | Not started | - |
 
 ---
