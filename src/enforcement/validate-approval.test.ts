@@ -170,6 +170,16 @@ test("D-07 rejects a non-pending decision with empty-string decidedBy", () => {
   );
 });
 
+test("D-07 rejects a non-pending decision with whitespace-only decidedBy (trim guard, WR-04)", () => {
+  const r = makeValidApproval();
+  r.decision = "approved";
+  r.decidedBy = "   ";
+  assert.throws(
+    () => validateApproval(r),
+    /invalid approval[\s\S]*decidedBy/i,
+  );
+});
+
 test("D-07 accepts a pending decision without decidedBy (hook-written pending request)", () => {
   // This is the legitimate path: ship gate writes pending approvals with no decider.
   const r = makeValidApproval();

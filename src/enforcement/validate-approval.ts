@@ -91,7 +91,7 @@ export function validateApproval(result: unknown): asserts result is ApprovalRec
   // D-07 anti-auto-approve invariant: non-pending decisions require a decider.
   // `decidedBy` is optional in the schema (pending approvals legitimately omit
   // it), so Ajv does not enforce its presence; this runtime check is load-bearing.
-  if (record.decision !== "pending" && (record.decidedBy === undefined || record.decidedBy.length === 0)) {
+  if (record.decision !== "pending" && (record.decidedBy === undefined || record.decidedBy.trim().length === 0)) {
     throw new Error(
       `invalid approval: ${record.approvalId} decision=${record.decision} requires decidedBy`,
     );
