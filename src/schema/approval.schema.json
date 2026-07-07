@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gsd.dev/schemas/approval.schema.json",
+  "title": "Human Approval Checkpoint",
+  "description": "APPR-01 human approval record. Produced by the ship gate (decision=pending) and resolved by a human (decision=approved|rejected|waived). x-binding: binding — a pending or rejected decision blocks ship (D-08).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["approvalId", "phase", "gateId", "artifactPath", "requestedBy", "requestedAt", "decision"],
+  "properties": {
+    "approvalId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Unique identifier for the approval request (e.g. ship-09)."
+    },
+    "phase": {
+      "type": "string",
+      "enum": ["inception", "construction", "operations", "common"],
+      "description": "Workflow phase the approval is scoped to."
+    },
+    "gateId": {
+      "type": "string",
+      "enum": ["discuss", "plan", "execute", "verify", "ship"],
+      "description": "The gate this approval gates."
+    },
+    "artifactPath": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Repo-relative path to the artifact under approval (e.g. .planning/governance/gates/09-ship.json)."
+    },
+    "requestedBy": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The hook that created the pending request (e.g. aidlc-governance-ship)."
+    },
+    "requestedAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$",
+      "description": "ISO-8601 strict timestamp (TD-01 shape). When the pending request was created."
+    },
+    "decision": {
+      "type": "string",
+      "enum": ["pending", "approved", "rejected", "waived"],
+      "description": "The approval decision. pending = awaiting human resolution; approved|rejected|waived are the human outcomes. Distinct from GateResult.status (pass|fail|waived)."
+    },
+    "decidedBy": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Human approver identity. Optional while decision=pending (D-07); required and non-empty once decided."
+    },
+    "decidedAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$",
+      "description": "ISO-8601 strict timestamp (TD-01 shape). When the decision was resolved."
+    },
+    "rationale": {
+      "type": "string",
+      "description": "Optional human-authored rationale for the decision."
+    }
+  },
+  "x-binding": "binding"
+}
