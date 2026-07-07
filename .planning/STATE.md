@@ -6,14 +6,14 @@ current_phase: 07
 current_phase_name: Enforcement Contracts & Adapter Stubs
 status: executing
 stopped_at: Completed 06-03-PLAN.md (TD-02/08/09 tech-debt fold-in)
-last_updated: "2026-07-06T23:58:55.127Z"
+last_updated: "2026-07-07T00:08:42.667Z"
 last_activity: 2026-07-06
 last_activity_desc: Phase 07 execution started
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 7
-  completed_plans: 3
+  completed_plans: 4
   percent: 20
 ---
 
@@ -29,8 +29,8 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 ## Current Position
 
 Phase: 07 (Enforcement Contracts & Adapter Stubs) — EXECUTING
-Plan: 1 of 4
-Status: Executing Phase 07
+Plan: 2 of 4
+Status: Ready to execute
 Last activity: 2026-07-06 — Phase 07 execution started
 
 ## Performance Metrics
@@ -71,6 +71,7 @@ Last activity: 2026-07-06 — Phase 07 execution started
 | Phase 06 P01 | 5 | 2 tasks | 5 files |
 | Phase 06 P03 | 5 | 3 tasks | 4 files |
 | Phase 06 P02 | 12 | 2 tasks | 2 files |
+| Phase 07 P01 | 5 | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -94,6 +95,9 @@ Recent decisions affecting current work:
 - [Phase ?]: TD-04: per-element selector_reason validation in assertSelectionArrays; normalizeSkipReason mapping now total
 - [Phase ?]: TD-06: buildAuditRecord de-exported; tests exercise writeGovernanceAudit end-to-end
 - [Phase ?]: TD-07: writeGovernanceAudit returns path.resolve(args.outputPath) absolute path
+- [Phase ?]: 07-01: 3 enforcement contract schemas (gate-request/gate-result/audit-artifact) published — draft 2020-12, x-binding marks binding vs advisory boundary (ENF-04)
+- [Phase ?]: 07-01: GateRequest.rules reuses AuditAppliedRule imported from governance/audit-artifact.ts (DRY) — GateAdapter interface deferred to 07-03
+- [Phase ?]: 07-01: gate-request taskSignal uses $ref to task-signal $id (not inline) — requires addSchema before compile in every Ajv instance compiling it
 
 ### Pending Todos
 
@@ -120,7 +124,7 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-06T16:20:52.511Z
+Last session: 2026-07-07T00:08:29.887Z
 Stopped at: Phase 6 complete (v1.0 tech-debt folded — TD-01..09 shipped, verification passed 5/5), ready to discuss Phase 7
 Resume file: None
 

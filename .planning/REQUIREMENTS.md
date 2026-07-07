@@ -22,9 +22,9 @@ Requirements for milestone **v2.0 Govern**. Each maps to a roadmap phase (number
 
 ### Enforcement — Tool-Agnostic Contracts & Adapters
 
-- [ ] **ENF-02**: JSON Schema (draft 2020-12) documents define the gate-request, gate-result, and audit-artifact shapes; any CI/SAST/policy engine must be wrappable to produce schema-valid output, and adapter output is Ajv-validated at runtime (malformed = hard fail)
+- [x] **ENF-02**: JSON Schema (draft 2020-12) documents define the gate-request, gate-result, and audit-artifact shapes; any CI/SAST/policy engine must be wrappable to produce schema-valid output, and adapter output is Ajv-validated at runtime (malformed = hard fail)
 - [ ] **ENF-03**: A single `GateAdapter` interface (`evaluate(request) → Promise<GateResult>`) ships with reference no-op/echo stubs named after AI-DLC-implied tools — semgrep, bandit, checkov, grype, gitleaks, generic exit-code CI, human approval — as stubs, not first-class integrations
-- [ ] **ENF-04**: Binding rules route through named gate contracts (binding lives in CI/CD, SAST, tests, policy-as-code, and human approval via the tool-agnostic contracts — markdown stays advisory)
+- [x] **ENF-04**: Binding rules route through named gate contracts (binding lives in CI/CD, SAST, tests, policy-as-code, and human approval via the tool-agnostic contracts — markdown stays advisory)
 
 ### Selection Quality
 
@@ -80,9 +80,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TD-07 | Phase 6 | Complete |
 | TD-08 | Phase 6 | Complete |
 | TD-09 | Phase 6 | Complete |
-| ENF-02 | Phase 7 | Pending |
+| ENF-02 | Phase 7 | Complete |
 | ENF-03 | Phase 7 | Pending |
-| ENF-04 | Phase 7 | Pending |
+| ENF-04 | Phase 7 | Complete |
 | GATE-03 | Phase 8 | Pending |
 | GATE-04 | Phase 8 | Pending |
 | GATE-05 | Phase 8 | Pending |
