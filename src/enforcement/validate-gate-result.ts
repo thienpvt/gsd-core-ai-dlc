@@ -85,4 +85,13 @@ export function validateGateResult(result: unknown): asserts result is GateResul
   if (!validate(result)) {
     throw new Error(`invalid gate-result:\n${formatErrors(validate.errors)}`);
   }
+  const gateResult = result as GateResult;
+  for (const [index, finding] of gateResult.findings.entries()) {
+    const range = finding.evidence?.lineRange;
+    if (range && range[0] > range[1]) {
+      throw new Error(
+        `invalid gate-result: /findings/${index}/evidence/lineRange start must be <= end`,
+      );
+    }
+  }
 }

@@ -21,10 +21,10 @@ import path from "node:path";
 import { atomicWriteFile } from "./atomic-write.js";
 
 /** mkdtempSync projectRoot + auto-cleanup. */
-function withTempRoot<T>(fn: (root: string) => T): T {
+async function withTempRoot<T>(fn: (root: string) => T | Promise<T>): Promise<T> {
   const root = mkdtempSync(path.join(os.tmpdir(), "gsd-atomic-write-"));
   try {
-    return fn(root);
+    return await fn(root);
   } finally {
     rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 });
   }
@@ -85,8 +85,8 @@ test("atomicWriteFile: concurrent writers to the same final path do not clobber 
 
 // ── Test 2: no `.tmp*` leftover after a successful write ───────────────────
 
-test("atomicWriteFile: after a successful write, no file matching `${finalPath}.tmp*` remains (temp cleaned up by rename)", () => {
-  withTempRoot((root) => {
+test("atomicWriteFile: after a successful write, no file matching `${finalPath}.tmp*` remains (temp cleaned up by rename)", async () => {
+  await withTempRoot((root) => {
     const finalPath = path.join(root, "nested", "out.txt");
     atomicWriteFile(finalPath, "hello");
     assert.ok(existsSync(finalPath), "final file must exist");
@@ -104,8 +104,8 @@ test("atomicWriteFile: after a successful write, no file matching `${finalPath}.
 
 // ── Test 3: unique temp path per call (no fixed `.tmp` suffix) ──────────────
 
-test("atomicWriteFile: uses a unique temp suffix — a pre-existing sentinel at `${finalPath}.tmp` is NOT consumed by the write (proves the helper does not use the fixed `.tmp` suffix)", () => {
-  withTempRoot((root) => {
+test("atomicWriteFile: uses a unique temp suffix — a pre-existing sentinel at `${finalPath}.tmp` is NOT consumed by the write (proves the helper does not use the fixed `.tmp` suffix)", async () => {
+  await withTempRoot((root) => {
     const finalPath = path.join(root, "target.txt");
     const sentinelPath = `${finalPath}.tmp`;
     writeFileSync(sentinelPath, "sentinel-content", "utf8");
@@ -135,8 +135,8 @@ test("atomicWriteFile: uses a unique temp suffix — a pre-existing sentinel at 
 
 // ── Test 4: single-write round-trip semantics ──────────────────────────────
 
-test("atomicWriteFile: write then read returns the exact data written (single-write semantics preserved)", () => {
-  withTempRoot((root) => {
+test("atomicWriteFile: write then read returns the exact data written (single-write semantics preserved)", async () => {
+  await withTempRoot((root) => {
     const finalPath = path.join(root, "round.txt");
     const data = "line1\nline2\nline3";
     atomicWriteFile(finalPath, data);
@@ -146,8 +146,8 @@ test("atomicWriteFile: write then read returns the exact data written (single-wr
 
 // ── Test 5: parent directory created if missing ─────────────────────────────
 
-test("atomicWriteFile: parent directory is created if missing (mkdirSync recursive)", () => {
-  withTempRoot((root) => {
+test("atomicWriteFile: parent directory is created if missing (mkdirSync recursive)", async () => {
+  await withTempRoot((root) => {
     const finalPath = path.join(root, "a", "b", "c", "deep.txt");
     atomicWriteFile(finalPath, "deep");
     assert.ok(existsSync(finalPath), "deeply nested final file must exist");

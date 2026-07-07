@@ -15,7 +15,7 @@ function makeValidGateRequest(): GateRequest {
         severity: "critical",
         summary: "All access requires MFA.",
         matchedAxis: "always-in-phase",
-        matchedValue: "",
+        matchedValue: "always-in-phase",
       },
     ],
     requestedAt: "2026-07-07T00:00:00.000Z",
@@ -93,6 +93,38 @@ test("runAdapter throws when an adapter returns an extra property", async () => 
     },
   } as unknown as GateAdapter;
   await assert.rejects(runAdapter(bad, makeValidGateRequest()), /invalid gate-result|extra/);
+});
+
+test("runAdapter throws when result gateId does not match the request gateId", async () => {
+  const bad = {
+    name: "semgrep",
+    async evaluate() {
+      return {
+        gateId: "ship",
+        status: "pass",
+        findings: [],
+        evaluatedBy: "semgrep",
+        evaluatedAt: "2026-07-07T00:00:00.000Z",
+      };
+    },
+  } as unknown as GateAdapter;
+  await assert.rejects(runAdapter(bad, makeValidGateRequest()), /gateId 'ship'/);
+});
+
+test("runAdapter throws when result evaluatedBy does not match the adapter name", async () => {
+  const bad = {
+    name: "semgrep",
+    async evaluate() {
+      return {
+        gateId: "verify",
+        status: "pass",
+        findings: [],
+        evaluatedBy: "human-approval",
+        evaluatedAt: "2026-07-07T00:00:00.000Z",
+      };
+    },
+  } as unknown as GateAdapter;
+  await assert.rejects(runAdapter(bad, makeValidGateRequest()), /evaluatedBy 'human-approval'/);
 });
 
 test("runAdapter propagates the adapter name into the validated result", async () => {

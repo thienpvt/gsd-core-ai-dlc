@@ -105,6 +105,18 @@ test("rejects a malformed ISO-8601 evaluatedAt (2026/07/07)", () => {
   assert.throws(() => validateGateResult(r));
 });
 
+test("rejects evaluatedAt without milliseconds", () => {
+  const r = makeValidGateResult();
+  r.evaluatedAt = "2026-07-07T00:00:00Z";
+  assert.throws(() => validateGateResult(r));
+});
+
+test("rejects evaluatedAt with a non-UTC offset", () => {
+  const r = makeValidGateResult();
+  r.evaluatedAt = "2026-07-07T00:00:00.000+07:00";
+  assert.throws(() => validateGateResult(r));
+});
+
 test("rejects a finding missing required field id", () => {
   const r = makeValidGateResult();
   r.findings = [{ severity: "high", message: "x" }];
@@ -115,6 +127,32 @@ test("rejects an unknown top-level key (additionalProperties false)", () => {
   const r = makeValidGateResult();
   (r as Record<string, unknown>).extra = 1;
   assert.throws(() => validateGateResult(r));
+});
+
+test("rejects inverted evidence lineRange", () => {
+  const r = makeValidGateResult();
+  r.findings = [
+    {
+      id: "F-1",
+      severity: "high",
+      message: "x",
+      evidence: { path: "src/foo.ts", lineRange: [10, 2] },
+    },
+  ];
+  assert.throws(() => validateGateResult(r), /lineRange start/);
+});
+
+test("accepts single-line evidence lineRange", () => {
+  const r = makeValidGateResult();
+  r.findings = [
+    {
+      id: "F-1",
+      severity: "high",
+      message: "x",
+      evidence: { path: "src/foo.ts", lineRange: [10, 10] },
+    },
+  ];
+  assert.doesNotThrow(() => validateGateResult(r));
 });
 
 test("rejects a finding with severity out of enum (blocker)", () => {

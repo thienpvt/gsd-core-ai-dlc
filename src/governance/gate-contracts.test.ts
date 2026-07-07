@@ -52,6 +52,16 @@ function makeValidGateRequest(): Record<string, unknown> {
   };
 }
 
+function makeValidAppliedRule(): Record<string, unknown> {
+  return {
+    id: "require-mfa",
+    severity: "critical",
+    summary: "All access requires MFA.",
+    matchedAxis: "always-in-phase",
+    matchedValue: "always-in-phase",
+  };
+}
+
 /** Fresh valid gate-result fixture per call (no shared references). */
 function makeValidGateResult(): Record<string, unknown> {
   return {
@@ -104,6 +114,31 @@ test("gate-request schema accepts a valid fixture", () => {
   );
 });
 
+test("gate-request schema accepts a valid fixture with one applied rule", () => {
+  const ajv = makeAjv();
+  const validate = ajv.compile(gateRequestSchema);
+  const request = makeValidGateRequest();
+  request.rules = [makeValidAppliedRule()];
+  assert.equal(
+    validate(request),
+    true,
+    `errors: ${JSON.stringify(validate.errors)}`,
+  );
+});
+
+test("gate-request schema rejects non-TD-01 requestedAt variants", () => {
+  const ajv = makeAjv();
+  const validate = ajv.compile(gateRequestSchema);
+  for (const requestedAt of [
+    "2026-07-07T00:00:00Z",
+    "2026-07-07T00:00:00.000+07:00",
+  ]) {
+    const request = makeValidGateRequest();
+    request.requestedAt = requestedAt;
+    assert.equal(validate(request), false, requestedAt);
+  }
+});
+
 test("gate-result schema accepts a valid fixture", () => {
   const ajv = makeAjv();
   const validate = ajv.compile(gateResultSchema);
@@ -114,6 +149,19 @@ test("gate-result schema accepts a valid fixture", () => {
   );
 });
 
+test("gate-result schema rejects non-TD-01 evaluatedAt variants", () => {
+  const ajv = makeAjv();
+  const validate = ajv.compile(gateResultSchema);
+  for (const evaluatedAt of [
+    "2026-07-07T00:00:00Z",
+    "2026-07-07T00:00:00.000+07:00",
+  ]) {
+    const result = makeValidGateResult();
+    result.evaluatedAt = evaluatedAt;
+    assert.equal(validate(result), false, evaluatedAt);
+  }
+});
+
 test("audit-artifact schema accepts a valid GovernanceAudit fixture", () => {
   const ajv = makeAjv();
   const validate = ajv.compile(auditArtifactSchema);
@@ -122,6 +170,19 @@ test("audit-artifact schema accepts a valid GovernanceAudit fixture", () => {
     true,
     `errors: ${JSON.stringify(validate.errors)}`,
   );
+});
+
+test("audit-artifact schema rejects non-TD-01 selection_timestamp variants", () => {
+  const ajv = makeAjv();
+  const validate = ajv.compile(auditArtifactSchema);
+  for (const selectionTimestamp of [
+    "2026-07-07T00:00:00Z",
+    "2026-07-07T00:00:00.000+07:00",
+  ]) {
+    const audit = makeValidGovernanceAudit();
+    audit.selection_timestamp = selectionTimestamp;
+    assert.equal(validate(audit), false, selectionTimestamp);
+  }
 });
 
 test("validateGateResult accepts a valid GateResult", () => {

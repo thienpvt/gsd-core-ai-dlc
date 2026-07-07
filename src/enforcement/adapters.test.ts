@@ -37,7 +37,7 @@ function makeValidGateRequest(): GateRequest {
         severity: "critical",
         summary: "All access requires MFA.",
         matchedAxis: "always-in-phase",
-        matchedValue: "",
+        matchedValue: "always-in-phase",
       },
     ],
     requestedAt: "2026-07-07T00:00:00.000Z",

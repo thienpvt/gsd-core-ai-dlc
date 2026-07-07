@@ -12,5 +12,15 @@ export async function runAdapter(
 ): Promise<GateResult> {
   const result = await adapter.evaluate(request);
   assertGateResult(result);
+  if (result.gateId !== request.gateId) {
+    throw new Error(
+      `invalid gate-result: gateId '${result.gateId}' does not match request gateId '${request.gateId}'`,
+    );
+  }
+  if (result.evaluatedBy !== adapter.name) {
+    throw new Error(
+      `invalid gate-result: evaluatedBy '${result.evaluatedBy}' does not match adapter '${adapter.name}'`,
+    );
+  }
   return result;
 }
