@@ -11,3 +11,6 @@ rule-index.json
 # Logs / coverage
 coverage/
 *.log
+
+# Generated GSD research cache
+.planning/research/.cache/
