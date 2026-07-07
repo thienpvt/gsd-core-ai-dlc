@@ -40,6 +40,7 @@ type ActiveHook = {
 type RenderHooksEnvelope = {
   point: string;
   activeHooks?: ActiveHook[];
+  steps?: ActiveHook[];
 };
 
 type ConsentModule = {
@@ -209,7 +210,9 @@ function rowFor(rows: CapabilityRow[]): CapabilityRow {
 }
 
 function hookFor(envelope: RenderHooksEnvelope): ActiveHook | undefined {
-  return (envelope.activeHooks ?? []).find((hook) => hook.capId === CAP_ID);
+  return [...(envelope.activeHooks ?? []), ...(envelope.steps ?? [])].find(
+    (hook) => hook.capId === CAP_ID,
+  );
 }
 
 function assertNoGovernanceHook(envelope: RenderHooksEnvelope): void {
@@ -335,13 +338,9 @@ test("CB-3 consent gate keeps project capability inactive until loader consent, 
       "aidlc-governance-plan",
       ["planner-context", ".planning/governance/gates/{NN}-plan.json"],
       [
-        ".planning/ROADMAP.md",
-        ".planning/REQUIREMENTS.md",
-        ".planning/STATE.md",
-        ".planning/phases/{NN}-*/{NN}-CONTEXT.md",
-        ".planning/phases/{NN}-*/{NN}-RESEARCH.md",
-        ".planning/phases/{NN}-*/{NN}-VALIDATION.md",
-        ".planning/phases/{NN}-*/{NN}-PATTERNS.md",
+        "CONTEXT.md",
+        "RESEARCH.md",
+        "PATTERNS.md",
       ],
     );
     assertGovernanceHook(

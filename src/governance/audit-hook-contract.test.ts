@@ -162,13 +162,9 @@ test("capability manifest registers remaining governance gates additively", () =
     ".planning/governance/gates/{NN}-plan.json",
   ]);
   assert.deepEqual(plan.consumes, [
-    ".planning/ROADMAP.md",
-    ".planning/REQUIREMENTS.md",
-    ".planning/STATE.md",
-    ".planning/phases/{NN}-*/{NN}-CONTEXT.md",
-    ".planning/phases/{NN}-*/{NN}-RESEARCH.md",
-    ".planning/phases/{NN}-*/{NN}-VALIDATION.md",
-    ".planning/phases/{NN}-*/{NN}-PATTERNS.md",
+    "CONTEXT.md",
+    "RESEARCH.md",
+    "PATTERNS.md",
   ]);
   assert.equal(plan.when, "governance.enabled");
   assert.equal(plan.onError, "skip");

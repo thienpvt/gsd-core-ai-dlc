@@ -46,6 +46,7 @@ type ActiveHook = {
 type RenderHooksEnvelope = {
   point: string;
   activeHooks?: ActiveHook[];
+  steps?: ActiveHook[];
 };
 
 type ConsentModule = {
@@ -215,14 +216,14 @@ function rowFor(rows: CapabilityRow[]): CapabilityRow {
 }
 
 function verifyPostHook(envelope: RenderHooksEnvelope, skill: string): ActiveHook | undefined {
-  return (envelope.activeHooks ?? []).find(
+  return [...(envelope.activeHooks ?? []), ...(envelope.steps ?? [])].find(
     (hook) =>
       hook.capId === CAP_ID && hook.ref?.skill === skill,
   );
 }
 
 function verifyPostIndex(envelope: RenderHooksEnvelope, skill: string): number {
-  return (envelope.activeHooks ?? []).findIndex(
+  return [...(envelope.activeHooks ?? []), ...(envelope.steps ?? [])].findIndex(
     (hook) => hook.capId === CAP_ID && hook.ref?.skill === skill,
   );
 }

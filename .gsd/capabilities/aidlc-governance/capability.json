@@ -16,7 +16,10 @@
   "skills": [
     "aidlc-governance-discuss",
     "aidlc-governance-execute",
-    "aidlc-governance-audit"
+    "aidlc-governance-audit",
+    "aidlc-governance-plan",
+    "aidlc-governance-verify",
+    "aidlc-governance-ship"
   ],
   "agents": [],
   "hooks": [],
@@ -44,6 +47,20 @@
       "onError": "skip"
     },
     {
+      "point": "plan:pre",
+      "ref": {
+        "skill": "aidlc-governance-plan"
+      },
+      "produces": ["planner-context", ".planning/governance/gates/{NN}-plan.json"],
+      "consumes": [
+        "CONTEXT.md",
+        "RESEARCH.md",
+        "PATTERNS.md"
+      ],
+      "when": "governance.enabled",
+      "onError": "skip"
+    },
+    {
       "point": "execute:pre",
       "ref": {
         "skill": "aidlc-governance-execute"
@@ -56,10 +73,33 @@
     {
       "point": "verify:post",
       "ref": {
+        "skill": "aidlc-governance-verify"
+      },
+      "produces": [".planning/governance/gates/{NN}-verify.json"],
+      "consumes": [".planning/governance/selection-state.json"],
+      "when": "governance.enabled",
+      "onError": "halt"
+    },
+    {
+      "point": "verify:post",
+      "ref": {
         "skill": "aidlc-governance-audit"
       },
       "produces": ["GOVERNANCE.md"],
       "consumes": [".planning/governance/selection-state.json"],
+      "when": "governance.enabled",
+      "onError": "halt"
+    },
+    {
+      "point": "ship:pre",
+      "ref": {
+        "skill": "aidlc-governance-ship"
+      },
+      "produces": [".planning/governance/gates/{NN}-ship.json"],
+      "consumes": [
+        ".planning/governance/gates/{NN}-plan.json",
+        ".planning/governance/gates/{NN}-verify.json"
+      ],
       "when": "governance.enabled",
       "onError": "halt"
     }
