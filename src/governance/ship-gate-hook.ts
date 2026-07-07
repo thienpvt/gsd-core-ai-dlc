@@ -1,3 +1,5 @@
+import { mkdirSync, openSync, closeSync, writeFileSync, constants } from "node:fs";
+import path from "node:path";
 import type { GateId } from "../enforcement/types.js";
 import {
   readGateEvidence,
@@ -6,10 +8,11 @@ import {
 } from "./gate-evidence-store.js";
 import {
   readApproval,
-  writeApproval,
   type ApprovalRecord,
 } from "./approval-store.js";
-import { gateEvidencePath } from "./paths.js";
+import { approvalPath, gateEvidencePath } from "./paths.js";
+
+const { O_CREAT, O_EXCL, O_WRONLY } = constants;
 
 export interface ShipGateHookArgs {
   projectRoot: string;
@@ -50,17 +53,23 @@ function assertNonBlocking(evidence: GateEvidence, gateId: "plan" | "verify"): v
 }
 
 /**
- * D-07: write a pending approval request for the ship gate itself.
+ * D-07: create a pending approval request for the ship gate IF (and only if) no
+ * approval file exists yet. Uses O_CREAT|O_EXCL so the OS atomically rejects the
+ * open if a human approver wrote the file in the gap between our read-null and
+ * this create (WR-02 TOCTOU). Returns true when a new pending was created, false
+ * when the file already exists (another caller or a human approver landed first).
  *
- * decidedBy/decidedAt are intentionally ABSENT (not empty string) so a human
- * must populate them out-of-band to resolve. The model cannot self-approve.
+ * decidedBy/decidedAt are intentionally ABSENT (not empty string) so a human must
+ * populate them out-of-band to resolve. The model cannot self-approve.
  */
-function writePendingApproval(
+function createPendingApprovalIfAbsent(
   projectRoot: string,
   phaseNumber: string,
   phase: GateEvidence["request"]["phase"],
-): void {
-  const approval: ApprovalRecord = {
+): boolean {
+  const filePath = approvalPath(projectRoot, phaseNumber);
+  mkdirSync(path.dirname(filePath), { recursive: true });
+  const pending: ApprovalRecord = {
     approvalId: `ship-${phaseNumber}`,
     phase,
     gateId: "ship",
@@ -70,13 +79,31 @@ function writePendingApproval(
     decision: "pending",
     // decidedBy/decidedAt intentionally omitted — D-07 anti-auto-approve
   };
-  writeApproval(projectRoot, phaseNumber, approval);
+  // O_EXCL fails with EEXIST if the file already exists — no overwrite. This
+  // closes the read-null → write-pending TOCTOU window (WR-02): a human approval
+  // written between our read and this create is preserved, not clobbered.
+  let fd: number;
+  try {
+    fd = openSync(filePath, O_WRONLY | O_CREAT | O_EXCL);
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === "EEXIST") return false;
+    throw err;
+  }
+  try {
+    writeFileSync(fd, JSON.stringify(pending, null, 2));
+  } finally {
+    closeSync(fd);
+  }
+  return true;
 }
 
 /**
- * D-07: read the per-phase approval; if none exists, write a pending request
- * (approvalId `ship-{phaseNumber}`) for the ship gate and throw to surface the
- * human-resolution gate. Mirrors readRequiredEvidence's fail-closed pattern.
+ * D-07: read the per-phase approval; if none exists, atomically create a pending
+ * request (approvalId `ship-{phaseNumber}`) for the ship gate and throw to
+ * surface the human-resolution gate. The create uses O_CREAT|O_EXCL (WR-02:
+ * closes the read-then-write TOCTOU — a human approval landing between our
+ * read-null and the create is preserved, not overwritten). After a successful
+ * create, re-read to return the persisted record (validated by readApproval).
  */
 function readApprovalOrFail(
   projectRoot: string,
@@ -85,10 +112,26 @@ function readApprovalOrFail(
 ): ApprovalRecord {
   const approval = readApproval(projectRoot, phaseNumber);
   if (approval === null) {
-    writePendingApproval(projectRoot, phaseNumber, phase);
-    throw new Error(
-      `ship gate: ${phaseNumber} pending approval created — human resolution required`,
-    );
+    const created = createPendingApprovalIfAbsent(projectRoot, phaseNumber, phase);
+    if (created) {
+      throw new Error(
+        `ship gate: ${phaseNumber} pending approval created — human resolution required`,
+      );
+    }
+    // WR-02: a human approver (or a concurrent ship-gate run) wrote the file in
+    // the gap between our read-null and the O_EXCL create. Re-read to pick up
+    // whatever landed — readApproval validates it. If it is pending/rejected,
+    // assertNoBlockingApprovals below surfaces the human-resolution gate. If it
+    // is approved/waived, we proceed without clobbering the human's decision.
+    const reread = readApproval(projectRoot, phaseNumber);
+    if (reread === null) {
+      // Extremely narrow: the file vanished between EEXIST and re-read. Fail
+      // closed — surface as an inconsistent state rather than silently looping.
+      throw new Error(
+        `ship gate: ${phaseNumber} approval vanished between create-if-absent and re-read`,
+      );
+    }
+    return reread;
   }
   return approval;
 }

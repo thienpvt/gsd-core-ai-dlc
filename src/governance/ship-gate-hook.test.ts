@@ -5,6 +5,7 @@ import {
   existsSync,
   mkdirSync,
   mkdtempSync,
+  readFileSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
@@ -19,7 +20,7 @@ import {
   type ApprovalDecision,
 } from "./approval-store.js";
 import { shipGateHook } from "./ship-gate-hook.js";
-import { gateEvidencePath } from "./paths.js";
+import { approvalPath, gateEvidencePath } from "./paths.js";
 
 const RUNNER = path.resolve(process.cwd(), "dist-test", "governance", "ship-gate-hook.js");
 const STRICT_ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
@@ -318,5 +319,47 @@ test("compiled direct runner fails with stderr and non-zero exit on blocking evi
     const child = spawnSync(process.execPath, [RUNNER, root, "08"], { encoding: "utf8" });
     assert.equal(child.status, 1);
     assert.match(child.stderr, /08-plan\.json/);
+  });
+});
+
+// WR-02: TOCTOU regression. A human-approved record at the path must NOT be
+// clobbered when shipGateHook's readApprovalOrFail path is exercised. The
+// O_CREAT|O_EXCL create-if-absent primitive preserves the human's decision.
+
+test("WR-02 shipGateHook does not overwrite an existing approved approval with pending (TOCTOU guard)", () => {
+  withTempRoot((root) => {
+    seedPriorEvidence(root);
+    const humanApproved = makeApproval("approved", root, {
+      decidedBy: "human-approver",
+      decidedAt: "2026-07-07T00:01:00.000Z",
+    });
+    writeApproval(root, "08", humanApproved);
+    const before = readFileSync(approvalPath(root, "08"), "utf8");
+
+    shipGateHook({ projectRoot: root, phaseNumber: "08" });
+
+    const after = readFileSync(approvalPath(root, "08"), "utf8");
+    assert.equal(after, before, "human-approved record must be byte-identical after ship-gate run (WR-02)");
+  });
+});
+
+test("WR-02 shipGateHook does not overwrite an existing pending approval with a fresh pending (idempotent create)", () => {
+  withTempRoot((root) => {
+    seedPriorEvidence(root);
+    writeApproval(root, "08", makeApproval("pending", root));
+    const before = readApproval(root, "08");
+    assert.ok(before);
+    const beforeRequestedAt = before!.requestedAt;
+
+    // Re-run: readApprovalOrFail sees the existing pending, does NOT call
+    // createPendingApprovalIfAbsent (the O_EXCL would EEXIST anyway). The
+    // existing pending's requestedAt is preserved.
+    assert.throws(
+      () => shipGateHook({ projectRoot: root, phaseNumber: "08" }),
+      /ship gate: approval ship-08 is pending/i,
+    );
+    const after = readApproval(root, "08");
+    assert.ok(after);
+    assert.equal(after!.requestedAt, beforeRequestedAt, "existing pending requestedAt must be preserved (WR-02)");
   });
 });
