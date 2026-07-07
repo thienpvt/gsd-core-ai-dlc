@@ -4,11 +4,11 @@ milestone: v2.0
 milestone_name: Govern
 current_phase: 07
 current_phase_name: enforcement-contracts-adapter-stubs
-status: executing
-stopped_at: Completed 07-03-PLAN.md
-last_updated: "2026-07-07T02:32:45.843Z"
+status: ready_for_verification
+stopped_at: Completed 07-04-PLAN.md
+last_updated: "2026-07-07T02:34:02.060Z"
 last_activity: 2026-07-07
-last_activity_desc: 07-03 GateAdapter stubs shipped (RED→GREEN, 20 adapter tests; full-suite audit-hook issue deferred)
+last_activity_desc: 07-04 runAdapter hard-fail boundary shipped; Phase 7 complete and ready for verification
 progress:
   total_phases: 5
   completed_phases: 2
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 
 ## Current Position
 
-Phase: 07 (enforcement-contracts-adapter-stubs) — EXECUTING
+Phase: 07 (enforcement-contracts-adapter-stubs) — READY FOR VERIFICATION
 Plan: 4 of 4
-Status: Plan 3 complete; ready for 07-04 (runAdapter hard-fail boundary wrapper)
-Last activity: 2026-07-07 — 07-03 GateAdapter stubs shipped (RED→GREEN, 20 adapter tests; full-suite audit-hook issue deferred)
+Status: Plan 4 complete; Phase 7 enforcement contracts and adapter boundary are ready for verification
+Last activity: 2026-07-07 — 07-04 runAdapter hard-fail boundary shipped (RED→GREEN, 8 runAdapter tests; 15 gate-contracts cases)
 
 ## Performance Metrics
 
@@ -57,7 +57,7 @@ Last activity: 2026-07-07 — 07-03 GateAdapter stubs shipped (RED→GREEN, 20 a
 | Phase | Plans | Status |
 |-------|-------|--------|
 | 6. v1.0 Tech-Debt Fold-In | 3/3 | Complete (verified 5/5) |
-| 7. Enforcement Contracts & Adapter Stubs | 0/4 | Planned — ready to execute |
+| 7. Enforcement Contracts & Adapter Stubs | 4/4 | Complete — ready for verification |
 | 8. Remaining Gate Hooks | 0/? | Not started |
 | 9. Complete Audit Record & Approval | 0/? | Not started |
 | 10. Selection-Quality Harness | 0/? | Not started |
@@ -74,6 +74,7 @@ Last activity: 2026-07-07 — 07-03 GateAdapter stubs shipped (RED→GREEN, 20 a
 | Phase 07 P01 | 5 | 3 tasks | 5 files |
 | Phase 07 P02 | 4 | 2 tasks | 2 files |
 | Phase 07 P03 | 13 min | 2 tasks | 4 files |
+| Phase 07 P04 | 11 min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -105,6 +106,8 @@ Recent decisions affecting current work:
 - [Phase ?]: 07-03: GateAdapter reference stubs live in one adapters.ts file; STUB_NAMES is the single source of truth for ADAPTERS and ECHO_ADAPTERS
 - [Phase ?]: 07-03: echoAdapter marks non-empty selected rules as fail so findings are observable; real adapters replace echo semantics later
 - [Phase ?]: 07-03: reference stubs are intentionally no-op/echo only and never execute external scanner tools
+- [Phase 07]: runAdapter is the sanctioned adapter-output boundary; adapter runtime errors propagate unchanged, while malformed GateResult output fails through validateGateResult before consumers see it. — Preserves diagnosability of tool failures and hard-fails corrupted audit-trail output at ENF-02 boundary.
+- [Phase 07]: Phase 8 gate hooks should call runAdapter(adapter, request), not direct adapter evaluation. — Keeps all binding gate-result output behind the ENF-02 validation choke point.
 
 ### Pending Todos
 
@@ -118,7 +121,7 @@ None yet.
 
 - [Phase 2]: Labeled eval-set construction methodology and the `critical`-rule recall threshold are novel and load-bearing — flagged for deeper research during Phase 2 planning. (Resolved in v1.0; SEL-06 in Phase 10 will formalize the standing harness.)
 - [Phase 6]: TD-02 consent integration test must cover the `onError:halt` silent-failure path — verify the audit hook actually fires post-consent, not just that consent activates. (Resolved 2026-07-06 — `consent-verify-post.test.ts` shipped in Phase 6, asserts hook fires post-consent + revoke/tamper fail closed; verification passed 5/5.)
-- [Phase 7]: Adapter stubs must be schema-valid by Ajv at runtime — a stub that emits malformed output must hard-fail, not silently corrupt the audit trail.
+- [Phase 7]: Adapter stubs must be schema-valid by Ajv at runtime — resolved in 07-04 via runAdapter boundary and malformed-fixture contract tests.
 
 ## Deferred Items
 
@@ -132,10 +135,10 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-07T02:32:45.826Z
-Stopped at: Completed 07-03-PLAN.md
+Last session: 2026-07-07T02:34:02.048Z
+Stopped at: Completed 07-04-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
 
-- Execute Phase 7 with `/gsd-execute-phase 7` (Enforcement Contracts & Adapter Stubs — 4 plans, 3 waves; ENF-02/03/04)
+- Verify Phase 7 with `/gsd-verify-work 7` before planning Phase 8.
