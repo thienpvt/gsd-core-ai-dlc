@@ -49,6 +49,12 @@ type RenderHooksEnvelope = {
   rendered?: string;
 };
 
+type CapabilityListRow = {
+  id?: string;
+  scope?: string;
+  status?: string;
+};
+
 function manifest(): CapabilityManifest {
   return JSON.parse(readFileSync(MANIFEST_PATH, "utf8")) as CapabilityManifest;
 }
@@ -72,6 +78,41 @@ function resolveGsdTools(): string | null {
   // candidates[0] as string, which hid a missing runtime behind a non-existent
   // path. Callers must guard against null before spawning.
   return candidates.find((candidate) => existsSync(candidate)) ?? null;
+}
+
+function localProjectCapabilityStatus(): string | null {
+  if (GSD_TOOLS === null || !existsSync(GSD_TOOLS)) return null;
+
+  const proc = spawnSync(
+    process.execPath,
+    [
+      GSD_TOOLS,
+      "capability",
+      "list",
+      "--scope",
+      "project",
+      "--json",
+      "--config-dir",
+      CODEX_CONFIG_DIR,
+    ],
+    {
+      cwd: REPO_ROOT,
+      encoding: "utf8",
+      env: {
+        ...process.env,
+        CODEX_HOME: CODEX_CONFIG_DIR,
+        GSD_HOME: CODEX_CONFIG_DIR,
+        GSD_RUNTIME: "codex",
+      },
+    },
+  );
+  if (proc.status !== 0) return null;
+
+  const rows = JSON.parse(proc.stdout) as CapabilityListRow[];
+  return (
+    rows.find((row) => row.id === "aidlc-governance" && row.scope === "project")?.status ??
+    null
+  );
 }
 
 test("capability manifest declares one artifact-only audit verify:post step", () => {
@@ -122,6 +163,12 @@ test("local render-hooks verify:post output references aidlc-governance-audit wh
   // a candidates[0] fallback. Skip cleanly when no runtime is found.
   if (GSD_TOOLS === null || !existsSync(GSD_TOOLS)) {
     t.skip("local GSD runtime is not installed");
+    return;
+  }
+
+  const status = localProjectCapabilityStatus();
+  if (status !== "active") {
+    t.skip(`local aidlc-governance capability is not active (${status ?? "unavailable"})`);
     return;
   }
 
