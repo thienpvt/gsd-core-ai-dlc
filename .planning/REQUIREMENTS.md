@@ -15,10 +15,10 @@ Requirements for milestone **v2.0 Govern**. Each maps to a roadmap phase (number
 
 ### Audit — Complete Audit Record
 
-- [ ] **AUDIT-03**: The audit artifact records requirements covered by the phase (which REQ-IDs the work addressed)
+- [x] **AUDIT-03**: The audit artifact records requirements covered by the phase (which REQ-IDs the work addressed)
 - [x] **AUDIT-04**: The audit artifact records tests executed and their results, derived from real test-runner output (not model narration)
-- [ ] **AUDIT-05**: The audit artifact records remaining risks known at ship time
-- [ ] **AUDIT-06**: The audit artifact records approvals required and who granted them
+- [x] **AUDIT-05**: The audit artifact records remaining risks known at ship time
+- [x] **AUDIT-06**: The audit artifact records approvals required and who granted them
 
 ### Enforcement — Tool-Agnostic Contracts & Adapters
 
@@ -86,10 +86,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | GATE-03 | Phase 8 | Complete |
 | GATE-04 | Phase 8 | Complete |
 | GATE-05 | Phase 8 | Complete |
-| AUDIT-03 | Phase 9 | Pending |
+| AUDIT-03 | Phase 9 | Complete |
 | AUDIT-04 | Phase 9 | Complete |
-| AUDIT-05 | Phase 9 | Pending |
-| AUDIT-06 | Phase 9 | Pending |
+| AUDIT-05 | Phase 9 | Complete |
+| AUDIT-06 | Phase 9 | Complete |
 | APPR-01 | Phase 9 | Complete |
 | SEL-06 | Phase 10 | Pending |
 
