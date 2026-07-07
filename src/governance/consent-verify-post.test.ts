@@ -357,7 +357,10 @@ test("TD-02: post-consent verify:post fires aidlc-governance-audit hook with onE
     assert.deepEqual(verifyHook.consumes ?? [], [".planning/governance/selection-state.json"]);
     assert.equal(verifyHook.onError, "halt");
     assert.deepEqual(auditHook.produces ?? [], ["GOVERNANCE.md"]);
-    assert.deepEqual(auditHook.consumes ?? [], [".planning/governance/selection-state.json"]);
+    assert.deepEqual(auditHook.consumes ?? [], [
+      ".planning/governance/selection-state.json",
+      "CONTEXT.md",
+    ]);
     assert.equal(
       auditHook.onError,
       "halt",

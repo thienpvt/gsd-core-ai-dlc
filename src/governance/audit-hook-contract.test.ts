@@ -131,7 +131,10 @@ test("capability manifest declares one artifact-only audit verify:post step", ()
 
   assert.ok(capability.skills?.includes("aidlc-governance-audit"));
   assert.deepEqual(step.produces, ["GOVERNANCE.md"]);
-  assert.deepEqual(step.consumes, [".planning/governance/selection-state.json"]);
+  assert.deepEqual(step.consumes, [
+    ".planning/governance/selection-state.json",
+    "CONTEXT.md",
+  ]);
   assert.equal(step.when, "governance.enabled");
   assert.equal(step.onError, "halt");
   assert.deepEqual(capability.gates, []);
@@ -176,10 +179,14 @@ test("capability manifest registers remaining governance gates additively", () =
   assert.equal(verify.onError, "halt");
 
   const ship = stepBySkill(capability, "ship:pre", "aidlc-governance-ship");
-  assert.deepEqual(ship.produces, [".planning/governance/gates/{NN}-ship.json"]);
+  assert.deepEqual(ship.produces, [
+    ".planning/governance/gates/{NN}-ship.json",
+    ".planning/governance/approvals/{NN}.json",
+  ]);
   assert.deepEqual(ship.consumes, [
     ".planning/governance/gates/{NN}-plan.json",
     ".planning/governance/gates/{NN}-verify.json",
+    "GOVERNANCE.md",
   ]);
   assert.equal(ship.when, "governance.enabled");
   assert.equal(ship.onError, "halt");

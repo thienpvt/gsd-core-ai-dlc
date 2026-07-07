@@ -186,6 +186,10 @@ test("shipGateHook writes ship evidence when plan and verify evidence pass or wa
   ] as const) {
     withTempRoot((root) => {
       seedPriorEvidence(root, { plan: planStatus, verify: verifyStatus });
+      // Plan 04: ship gate now blocks on missing approval — seed an approved
+      // record so this test (which exercises ship-evidence shape, not approval
+      // blocking) reaches the evidence write.
+      writeApproval(root, "08", makeApproval("approved", root));
 
       const hookResult = shipGateHook({ projectRoot: root, phaseNumber: "08" });
       const shipEvidence = readGateEvidence(root, "08", "ship");

@@ -86,7 +86,10 @@
         "skill": "aidlc-governance-audit"
       },
       "produces": ["GOVERNANCE.md"],
-      "consumes": [".planning/governance/selection-state.json"],
+      "consumes": [
+        ".planning/governance/selection-state.json",
+        "CONTEXT.md"
+      ],
       "when": "governance.enabled",
       "onError": "halt"
     },
@@ -95,10 +98,14 @@
       "ref": {
         "skill": "aidlc-governance-ship"
       },
-      "produces": [".planning/governance/gates/{NN}-ship.json"],
+      "produces": [
+        ".planning/governance/gates/{NN}-ship.json",
+        ".planning/governance/approvals/{NN}.json"
+      ],
       "consumes": [
         ".planning/governance/gates/{NN}-plan.json",
-        ".planning/governance/gates/{NN}-verify.json"
+        ".planning/governance/gates/{NN}-verify.json",
+        "GOVERNANCE.md"
       ],
       "when": "governance.enabled",
       "onError": "halt"

@@ -352,10 +352,14 @@ test("CB-3 consent gate keeps project capability inactive until loader consent, 
     assertGovernanceHook(
       renderHooks(gsdTools, projectRoot, configDir, "ship:pre"),
       "aidlc-governance-ship",
-      [".planning/governance/gates/{NN}-ship.json"],
+      [
+        ".planning/governance/gates/{NN}-ship.json",
+        ".planning/governance/approvals/{NN}.json",
+      ],
       [
         ".planning/governance/gates/{NN}-plan.json",
         ".planning/governance/gates/{NN}-verify.json",
+        "GOVERNANCE.md",
       ],
     );
     assertHelperRuns(gsdTools, projectRoot, configDir);
