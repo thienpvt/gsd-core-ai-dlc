@@ -32,7 +32,7 @@ Requirements for milestone **v2.0 Govern**. Each maps to a roadmap phase (number
 
 ### Approval — Human-in-the-Loop
 
-- [ ] **APPR-01**: A human approval checkpoint schema captures approval requests, the approver, the artifact under approval, and the decision, produced/consumed through the tool-agnostic contract layer
+- [x] **APPR-01**: A human approval checkpoint schema captures approval requests, the approver, the artifact under approval, and the decision, produced/consumed through the tool-agnostic contract layer
 
 ### Tech Debt — v1.0 Fold-in (first phase)
 
@@ -90,7 +90,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUDIT-04 | Phase 9 | Pending |
 | AUDIT-05 | Phase 9 | Pending |
 | AUDIT-06 | Phase 9 | Pending |
-| APPR-01 | Phase 9 | Pending |
+| APPR-01 | Phase 9 | Complete |
 | SEL-06 | Phase 10 | Pending |
 
 **Coverage:**

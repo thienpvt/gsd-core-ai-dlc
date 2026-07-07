@@ -119,12 +119,12 @@ Plans:
   4. The audit artifact records approvals required and who granted them (AUDIT-06).
   5. A human approval checkpoint schema captures approval requests, the approver, the artifact under approval, and the decision — produced and consumed through the tool-agnostic contract layer (APPR-01).
 
-**Plans**: 4 plans
+**Plans**: 1/4 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 09-01-PLAN.md — Approval store + schema + validator (APPR-01) — clone gate-evidence-store + validate-gate-result patterns; approval.schema.json + validate-approval.ts + approval-store.ts + paths.ts extension
+- [x] 09-01-PLAN.md — Approval store + schema + validator (APPR-01) — clone gate-evidence-store + validate-gate-result patterns; approval.schema.json + validate-approval.ts + approval-store.ts + paths.ts extension
 - [ ] 09-02-PLAN.md — Test-evidence capture (AUDIT-04) — TAP summary parser for node --test output + durable store under .planning/governance/tests/{NN}.json + test-evidence.schema.json
 
 **Wave 2** *(blocked on Wave 1 completion)*
@@ -161,7 +161,7 @@ v2.0 Phases execute in numeric order: 6 → 7 → 8 → 9 → 10.
 | 6. v1.0 Tech-Debt Fold-In | v2.0 | 3/3 | Complete    | 2026-07-06 |
 | 7. Enforcement Contracts & Adapter Stubs | v2.0 | 4/4 | Complete    | 2026-07-07 |
 | 8. Remaining Gate Hooks | v2.0 | 5/5 | Complete    | 2026-07-07 |
-| 9. Complete Audit Record & Approval | v2.0 | 0/4 | Not started | - |
+| 9. Complete Audit Record & Approval | v2.0 | 1/4 | In Progress|  |
 | 10. Selection-Quality Harness | v2.0 | 0/? | Not started | - |
 
 ---
