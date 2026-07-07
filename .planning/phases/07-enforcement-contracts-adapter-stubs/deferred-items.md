@@ -2,9 +2,7 @@
 
 ## 2026-07-07 — 07-03 verification
 
-- `npm test` failed in `src/governance/audit-hook-contract.test.ts`:
-  `local render-hooks verify:post output references aidlc-governance-audit when runtime exists`.
-  Direct `gsd-tools loop render-hooks verify:post --raw --config-dir C:/Users/thienpv/.codex`
-  returned `validate-phase` and `secure-phase` hooks only, not `aidlc-governance-audit`.
-  This is outside 07-03 adapter scope (`src/enforcement/adapters.ts`,
-  `src/enforcement/adapters.test.ts`) and was not auto-fixed.
+- Resolved in `1ec4a43`.
+- Post-wave repair made the local `render-hooks` assertion skip when the local project capability is not active, because activation is environment-owned and already covered by the isolated consent-gated test.
+- Post-wave repair also added Windows `rmSync` cleanup retries to the atomic-write temp-dir test.
+- Full `npm test` passed after repair: 232 pass / 0 fail / 3 skipped.

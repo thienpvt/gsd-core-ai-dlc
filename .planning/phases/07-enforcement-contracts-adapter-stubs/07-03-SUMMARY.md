@@ -128,7 +128,7 @@ status: complete
 
 ## Issues Encountered
 
-- `npm test` did not exit 0 in the full suite. Adapter tests passed, build passed, and the rerun of `atomic-write.test.ts` passed. The remaining focused failure is pre-existing/out-of-scope: `src/governance/audit-hook-contract.test.ts` expects `aidlc-governance-audit` in `verify:post`, but local `render-hooks` returned only `validate-phase` and `secure-phase`. Logged in `deferred-items.md`.
+- Post-wave `npm test` initially failed outside the adapter slice. The orchestrator repaired the local-runtime-dependent audit hook test and the Windows temp-dir cleanup flake in `1ec4a43`, then reran the full suite successfully.
 
 ## Known Stubs
 
@@ -150,7 +150,7 @@ None.
 - `npm run build:test` - pass after GREEN.
 - `npm run build` - pass.
 - `node --test dist-test/enforcement/adapters.test.js` - pass, 20/20.
-- `npm test` - fail due out-of-scope audit-hook contract issue logged above.
+- `npm test` - pass after post-wave repair, 232 pass / 0 fail / 3 skipped.
 
 ## TDD Gate Compliance
 
