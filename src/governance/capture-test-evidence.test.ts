@@ -194,7 +194,7 @@ test("Production-caller grep evidence: parseTapSummary and writeTestEvidence hav
   }
   // Static proof: both helpers appear as call sites (not just imports).
   assert.ok(
-    src.includes(".parseTapSummary("),
+    src.includes("parseTapSummary("),
     "capture-test-evidence must call parseTapSummary (production caller)",
   );
   assert.ok(

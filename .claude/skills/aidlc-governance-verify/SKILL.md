@@ -27,7 +27,24 @@ NOT an adapter implementation and NOT an audit writer.
    The hook builds a `gateId: "verify"` request, calls `runAdapter`, derives
    per-rule statuses, and writes `.planning/governance/gates/{NN}-verify.json`.
 
-4. **Propagate failures.** If the runner exits non-zero, surface stderr and fail
+4. **Capture test evidence (AUDIT-04 producer side).** BEFORE the audit skill
+   (`aidlc-governance-audit`) reads `.planning/governance/tests/{NN}.json`, this
+   step MUST run to write it. Invoke the compiled capture entrypoint:
+
+   ```bash
+   node dist/governance/capture-test-evidence.js <phaseNumber>
+   ```
+
+   Pass the concrete `{NN}` phase number. The module spawns
+   `node --test --test-reporter=tap` (the actual `npm test` runner), parses the
+   TAP summary via `parseTapSummary`, and persists a `TestEvidenceRecord` under
+   `.planning/governance/tests/{NN}.json` via `writeTestEvidence`. Malformed
+   runner output (including model-authored narration) hard-fails through
+   `parseTapSummary`'s D-04 guard before any record lands on disk. If the runner
+   exits non-zero on this step, surface stderr and fail the `verify:post` step —
+   evidence loss is blocking.
+
+5. **Propagate failures.** If the runner exits non-zero, surface stderr and fail
    the `verify:post` step. Evidence loss is blocking.
 
 ## Failure mode
