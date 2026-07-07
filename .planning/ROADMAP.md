@@ -30,7 +30,7 @@ Phase numbering continues at 6 (no reset). First phase owns the v1.0 tech-debt f
 - [x] **Phase 6: v1.0 Tech-Debt Fold-In** - Pay down 9 v1.0 debt items (3 correctness, 6 hygiene) before new gate surface opens (completed 2026-07-06)
 - [x] **Phase 7: Enforcement Contracts & Adapter Stubs** - JSON Schema gate contracts + GateAdapter interface + no-op stubs named after AI-DLC-implied tools (completed 2026-07-07)
 - [x] **Phase 8: Remaining Gate Hooks** - Plan, verify, and ship gates consume Phase 7 contracts and produce per-rule pass/fail records (completed 2026-07-07)
-- [ ] **Phase 9: Complete Audit Record & Approval** - Audit artifact records requirements, tests, risks, approvals; human approval flows through contracts
+- [x] **Phase 9: Complete Audit Record & Approval** - Audit artifact records requirements, tests, risks, approvals; human approval flows through contracts (completed 2026-07-07)
 - [ ] **Phase 10: Selection-Quality Harness** - Standing recall/precision harness against the labeled eval set as a repeatable auditable check
 
 ## Phase Details
@@ -119,7 +119,7 @@ Plans:
   4. The audit artifact records approvals required and who granted them (AUDIT-06).
   5. A human approval checkpoint schema captures approval requests, the approver, the artifact under approval, and the decision — produced and consumed through the tool-agnostic contract layer (APPR-01).
 
-**Plans**: 3/4 plans executed
+**Plans**: 4/4 plans complete
 
 Plans:
 **Wave 1**
@@ -130,7 +130,7 @@ Plans:
 **Wave 2** *(blocked on Wave 1 completion)*
 
 - [x] 09-03-PLAN.md — Audit enrichment + v2 bump (AUDIT-03/05/06) — audit-enrich.ts pure helpers (REQ-IDs from traceability, risks from VERIFICATION/CONTEXT, approval summary) + audit-artifact v2 schema bump + buildAuditRecord enrichment hook + v1 byte-stability test
-- [ ] 09-04-PLAN.md — Ship-gate approval blocking + capability manifest (AUDIT-06/APPR-01) — readApprovalOrFail + assertNoBlockingApprovals + writePendingApproval in ship-gate-hook.ts + capability.json produces/consumes extension
+- [x] 09-04-PLAN.md — Ship-gate approval blocking + capability manifest (AUDIT-06/APPR-01) — readApprovalOrFail + assertNoBlockingApprovals + writePendingApproval in ship-gate-hook.ts + capability.json produces/consumes extension
 
 ### Phase 10: Selection-Quality Harness
 
@@ -161,7 +161,7 @@ v2.0 Phases execute in numeric order: 6 → 7 → 8 → 9 → 10.
 | 6. v1.0 Tech-Debt Fold-In | v2.0 | 3/3 | Complete    | 2026-07-06 |
 | 7. Enforcement Contracts & Adapter Stubs | v2.0 | 4/4 | Complete    | 2026-07-07 |
 | 8. Remaining Gate Hooks | v2.0 | 5/5 | Complete    | 2026-07-07 |
-| 9. Complete Audit Record & Approval | v2.0 | 3/4 | In Progress|  |
+| 9. Complete Audit Record & Approval | v2.0 | 4/4 | Complete   | 2026-07-07 |
 | 10. Selection-Quality Harness | v2.0 | 0/? | Not started | - |
 
 ---

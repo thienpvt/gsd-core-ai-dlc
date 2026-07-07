@@ -4,17 +4,17 @@ milestone: v2.0
 milestone_name: Govern
 current_phase: 9
 current_phase_name: Complete Audit Record & Approval
-status: executing
-stopped_at: Completed 09-01-PLAN.md
-last_updated: "2026-07-07T15:46:42.930Z"
+status: verifying
+stopped_at: Completed 09-04-PLAN.md
+last_updated: "2026-07-07T16:24:00.100Z"
 last_activity: 2026-07-07
 last_activity_desc: Phase 9 execution started
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 16
-  completed_plans: 15
-  percent: 60
+  completed_plans: 16
+  percent: 80
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-07-07)
 
 Phase: 9 (Complete Audit Record & Approval) — EXECUTING
 Plan: 4 of 4
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-07-07 — Phase 9 execution started
 
 ## Performance Metrics
@@ -84,6 +84,7 @@ Last activity: 2026-07-07 — Phase 9 execution started
 | Phase 08 P05 | 18 | 2 tasks | 7 files |
 | Phase 9 P02 | 3min | 3 tasks | 3 files |
 | Phase 09 P03 | 7min | 3 tasks | 6 files |
+| Phase 9 P04 | 25 | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -136,6 +137,9 @@ Recent decisions affecting current work:
 - [Phase ?]: 09-02: parseTapSummary regex uses /gm flags; lastIndex reset to 0 for determinism
 - [Phase ?]: D-09 v2 byte-stability: 4 v2 fields appended after existing 7, string === compare
 - [Phase ?]: D-14 audit-enrich.ts separate module — buildAuditRecord stays thin, v1 subset byte-stable
+- [Phase ?]: 09-04: D-07 writePendingApproval OMITS decidedBy/decidedAt (undefined, not empty string)
+- [Phase ?]: 09-04: D-08 ship gate fail-closed on pending/rejected approvals — mirrors GATE-05 assertNonBlocking
+- [Phase ?]: 09-04: D-13/D-16 manifest consumes uses bare host artifact names — gsd-core validateConsumesGlobal rejects path-prefixed forms
 
 ### Pending Todos
 
@@ -163,6 +167,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-07T15:46:42.924Z
-Stopped at: Completed 09-01-PLAN.md
+Last session: 2026-07-07T16:24:00.094Z
+Stopped at: Completed 09-04-PLAN.md
 Resume file: None
