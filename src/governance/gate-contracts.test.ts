@@ -23,6 +23,10 @@ import gateRequestSchema from "../schema/gate-request.schema.json";
 import gateResultSchema from "../schema/gate-result.schema.json";
 import auditArtifactSchema from "../schema/audit-artifact.schema.json";
 import taskSignalSchema from "../schema/task-signal.schema.json";
+import { validateGateResult } from "../enforcement/validate-gate-result.js";
+import { runAdapter } from "../enforcement/run-adapter.js";
+import { type GateAdapter, noopAdapter } from "../enforcement/adapters.js";
+import type { GateRequest } from "../enforcement/types.js";
 
 /** Local Ajv 2020 strict instance with the two MANDATORY pre-compile registrations. */
 function makeAjv(): Ajv2020 {
@@ -118,4 +122,71 @@ test("audit-artifact schema accepts a valid GovernanceAudit fixture", () => {
     true,
     `errors: ${JSON.stringify(validate.errors)}`,
   );
+});
+
+test("validateGateResult accepts a valid GateResult", () => {
+  assert.doesNotThrow(() => validateGateResult(makeValidGateResult()));
+});
+
+test("validateGateResult throws on status out of enum (maybe)", () => {
+  const r = makeValidGateResult();
+  r.status = "maybe";
+  assert.throws(() => validateGateResult(r), /invalid gate-result/);
+});
+
+test("validateGateResult throws on missing required field evaluatedAt", () => {
+  const r = makeValidGateResult();
+  delete r.evaluatedAt;
+  assert.throws(() => validateGateResult(r), /evaluatedAt|missing/);
+});
+
+test("validateGateResult throws on bad ISO-8601 evaluatedAt", () => {
+  const r = makeValidGateResult();
+  r.evaluatedAt = "2026/07/07";
+  assert.throws(() => validateGateResult(r), /invalid gate-result|evaluatedAt/);
+});
+
+test("validateGateResult throws on extra property", () => {
+  const r = makeValidGateResult();
+  (r as Record<string, unknown>).extra = 1;
+  assert.throws(() => validateGateResult(r), /invalid gate-result|extra/);
+});
+
+test("validateGateResult throws on gateId out of enum", () => {
+  const r = makeValidGateResult();
+  r.gateId = "review";
+  assert.throws(() => validateGateResult(r), /invalid gate-result/);
+});
+
+test("validateGateResult throws on finding severity out of enum", () => {
+  const r = makeValidGateResult();
+  r.findings = [{ id: "F-1", severity: "blocker", message: "x" }];
+  assert.throws(() => validateGateResult(r), /invalid gate-result/);
+});
+
+test("runAdapter throws on a malformed adapter result (boundary proof)", async () => {
+  const bad = {
+    name: "bad",
+    async evaluate() {
+      return {
+        gateId: "verify",
+        status: "maybe",
+        findings: [],
+        evaluatedBy: "bad",
+        evaluatedAt: "2026-07-07T00:00:00.000Z",
+      };
+    },
+  } as unknown as GateAdapter;
+  await assert.rejects(
+    runAdapter(bad, makeValidGateRequest() as unknown as GateRequest),
+    /invalid gate-result/,
+  );
+});
+
+test("runAdapter returns a validated result from a noop adapter", async () => {
+  const r = await runAdapter(
+    noopAdapter("semgrep"),
+    makeValidGateRequest() as unknown as GateRequest,
+  );
+  assert.equal(r.status, "pass");
 });
