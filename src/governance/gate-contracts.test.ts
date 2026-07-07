@@ -76,7 +76,7 @@ function makeValidGateResult(): Record<string, unknown> {
 /** Fresh valid GovernanceAudit fixture per call — exact GovernanceAudit shape. */
 function makeValidGovernanceAudit(): Record<string, unknown> {
   return {
-    schema_version: 1,
+    schema_version: 2,
     phase: "construction",
     riskTier: "baseline",
     selection_timestamp: "2026-07-07T00:00:00.000Z",
