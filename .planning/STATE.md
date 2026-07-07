@@ -5,16 +5,16 @@ milestone_name: Govern
 current_phase: 08
 current_phase_name: remaining-gate-hooks
 status: executing
-stopped_at: Completed 08-03-PLAN.md
-last_updated: "2026-07-07T05:20:32.124Z"
+stopped_at: Completed 08-04-PLAN.md
+last_updated: "2026-07-07T07:59:14.215Z"
 last_activity: 2026-07-07
 last_activity_desc: Phase 08 execution started
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 12
-  completed_plans: 10
-  percent: 83
+  completed_plans: 11
+  percent: 92
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-07)
 ## Current Position
 
 Phase: 08 (remaining-gate-hooks) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 Status: Ready to execute
 Last activity: 2026-07-07 — Phase 08 execution started
 
@@ -79,6 +79,7 @@ Last activity: 2026-07-07 — Phase 08 execution started
 | Phase 08 P01 | 8 min | 2 tasks | 3 files |
 | Phase 08 P02 | 8 min | 2 tasks | 2 files |
 | Phase 08 P03 | 8 min | 2 tasks | 2 files |
+| Phase 08 P04 | 14 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -120,6 +121,9 @@ Recent decisions affecting current work:
 - [Phase ?]: 08-03: verifyGateHook uses ADAPTERS generic-exit-ci by default; adapter injection is only a test seam.
 - [Phase ?]: 08-03: deriveRuleGateStatuses fails a rule only on exact or distinct-token finding id matches; unmatched rules pass unless overall result is waived.
 - [Phase ?]: 08-03: malformed verify adapter output rejects before evidence persistence because verifyGateHook calls runAdapter(adapter, request).
+- [Phase ?]: 08-04: shipGateHook blocks only on prior plan/verify result.status fail; pass and waived evidence are non-blocking because waiver is an explicit GateResult status.
+- [Phase ?]: 08-04: ship evidence stays minimal ({request,result,metadata}) and excludes APPR-01 approval capture, rollback evidence, and full audit enrichment; Phase 9 owns those fields.
+- [Phase ?]: 08-04: direct runner returns stderr plus exitCode=1 on blocking conditions; test targets dist-test for targeted verification while npm run build verifies production dist output.
 
 ### Pending Todos
 
@@ -147,6 +151,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-07T05:19:43.954Z
-Stopped at: Completed 08-03-PLAN.md
+Last session: 2026-07-07T07:59:13.970Z
+Stopped at: Completed 08-04-PLAN.md
 Resume file: None
