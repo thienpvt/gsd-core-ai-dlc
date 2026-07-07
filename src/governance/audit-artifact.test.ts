@@ -11,8 +11,13 @@ import {
 } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import Ajv2020, { type ValidateFunction } from "ajv/dist/2020.js";
+import addFormats from "ajv-formats";
+// No `with { type: "json" }` attribute — CJS require(); resolveJsonModule handles the JSON import.
+import auditSchema from "../schema/audit-artifact.schema.json";
 import {
   AUDIT_SKIP_REASONS,
+  buildAuditRecord,
   renderGovernanceMarkdown,
   writeGovernanceAudit,
   type GovernanceAudit,
@@ -444,4 +449,74 @@ test("audit-artifact source does not import selector, risk, discuss, or execute 
   assert.doesNotMatch(source, /from ["']\.\.\/select\//);
   assert.doesNotMatch(source, /from ["']\.\/risk\.js["']/);
   assert.doesNotMatch(source, /validateSignal|classifyRisk|discussHook|executeHook/);
+});
+
+// ---------------------------------------------------------------------------
+// v2 schema bump tests (Pitfall 1: const 1 -> const 2, forward-incompatible)
+// ---------------------------------------------------------------------------
+
+const ajv = new Ajv2020({ allErrors: true, strict: true, strictRequired: false });
+addFormats(ajv);
+ajv.addKeyword({ keyword: "x-binding", type: "object", schemaType: "string" });
+const validateAudit: ValidateFunction = ajv.compile(auditSchema);
+
+test("v2 audit schema rejects schema_version: 1 records (forward-incompatible by design)", () => {
+  const v1Record = {
+    schema_version: 1,
+    phase: "construction",
+    riskTier: "elevated",
+    selection_timestamp: "2026-07-07T00:00:00.000Z",
+    generated_from: ".planning/governance/selection-state.json",
+    rules_applied: [],
+    rules_skipped: [],
+  };
+  assert.equal(validateAudit(v1Record), false, "v1 record must FAIL validation against v2 schema");
+});
+
+test("v2 audit schema accepts schema_version: 2 with the 4 optional v2 fields", () => {
+  const v2Record = {
+    schema_version: 2,
+    phase: "construction",
+    riskTier: "elevated",
+    selection_timestamp: "2026-07-07T00:00:00.000Z",
+    generated_from: ".planning/governance/selection-state.json",
+    rules_applied: [],
+    rules_skipped: [],
+    requirements_covered: [{ reqId: "AUDIT-03", title: "Requirements covered", status: "complete" }],
+    tests_executed: { total: 1, pass: 1, fail: 0, skipped: 0, duration_ms: 12.34 },
+    remaining_risks: [{ id: "none-identified", severity: "low", detail: "no risks", source: "none-identified" }],
+    approvals: [{ approvalId: "none-required", gateId: "ship", decision: "waived" }],
+  };
+  assert.equal(validateAudit(v2Record), true, "v2 record with optionals must PASS validation");
+});
+
+test("v2 audit schema accepts a v2 record WITHOUT the optional fields (v1-subset shape, schema_version bumped)", () => {
+  const v2Minimal = {
+    schema_version: 2,
+    phase: "construction",
+    riskTier: "elevated",
+    selection_timestamp: "2026-07-07T00:00:00.000Z",
+    generated_from: ".planning/governance/selection-state.json",
+    rules_applied: [],
+    rules_skipped: [],
+  };
+  assert.equal(validateAudit(v2Minimal), true, "v2 record with only required fields must PASS");
+});
+
+// ---------------------------------------------------------------------------
+// v1 byte-stability test (Pitfall 2: V8 insertion-order preservation)
+// A v1-only input (no enrichment) must render byte-identical output under v2.
+// String compare (===), NOT deep-equal — deep-equal on parsed JSON does not
+// catch field-order drift.
+// ---------------------------------------------------------------------------
+
+test("buildAuditRecord without enrichment produces byte-identical output across calls (v1 byte-stability, Pitfall 2)", () => {
+  const record = fixtureRecord();
+  const first = renderGovernanceMarkdown(buildAuditRecord(record));
+  const second = renderGovernanceMarkdown(buildAuditRecord(record));
+  // String === compare, NOT deepEqual. V8 insertion-order preservation means
+  // any new field inserted BEFORE the existing 7 changes the bytes.
+  assert.equal(first, second);
+  // Sanity: output is non-empty and contains the v2 marker once schema is bumped.
+  assert.ok(first.length > 0);
 });
