@@ -119,7 +119,18 @@ Plans:
   4. The audit artifact records approvals required and who granted them (AUDIT-06).
   5. A human approval checkpoint schema captures approval requests, the approver, the artifact under approval, and the decision — produced and consumed through the tool-agnostic contract layer (APPR-01).
 
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 09-01-PLAN.md — Approval store + schema + validator (APPR-01) — clone gate-evidence-store + validate-gate-result patterns; approval.schema.json + validate-approval.ts + approval-store.ts + paths.ts extension
+- [ ] 09-02-PLAN.md — Test-evidence capture (AUDIT-04) — TAP summary parser for node --test output + durable store under .planning/governance/tests/{NN}.json + test-evidence.schema.json
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 09-03-PLAN.md — Audit enrichment + v2 bump (AUDIT-03/05/06) — audit-enrich.ts pure helpers (REQ-IDs from traceability, risks from VERIFICATION/CONTEXT, approval summary) + audit-artifact v2 schema bump + buildAuditRecord enrichment hook + v1 byte-stability test
+- [ ] 09-04-PLAN.md — Ship-gate approval blocking + capability manifest (AUDIT-06/APPR-01) — readApprovalOrFail + assertNoBlockingApprovals + writePendingApproval in ship-gate-hook.ts + capability.json produces/consumes extension
 
 ### Phase 10: Selection-Quality Harness
 
@@ -150,7 +161,7 @@ v2.0 Phases execute in numeric order: 6 → 7 → 8 → 9 → 10.
 | 6. v1.0 Tech-Debt Fold-In | v2.0 | 3/3 | Complete    | 2026-07-06 |
 | 7. Enforcement Contracts & Adapter Stubs | v2.0 | 4/4 | Complete    | 2026-07-07 |
 | 8. Remaining Gate Hooks | v2.0 | 5/5 | Complete    | 2026-07-07 |
-| 9. Complete Audit Record & Approval | v2.0 | 0/? | Not started | - |
+| 9. Complete Audit Record & Approval | v2.0 | 0/4 | Not started | - |
 | 10. Selection-Quality Harness | v2.0 | 0/? | Not started | - |
 
 ---
