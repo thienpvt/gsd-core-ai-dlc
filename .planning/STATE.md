@@ -4,11 +4,11 @@ milestone: v2.0
 milestone_name: Govern
 current_phase: 8
 current_phase_name: Remaining Gate Hooks
-status: verifying
-stopped_at: Completed 07-04-PLAN.md
-last_updated: "2026-07-07T03:12:59.747Z"
+status: planning
+stopped_at: Phase 8 context gathered
+last_updated: "2026-07-07T03:24:24.488Z"
 last_activity: 2026-07-07
-last_activity_desc: Phase 07 complete, transitioned to Phase 8
+last_activity_desc: Phase 8 context gathered
 progress:
   total_phases: 5
   completed_phases: 2
@@ -21,17 +21,17 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-07-06)
+See: .planning/PROJECT.md (updated 2026-07-07)
 
 **Core value:** The rule selection engine injects only the relevant AI-DLC rule summaries for the current task and phase — enough governance to be safe, little enough to avoid context bloat.
-**Current focus:** Phase 07 — enforcement-contracts-adapter-stubs
+**Current focus:** Phase 8 — Remaining Gate Hooks
 
 ## Current Position
 
 Phase: 8 — Remaining Gate Hooks
 Plan: Not started
-Status: Plan 4 complete; Phase 7 enforcement contracts and adapter boundary are ready for verification
-Last activity: 2026-07-07 — Phase 07 complete, transitioned to Phase 8
+Status: Context gathered; ready to plan
+Last activity: 2026-07-07 — Phase 8 context gathered
 
 ## Performance Metrics
 
@@ -136,10 +136,10 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-07T02:34:02.048Z
-Stopped at: Completed 07-04-PLAN.md
-Resume file: None
+Last session: 2026-07-07T03:24:24.476Z
+Stopped at: Phase 8 context gathered
+Resume file: .planning/phases/08-remaining-gate-hooks/08-CONTEXT.md
 
 ## Operator Next Steps
 
-- Verify Phase 7 with `/gsd-verify-work 7` before planning Phase 8.
+- Plan Phase 8 using `.planning/phases/08-remaining-gate-hooks/08-CONTEXT.md`.
