@@ -4,15 +4,15 @@ milestone: v2.0
 milestone_name: Govern
 current_phase: 8
 current_phase_name: Remaining Gate Hooks
-status: planning
-stopped_at: Phase 8 context gathered
-last_updated: "2026-07-07T03:24:24.488Z"
+status: executing
+stopped_at: Phase 8 planned; ready to execute
+last_updated: "2026-07-07T04:29:52.382Z"
 last_activity: 2026-07-07
 last_activity_desc: Phase 8 context gathered
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 7
+  total_plans: 12
   completed_plans: 7
   percent: 40
 ---
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-07-07)
 
 Phase: 8 — Remaining Gate Hooks
 Plan: Not started
-Status: Context gathered; ready to plan
+Status: Ready to execute
 Last activity: 2026-07-07 — Phase 8 context gathered
 
 ## Performance Metrics
@@ -136,9 +136,9 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-07T03:24:24.476Z
-Stopped at: Phase 8 context gathered
-Resume file: .planning/phases/08-remaining-gate-hooks/08-CONTEXT.md
+Last session: 2026-07-07T04:29:52.368Z
+Stopped at: Phase 8 planned; ready to execute
+Resume file: .planning/phases/08-remaining-gate-hooks/08-01-PLAN.md
 
 ## Operator Next Steps
 
