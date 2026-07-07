@@ -12,6 +12,12 @@ import os from "node:os";
 import path from "node:path";
 import type { GateId, GateRequest, GateResult } from "../enforcement/types.js";
 import { readGateEvidence, writeGateEvidence, type GateEvidence } from "./gate-evidence-store.js";
+import {
+  writeApproval,
+  readApproval,
+  type ApprovalRecord,
+  type ApprovalDecision,
+} from "./approval-store.js";
 import { shipGateHook } from "./ship-gate-hook.js";
 import { gateEvidencePath } from "./paths.js";
 
@@ -86,6 +92,32 @@ function seedPriorEvidence(
 ): void {
   writeGateEvidence(root, "08", evidence("plan", statuses.plan ?? "pass"));
   writeGateEvidence(root, "08", evidence("verify", statuses.verify ?? "pass"));
+}
+
+/**
+ * Build a valid ApprovalRecord fixture for Phase 9 Plan 04 ship-gate approval
+ * blocking tests. decision='pending' OMITS decidedBy/decidedAt (D-07 — absent,
+ * not empty string); other decisions populate them so validateApproval accepts.
+ */
+function makeApproval(
+  decision: ApprovalDecision,
+  root: string,
+  overrides: Partial<ApprovalRecord> = {},
+): ApprovalRecord {
+  const pending = decision === "pending";
+  return {
+    approvalId: "ship-08",
+    phase: "construction",
+    gateId: "ship",
+    artifactPath: gateEvidencePath(root, "08", "ship"),
+    requestedBy: "test-fixture",
+    requestedAt: "2026-07-07T00:00:00.000Z",
+    decision,
+    ...(pending
+      ? {}
+      : { decidedBy: "human-approver", decidedAt: "2026-07-07T00:01:00.000Z" }),
+    ...overrides,
+  };
 }
 
 test("shipGateHook fails closed when plan evidence is missing and writes no ship evidence", () => {
@@ -183,6 +215,96 @@ test("shipGateHook writes ship evidence when plan and verify evidence pass or wa
       assert.equal("auditRecord" in asRecord, false);
     });
   }
+});
+
+test("ship gate creates a pending approval when none exists and throws (D-07)", () => {
+  withTempRoot((root) => {
+    seedPriorEvidence(root);
+    // Pre-condition: no approval file present.
+    assert.equal(readApproval(root, "08"), null);
+
+    assert.throws(
+      () => shipGateHook({ projectRoot: root, phaseNumber: "08" }),
+      /ship gate: 08 pending approval created — human resolution required/i,
+    );
+
+    // D-07: pending approval was written with decidedBy ABSENT (undefined, not "").
+    const approval = readApproval(root, "08");
+    assert.ok(approval, "pending approval should be persisted");
+    assert.equal(approval.decision, "pending");
+    assert.equal(approval.approvalId, "ship-08");
+    assert.equal(approval.gateId, "ship");
+    assert.equal(approval.decidedBy, undefined);
+    assert.equal("decidedBy" in approval, false, "decidedBy must be absent, not empty string");
+    assert.equal(approval.decidedAt, undefined);
+    assert.equal("decidedAt" in approval, false, "decidedAt must be absent");
+
+    // No ship evidence written — fail-closed ordering.
+    assert.equal(existsSync(gateEvidencePath(root, "08", "ship")), false);
+  });
+});
+
+test("ship gate blocks on pending approval (D-08)", () => {
+  withTempRoot((root) => {
+    seedPriorEvidence(root);
+    writeApproval(root, "08", makeApproval("pending", root));
+
+    assert.throws(
+      () => shipGateHook({ projectRoot: root, phaseNumber: "08" }),
+      /ship gate: approval ship-08 is pending — human resolution required/i,
+    );
+    assert.equal(existsSync(gateEvidencePath(root, "08", "ship")), false);
+  });
+});
+
+test("ship gate blocks on rejected approval (D-08)", () => {
+  withTempRoot((root) => {
+    seedPriorEvidence(root);
+    writeApproval(root, "08", makeApproval("rejected", root));
+
+    assert.throws(
+      () => shipGateHook({ projectRoot: root, phaseNumber: "08" }),
+      /ship gate: approval ship-08 is rejected/i,
+    );
+    assert.equal(existsSync(gateEvidencePath(root, "08", "ship")), false);
+  });
+});
+
+test("ship gate proceeds on approved approval and writes ship evidence", () => {
+  withTempRoot((root) => {
+    seedPriorEvidence(root);
+    writeApproval(root, "08", makeApproval("approved", root));
+
+    shipGateHook({ projectRoot: root, phaseNumber: "08" });
+    assert.equal(existsSync(gateEvidencePath(root, "08", "ship")), true);
+  });
+});
+
+test("ship gate proceeds on waived approval and writes ship evidence", () => {
+  withTempRoot((root) => {
+    seedPriorEvidence(root);
+    writeApproval(root, "08", makeApproval("waived", root));
+
+    shipGateHook({ projectRoot: root, phaseNumber: "08" });
+    assert.equal(existsSync(gateEvidencePath(root, "08", "ship")), true);
+  });
+});
+
+test("ship evidence record has NO approval fields after approval proceeds", () => {
+  withTempRoot((root) => {
+    seedPriorEvidence(root);
+    writeApproval(root, "08", makeApproval("approved", root));
+
+    shipGateHook({ projectRoot: root, phaseNumber: "08" });
+    const shipEvidence = readGateEvidence(root, "08", "ship");
+    assert.ok(shipEvidence);
+
+    const asRecord = shipEvidence as unknown as Record<string, unknown>;
+    assert.equal("approval" in asRecord, false);
+    assert.equal("approvals" in asRecord, false);
+    assert.equal("decision" in asRecord, false);
+    assert.equal("approvalId" in asRecord, false);
+  });
 });
 
 test("compiled direct runner fails with stderr and non-zero exit on blocking evidence", () => {
