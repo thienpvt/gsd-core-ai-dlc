@@ -1,13 +1,18 @@
 import path from "node:path";
+import { existsSync, readFileSync } from "node:fs";
 import { readSelection, type GovernanceRecord } from "./state-store.js";
 import { selectionStatePath } from "./paths.js";
 import { atomicWriteFile } from "./atomic-write.js";
-import type {
-  ApprovalSummary,
-  RemainingRiskEntry,
-  RequirementsCoveredEntry,
+import {
+  extractRequirementsCovered,
+  collectRemainingRisks,
+  summarizeApprovals,
+  type ApprovalSummary,
+  type RemainingRiskEntry,
+  type RequirementsCoveredEntry,
 } from "./audit-enrich.js";
-import type { TestEvidenceSummary } from "./test-evidence.js";
+import { readTestEvidence, type TestEvidenceSummary } from "./test-evidence.js";
+import { readApproval } from "./approval-store.js";
 import type { Severity, SkipReason, Scope, MatchedAxis } from "../types.js";
 
 export const AUDIT_SKIP_REASONS = [
@@ -263,10 +268,105 @@ export function writeGovernanceAudit(args: WriteGovernanceAuditArgs): WriteGover
     );
   }
 
-  const audit = buildAuditRecord(record);
+  // WR-01: wire enrichment from persisted state so AUDIT-03/04/05/06 populate
+  // in production GOVERNANCE.md. Phase number + phase dir come from the output
+  // path (already validated by assertGovernanceOutputPath). When no enrichment
+  // inputs exist, buildEnrichmentFromPersistedState returns {} and buildAuditRecord
+  // produces byte-identical v1 output via its conditional spreads (Pitfall 2).
+  const resolvedOutput = path.resolve(args.outputPath);
+  const phaseDirPath = path.dirname(resolvedOutput);
+  const phaseDirName = path.basename(phaseDirPath);
+  const phaseNumber = phaseDirName.slice(0, 2);
+  const enrichment = buildEnrichmentFromPersistedState(
+    args.projectRoot,
+    phaseNumber,
+    phaseDirPath,
+  );
+
+  const audit = buildAuditRecord(record, enrichment);
   atomicWriteText(args.outputPath, renderGovernanceMarkdown(audit));
   // TD-07: return the resolved absolute path actually written, not the input.
   return { outputPath: path.resolve(args.outputPath), audit };
+}
+
+/**
+ * Read a file if it exists; return null on absence or read error. Enrichment
+ * inputs are optional — absence is the legitimate pre-verify/pre-ship state and
+ * must NOT throw (the audit writer stays robust to partial state).
+ */
+function readOptionalFile(filePath: string): string | null {
+  if (!existsSync(filePath)) return null;
+  try {
+    return readFileSync(filePath, "utf8");
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * WR-01: build {@link AuditEnrichment} from persisted governance state so the
+ * optional v2 fields populate in production GOVERNANCE.md. Each field is set
+ * ONLY when its source exists and yields data — when no inputs exist, every
+ * field stays absent and the returned object is `{}`, preserving v1 byte-stable
+ * output via buildAuditRecord's conditional spreads (Pitfall 2).
+ *
+ * Sources:
+ *   - AUDIT-03 requirements_covered: `.planning/REQUIREMENTS.md` Traceability
+ *     table, filtered to this phase's REQ-IDs (extractRequirementsCovered).
+ *   - AUDIT-04 tests_executed: persisted test-evidence store
+ *     (`.planning/governance/tests/{NN}.json`).
+ *   - AUDIT-05 remaining_risks: phase-dir `VERIFICATION.md` + `CONTEXT.md`
+ *     (collectRemainingRisks). Populated only when at least one source exists.
+ *   - AUDIT-06 approvals: persisted approval store
+ *     (`.planning/governance/approvals/{NN}.json`). The none-required
+ *     placeholder is suppressed when no approval record exists (byte-stability).
+ */
+function buildEnrichmentFromPersistedState(
+  projectRoot: string,
+  phaseNumber: string,
+  phaseDirPath: string,
+): AuditEnrichment {
+  const enrichment: AuditEnrichment = {};
+
+  // AUDIT-03: requirements covered (REQUIREMENTS.md is global under .planning/).
+  const requirementsMd = readOptionalFile(
+    path.join(projectRoot, ".planning", "REQUIREMENTS.md"),
+  );
+  if (requirementsMd !== null) {
+    const reqs = extractRequirementsCovered(requirementsMd, phaseNumber);
+    if (reqs.length > 0) {
+      enrichment.requirements_covered = reqs;
+    }
+  }
+
+  // AUDIT-04: tests executed (persisted test-evidence store).
+  const testEvidence = readTestEvidence(projectRoot, phaseNumber);
+  if (testEvidence !== null) {
+    enrichment.tests_executed = testEvidence.summary;
+  }
+
+  // AUDIT-05: remaining risks (phase-dir VERIFICATION.md + CONTEXT.md). Only
+  // populate when at least one source file exists — calling collectRemainingRisks
+  // on absent inputs would emit a none-identified row and break byte-stability.
+  const verificationMd = readOptionalFile(path.join(phaseDirPath, "VERIFICATION.md"));
+  const contextMd =
+    readOptionalFile(path.join(phaseDirPath, "CONTEXT.md")) ??
+    readOptionalFile(path.join(phaseDirPath, `${phaseNumber}-CONTEXT.md`));
+  if (verificationMd !== null || contextMd !== null) {
+    enrichment.remaining_risks = collectRemainingRisks(
+      verificationMd ?? "",
+      contextMd ?? "",
+    );
+  }
+
+  // AUDIT-06: approvals (persisted approval store). Suppress the none-required
+  // placeholder when no approval record exists (byte-stability).
+  const approval = readApproval(projectRoot, phaseNumber);
+  if (approval !== null) {
+    enrichment.approvals = summarizeApprovals([approval]);
+  }
+
+  return enrichment;
 }
 
 function runDirect(argv: string[]): void {

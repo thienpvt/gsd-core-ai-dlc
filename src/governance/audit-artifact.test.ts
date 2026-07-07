@@ -520,3 +520,218 @@ test("buildAuditRecord without enrichment produces byte-identical output across 
   // Sanity: output is non-empty and contains the v2 marker once schema is bumped.
   assert.ok(first.length > 0);
 });
+
+// ---------------------------------------------------------------------------
+// WR-01 enrichment wiring tests (AUDIT-03/04/05/06 populate from persisted state)
+// ---------------------------------------------------------------------------
+
+test("WR-01 writeGovernanceAudit without enrichment inputs produces v1-subset output (byte-stability)", () => {
+  withTempRoot((root) => {
+    writeSelection(fixtureRecord(), root);
+    const phaseDirName = "05-audit-empty";
+    const phaseDir = path.join(root, ".planning", "phases", phaseDirName);
+    const outputPath = path.join(phaseDir, "GOVERNANCE.md");
+
+    const result = writeGovernanceAudit({ projectRoot: root, outputPath });
+    const audit = result.audit;
+
+    // v1-subset: the 4 optional v2 fields must be ABSENT (undefined), not
+    // present-and-empty. This is the byte-stability invariant — when no
+    // enrichment inputs exist, output is byte-identical to v1.
+    assert.equal("requirements_covered" in audit, false, "requirements_covered must be absent");
+    assert.equal("tests_executed" in audit, false, "tests_executed must be absent");
+    assert.equal("remaining_risks" in audit, false, "remaining_risks must be absent");
+    assert.equal("approvals" in audit, false, "approvals must be absent");
+  });
+});
+
+test("WR-01 writeGovernanceAudit populates requirements_covered from REQUIREMENTS.md Traceability", () => {
+  withTempRoot((root) => {
+    writeSelection(fixtureRecord(), root);
+    // REQUIREMENTS.md is global under .planning/ (matches production layout).
+    const reqsPath = path.join(root, ".planning", "REQUIREMENTS.md");
+    mkdirSync(path.dirname(reqsPath), { recursive: true });
+    writeFileSync(
+      reqsPath,
+      [
+        "# Requirements",
+        "",
+        "## Traceability",
+        "",
+        "| Requirement | Phase | Status |",
+        "|-------------|-------|--------|",
+        "| AUDIT-03 | Phase 5 | Complete |",
+        "| AUDIT-04 | Phase 5 | Complete |",
+        "| GATE-01 | Phase 4 | Complete |",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+
+    const phaseDir = path.join(root, ".planning", "phases", "05-audit-reqs");
+    const outputPath = path.join(phaseDir, "GOVERNANCE.md");
+    const result = writeGovernanceAudit({ projectRoot: root, outputPath });
+
+    assert.ok(result.audit.requirements_covered, "requirements_covered must be populated");
+    assert.equal(result.audit.requirements_covered!.length, 2);
+    assert.deepEqual(
+      result.audit.requirements_covered!.map((r) => r.reqId),
+      ["AUDIT-03", "AUDIT-04"],
+    );
+  });
+});
+
+test("WR-01 writeGovernanceAudit populates tests_executed from persisted test-evidence store", () => {
+  withTempRoot((root) => {
+    writeSelection(fixtureRecord(), root);
+    const phaseNumber = "05";
+    const testEvidenceDir = path.join(root, ".planning", "governance", "tests");
+    mkdirSync(testEvidenceDir, { recursive: true });
+    writeFileSync(
+      path.join(testEvidenceDir, `${phaseNumber}.json`),
+      JSON.stringify({
+        phase: phaseNumber,
+        capturedAt: "2026-07-07T00:00:00.000Z",
+        runner: "node --test --test-reporter=tap",
+        summary: { total: 10, pass: 8, fail: 0, skipped: 2, duration_ms: 42.5 },
+      }, null, 2),
+      "utf8",
+    );
+
+    const phaseDir = path.join(root, ".planning", "phases", "05-audit-tests");
+    const outputPath = path.join(phaseDir, "GOVERNANCE.md");
+    const result = writeGovernanceAudit({ projectRoot: root, outputPath });
+
+    assert.ok(result.audit.tests_executed, "tests_executed must be populated");
+    assert.equal(result.audit.tests_executed!.total, 10);
+    assert.equal(result.audit.tests_executed!.pass, 8);
+  });
+});
+
+test("WR-01 writeGovernanceAudit populates remaining_risks from VERIFICATION.md + CONTEXT.md", () => {
+  withTempRoot((root) => {
+    writeSelection(fixtureRecord(), root);
+    const phaseDir = path.join(root, ".planning", "phases", "05-audit-risks");
+    mkdirSync(phaseDir, { recursive: true });
+    writeFileSync(
+      path.join(phaseDir, "VERIFICATION.md"),
+      "- [ ] gap: edge case in selector\n- TODO: add property tests\n",
+      "utf8",
+    );
+    writeFileSync(
+      path.join(phaseDir, "CONTEXT.md"),
+      "<deferred>\n- perf: O(n^2) selector scan\n</deferred>\n",
+      "utf8",
+    );
+
+    const outputPath = path.join(phaseDir, "GOVERNANCE.md");
+    const result = writeGovernanceAudit({ projectRoot: root, outputPath });
+
+    assert.ok(result.audit.remaining_risks, "remaining_risks must be populated");
+    assert.ok(result.audit.remaining_risks!.length >= 2, "risks from both sources aggregated");
+    assert.ok(
+      result.audit.remaining_risks!.some((r) => r.source === "VERIFICATION.md"),
+      "must include VERIFICATION.md gap",
+    );
+    assert.ok(
+      result.audit.remaining_risks!.some((r) => r.source === "CONTEXT.md<deferred>"),
+      "must include CONTEXT.md deferred",
+    );
+  });
+});
+
+test("WR-01 writeGovernanceAudit populates approvals from persisted approval store", () => {
+  withTempRoot((root) => {
+    writeSelection(fixtureRecord(), root);
+    const phaseNumber = "05";
+    const approvalDir = path.join(root, ".planning", "governance", "approvals");
+    mkdirSync(approvalDir, { recursive: true });
+    writeFileSync(
+      path.join(approvalDir, `${phaseNumber}.json`),
+      JSON.stringify({
+        approvalId: `ship-${phaseNumber}`,
+        phase: "construction",
+        gateId: "ship",
+        artifactPath: ".planning/governance/gates/05-ship.json",
+        requestedBy: "aidlc-governance-ship",
+        requestedAt: "2026-07-07T00:00:00.000Z",
+        decision: "approved",
+        decidedBy: "human-approver",
+        decidedAt: "2026-07-07T00:01:00.000Z",
+      }, null, 2),
+      "utf8",
+    );
+
+    const phaseDir = path.join(root, ".planning", "phases", "05-audit-approvals");
+    const outputPath = path.join(phaseDir, "GOVERNANCE.md");
+    const result = writeGovernanceAudit({ projectRoot: root, outputPath });
+
+    assert.ok(result.audit.approvals, "approvals must be populated");
+    assert.equal(result.audit.approvals!.length, 1);
+    assert.equal(result.audit.approvals![0].approvalId, `ship-${phaseNumber}`);
+    assert.equal(result.audit.approvals![0].decision, "approved");
+    assert.equal(result.audit.approvals![0].decidedBy, "human-approver");
+  });
+});
+
+test("WR-01 writeGovernanceAudit end-to-end: all v2 fields populate from full persisted state", () => {
+  withTempRoot((root) => {
+    writeSelection(fixtureRecord(), root);
+    const phaseNumber = "05";
+
+    // REQUIREMENTS.md
+    const reqsPath = path.join(root, ".planning", "REQUIREMENTS.md");
+    mkdirSync(path.dirname(reqsPath), { recursive: true });
+    writeFileSync(reqsPath, "| AUDIT-03 | Phase 5 | Complete |\n", "utf8");
+
+    // Test evidence
+    const testDir = path.join(root, ".planning", "governance", "tests");
+    mkdirSync(testDir, { recursive: true });
+    writeFileSync(
+      path.join(testDir, `${phaseNumber}.json`),
+      JSON.stringify({
+        phase: phaseNumber,
+        capturedAt: "2026-07-07T00:00:00.000Z",
+        runner: "node --test --test-reporter=tap",
+        summary: { total: 1, pass: 1, fail: 0, skipped: 0, duration_ms: 1 },
+      }, null, 2),
+      "utf8",
+    );
+
+    // Approval
+    const apprDir = path.join(root, ".planning", "governance", "approvals");
+    mkdirSync(apprDir, { recursive: true });
+    writeFileSync(
+      path.join(apprDir, `${phaseNumber}.json`),
+      JSON.stringify({
+        approvalId: `ship-${phaseNumber}`,
+        phase: "construction",
+        gateId: "ship",
+        artifactPath: ".planning/governance/gates/05-ship.json",
+        requestedBy: "aidlc-governance-ship",
+        requestedAt: "2026-07-07T00:00:00.000Z",
+        decision: "approved",
+        decidedBy: "approver",
+        decidedAt: "2026-07-07T00:01:00.000Z",
+      }, null, 2),
+      "utf8",
+    );
+
+    // VERIFICATION.md + CONTEXT.md
+    const phaseDir = path.join(root, ".planning", "phases", "05-audit-full");
+    mkdirSync(phaseDir, { recursive: true });
+    writeFileSync(path.join(phaseDir, "VERIFICATION.md"), "- [ ] gap: perf\n", "utf8");
+    writeFileSync(path.join(phaseDir, "CONTEXT.md"), "<deferred>\n- item\n</deferred>\n", "utf8");
+
+    const outputPath = path.join(phaseDir, "GOVERNANCE.md");
+    writeGovernanceAudit({ projectRoot: root, outputPath });
+
+    // Parse the written GOVERNANCE.md and validate against schema.
+    const audit = parseAuditMarkdown(readFileSync(outputPath, "utf8"));
+    assert.ok(audit.requirements_covered, "end-to-end: requirements_covered present");
+    assert.ok(audit.tests_executed, "end-to-end: tests_executed present");
+    assert.ok(audit.remaining_risks, "end-to-end: remaining_risks present");
+    assert.ok(audit.approvals, "end-to-end: approvals present");
+    assert.equal(validateAudit(audit), true, "end-to-end audit must be schema-valid");
+  });
+});
