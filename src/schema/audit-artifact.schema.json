@@ -17,8 +17,8 @@
   "properties": {
     "schema_version": {
       "type": "integer",
-      "const": 1,
-      "description": "Audit schema version. Matches GovernanceAudit.schema_version literal type."
+      "const": 2,
+      "description": "Audit schema version. v2 adds 4 optional enrichment fields (D-09). v1 records fail validation against v2 — forward-incompatible by design (Pitfall 1)."
     },
     "phase": {
       "type": "string",
@@ -48,6 +48,25 @@
     "rules_skipped": {
       "type": "array",
       "items": { "$ref": "#/$defs/skippedRule" }
+    },
+    "requirements_covered": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/requirementsCoveredEntry" },
+      "description": "AUDIT-03 v2 optional. Present only when enrichment data exists. Machine-extracted from REQUIREMENTS.md traceability (D-10)."
+    },
+    "tests_executed": {
+      "$ref": "#/$defs/testEvidenceSummary",
+      "description": "AUDIT-04 v2 optional. Present only when enrichment data exists."
+    },
+    "remaining_risks": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/remainingRiskEntry" },
+      "description": "AUDIT-05 v2 optional. Present only when enrichment data exists. Never silently empty (D-11)."
+    },
+    "approvals": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/approvalSummary" },
+      "description": "AUDIT-06 v2 optional. Present only when enrichment data exists. Single-sourced from the approval store (D-12)."
     }
   },
   "$defs": {
@@ -107,6 +126,66 @@
           "enum": ["enterprise", "domain", "project"]
         },
         "sourceFile": { "type": "string" }
+      }
+    },
+    "requirementsCoveredEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "AUDIT-03. Machine-extracted REQ-ID for the phase (D-10).",
+      "required": ["reqId", "title", "status"],
+      "properties": {
+        "reqId": { "type": "string", "minLength": 1 },
+        "title": { "type": "string", "minLength": 1 },
+        "status": {
+          "type": "string",
+          "enum": ["complete", "pending", "partial"]
+        }
+      }
+    },
+    "testEvidenceSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "AUDIT-04. Parsed test runner summary (D-03/D-04).",
+      "required": ["total", "pass", "fail", "skipped", "duration_ms"],
+      "properties": {
+        "total": { "type": "integer", "minimum": 0 },
+        "pass": { "type": "integer", "minimum": 0 },
+        "fail": { "type": "integer", "minimum": 0 },
+        "skipped": { "type": "integer", "minimum": 0 },
+        "duration_ms": { "type": "number", "minimum": 0 }
+      }
+    },
+    "remainingRiskEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "AUDIT-05. Remaining risk known at ship time (D-11). Never silently empty.",
+      "required": ["id", "severity", "detail", "source"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "severity": {
+          "type": "string",
+          "enum": ["critical", "high", "medium", "low"]
+        },
+        "detail": { "type": "string" },
+        "source": {
+          "type": "string",
+          "enum": ["VERIFICATION.md", "CONTEXT.md<deferred>", "none-identified"]
+        }
+      }
+    },
+    "approvalSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "AUDIT-06. Approval summary view (D-12 — single-sourced from approval store).",
+      "required": ["approvalId", "gateId", "decision"],
+      "properties": {
+        "approvalId": { "type": "string", "minLength": 1 },
+        "gateId": { "type": "string", "minLength": 1 },
+        "decision": {
+          "type": "string",
+          "enum": ["pending", "approved", "rejected", "waived"]
+        },
+        "decidedBy": { "type": "string", "minLength": 1 }
       }
     }
   },

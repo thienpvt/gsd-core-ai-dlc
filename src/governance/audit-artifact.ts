@@ -2,6 +2,12 @@ import path from "node:path";
 import { readSelection, type GovernanceRecord } from "./state-store.js";
 import { selectionStatePath } from "./paths.js";
 import { atomicWriteFile } from "./atomic-write.js";
+import type {
+  ApprovalSummary,
+  RemainingRiskEntry,
+  RequirementsCoveredEntry,
+} from "./audit-enrich.js";
+import type { TestEvidenceSummary } from "./test-evidence.js";
 import type { Severity, SkipReason, Scope, MatchedAxis } from "../types.js";
 
 export const AUDIT_SKIP_REASONS = [
@@ -37,14 +43,33 @@ export interface AuditSkippedRule {
   sourceFile?: string;
 }
 
+/**
+ * Enrichment payload for the optional v2 fields (D-09). The hook (Plan 04)
+ * prepares these from audit-enrich.ts helpers + the approval store, then passes
+ * them to {@link buildAuditRecord}. Each field is spread conditionally — absent
+ * enrichment produces byte-identical output to v1 for the v1 subset (Pitfall 2).
+ */
+export interface AuditEnrichment {
+  requirements_covered?: RequirementsCoveredEntry[];
+  tests_executed?: TestEvidenceSummary;
+  remaining_risks?: RemainingRiskEntry[];
+  approvals?: ApprovalSummary[];
+}
+
 export interface GovernanceAudit {
-  schema_version: 1;
+  schema_version: 2;
   phase: GovernanceRecord["phase"];
   riskTier: GovernanceRecord["riskTier"];
   selection_timestamp: string;
   generated_from: ".planning/governance/selection-state.json";
   rules_applied: AuditAppliedRule[];
   rules_skipped: AuditSkippedRule[];
+  // v2 optional enrichment (D-09). Appended AFTER the v1 required 7 to preserve
+  // V8 insertion-order and byte-stable regeneration of the v1 subset (Pitfall 2).
+  requirements_covered?: RequirementsCoveredEntry[];
+  tests_executed?: TestEvidenceSummary;
+  remaining_risks?: RemainingRiskEntry[];
+  approvals?: ApprovalSummary[];
 }
 
 export interface WriteGovernanceAuditArgs {
@@ -192,10 +217,10 @@ function assertGovernanceOutputPath(projectRoot: string, outputPath: string): vo
   }
 }
 
-function buildAuditRecord(record: GovernanceRecord): GovernanceAudit {
+export function buildAuditRecord(record: GovernanceRecord, enrichment?: AuditEnrichment): GovernanceAudit {
   assertGovernanceRecord(record);
   return {
-    schema_version: 1,
+    schema_version: 2,
     phase: record.phase,
     riskTier: record.riskTier,
     selection_timestamp: record.timestamp,
@@ -216,6 +241,12 @@ function buildAuditRecord(record: GovernanceRecord): GovernanceAudit {
       ...(rule.scope === undefined ? {} : { scope: rule.scope }),
       ...(rule.sourceFile === undefined ? {} : { sourceFile: rule.sourceFile }),
     })),
+    // D-09 v2 optional fields: spread conditionally — absent enrichment yields
+    // byte-identical output to v1 for the v1 subset (Pitfall 2, string-compare test).
+    ...(enrichment?.requirements_covered ? { requirements_covered: enrichment.requirements_covered } : {}),
+    ...(enrichment?.tests_executed ? { tests_executed: enrichment.tests_executed } : {}),
+    ...(enrichment?.remaining_risks ? { remaining_risks: enrichment.remaining_risks } : {}),
+    ...(enrichment?.approvals ? { approvals: enrichment.approvals } : {}),
   };
 }
 
