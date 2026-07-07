@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gsd.dev/schemas/test-evidence.schema.json",
+  "title": "Test Runner Evidence",
+  "description": "AUDIT-04 test runner evidence record. Parsed from real `node --test --test-reporter=tap` stdout; model narration is rejected (D-03) and malformed output hard-fails (D-04). x-binding: binding — parsed state blocks ship via the audit fold (the v2 audit embeds this record as tests_executed).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["phase", "capturedAt", "runner", "summary"],
+  "properties": {
+    "phase": {
+      "type": "string",
+      "pattern": "^\\d{2}(?:\\.\\d+)?$",
+      "description": "Two-digit phase number (matches PHASE_NUMBER_RE from paths.ts)."
+    },
+    "capturedAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$",
+      "description": "ISO-8601 strict timestamp (TD-01 shape). When the runner output was captured."
+    },
+    "runner": {
+      "type": "string",
+      "const": "node --test --test-reporter=tap",
+      "description": "The AUDIT-04 trust boundary — the runner const. Any other source fails closed (D-04)."
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total", "pass", "fail", "skipped", "duration_ms"],
+      "properties": {
+        "total": { "type": "integer", "minimum": 0 },
+        "pass": { "type": "integer", "minimum": 0 },
+        "fail": { "type": "integer", "minimum": 0 },
+        "skipped": { "type": "integer", "minimum": 0 },
+        "duration_ms": { "type": "number", "minimum": 0 }
+      }
+    }
+  },
+  "x-binding": "binding"
+}
