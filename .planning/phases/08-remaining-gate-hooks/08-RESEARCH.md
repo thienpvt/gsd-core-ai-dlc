@@ -361,14 +361,14 @@ for (const gateId of ["plan", "verify"] as const) {
 
 | # | Claim | Section | Risk if Wrong |
 |---|-------|---------|---------------|
-| A1 | GSD executes same-point capability steps in manifest order. [ASSUMED] | Common Pitfalls / Validation | Verify evidence and audit artifact ordering may differ; planner should add a render-hooks/order test before relying on order. |
+| A1 | Phase 8 chooses manifest order as the local contract: verify evidence step appears before existing audit artifact at `verify:post`, and manifest/render-hooks tests must assert that order. [VERIFIED: 08-CONTEXT.md decision captured in planning] | Common Pitfalls / Validation | If host behavior later differs from manifest order, the order tests fail before Phase 9 relies on the audit consuming verify evidence. |
 
-## Open Questions
+## Resolved Questions
 
-1. **Should verify evidence run before or after existing audit artifact on `verify:post`?**
+1. **Should verify evidence run before or after existing audit artifact on `verify:post`?** RESOLVED.
    - What we know: existing audit skill already owns `verify:post`; Phase 8 may add verify evidence at `verify:post`. [VERIFIED: capability.json, 08-CONTEXT.md]
-   - What's unclear: same-point host execution order is not proven by official docs in this session. [ASSUMED]
-   - Recommendation: put verify evidence before audit in manifest if Phase 9 will later fold evidence into audit; add a manifest/render-hooks order test either way. [VERIFIED: src/governance/audit-hook-contract.test.ts]
+   - Decision: put `aidlc-governance-verify` before existing `aidlc-governance-audit` in the `verify:post` manifest list, so verify evidence is written before the audit artifact step runs. [VERIFIED: 08-CONTEXT.md]
+   - Required tests: manifest contract tests and render-hooks consent tests must assert both `verify:post` hooks exist, both use `onError: "halt"`, and verify evidence appears before audit artifact in returned order. [VERIFIED: src/governance/audit-hook-contract.test.ts, src/governance/consent-verify-post.test.ts]
 
 ## Environment Availability
 
