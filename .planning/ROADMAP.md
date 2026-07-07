@@ -119,7 +119,7 @@ Plans:
   4. The audit artifact records approvals required and who granted them (AUDIT-06).
   5. A human approval checkpoint schema captures approval requests, the approver, the artifact under approval, and the decision — produced and consumed through the tool-agnostic contract layer (APPR-01).
 
-**Plans**: 4/4 plans complete
+**Plans**: 5/5 plans complete (4 original + 1 gap-closure)
 
 Plans:
 **Wave 1**
@@ -131,6 +131,10 @@ Plans:
 
 - [x] 09-03-PLAN.md — Audit enrichment + v2 bump (AUDIT-03/05/06) — audit-enrich.ts pure helpers (REQ-IDs from traceability, risks from VERIFICATION/CONTEXT, approval summary) + audit-artifact v2 schema bump + buildAuditRecord enrichment hook + v1 byte-stability test
 - [x] 09-04-PLAN.md — Ship-gate approval blocking + capability manifest (AUDIT-06/APPR-01) — readApprovalOrFail + assertNoBlockingApprovals + writePendingApproval in ship-gate-hook.ts + capability.json produces/consumes extension
+
+**Gap Closure** *(AUDIT-04 producer-side wiring — VERIFICATION gaps)*
+
+- [ ] 09-05-PLAN.md — Wire capture-test-evidence producer into verify:post (AUDIT-04) — capture-test-evidence.ts spawns node --test TAP, parseTapSummary + writeTestEvidence gain production callers; aidlc-governance-verify SKILL.md step 4 invokes capture before audit reads tests/{NN}.json
 
 ### Phase 10: Selection-Quality Harness
 
