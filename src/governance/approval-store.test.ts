@@ -211,3 +211,29 @@ test("writeApproval round-trips a decided approval with all 10 fields", () => {
     assert.deepEqual(reloaded, original);
   });
 });
+
+// WR-03: identity guard mirrors assertTestEvidence metadata-phase check.
+
+test("WR-03 readApproval throws loud when approvalId embeds the wrong phase (cross-phase leak)", () => {
+  withTempRoot((root) => {
+    const finalPath = approvalPath(root, "09");
+    mkdirSync(path.dirname(finalPath), { recursive: true });
+    // Tampered record: approvalId says ship-08 but file sits in approvals/09.json.
+    const tampered = approval({ approvalId: "ship-08" });
+    writeFileSync(finalPath, JSON.stringify(tampered), "utf8");
+    assert.throws(
+      () => readApproval(root, "09"),
+      /malformed approval at .*09\.json.*approvalId 'ship-08' must end with -09/i,
+    );
+  });
+});
+
+test("WR-03 writeApproval rejects an approval whose approvalId phase does not match the path phase", () => {
+  withTempRoot((root) => {
+    const crossPhase = approval({ approvalId: "ship-08" });
+    assert.throws(
+      () => writeApproval(root, "09", crossPhase),
+      /approvalId 'ship-08' must end with -09/i,
+    );
+  });
+});

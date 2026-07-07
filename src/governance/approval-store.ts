@@ -75,8 +75,10 @@ function fail(filePath: string, detail: string): never {
 /**
  * Assert that `value` is a well-formed ApprovalRecord. Delegates structural
  * validation to {@link validateApproval} (Ajv 2020 + D-07 invariant), then
- * enforces the per-store metadata contract (file path's phaseNumber matches the
- * record's expected identity — no cross-phase leakage).
+ * enforces the per-store metadata identity contract: the phase number embedded
+ * in `approvalId` (the `ship-{NN}` convention from writePendingApproval) must
+ * match the path's phaseNumber — no cross-phase leakage (WR-03). Mirrors the
+ * sibling assertTestEvidence metadata-phase check.
  */
 function assertApproval(
   value: unknown,
@@ -88,12 +90,13 @@ function assertApproval(
   } catch (err) {
     fail(filePath, String(err));
   }
-  // validateApproval narrowed value to ApprovalRecord; enforce the phase tag.
-  // approvalId is free-form but the file path's phaseNumber is the source of
-  // truth for which phase the record belongs to — there is no `phase` numeric
-  // field on the record (the `phase` enum is inception/construction/etc.), so
-  // no additional cross-check is possible here beyond the schema's enum.
-  void phaseNumber;
+  const record = value as ApprovalRecord;
+  // Identity rung: approvalId embeds the phase number as `{prefix}-{NN}`.
+  // The path's phaseNumber is the source of truth — reject a tampered record
+  // that landed in the wrong phase's approvals/{NN}.json slot.
+  if (!record.approvalId.endsWith(`-${phaseNumber}`)) {
+    fail(filePath, `approvalId '${record.approvalId}' must end with -${phaseNumber}`);
+  }
 }
 
 /**
