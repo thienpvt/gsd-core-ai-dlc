@@ -121,7 +121,7 @@ test("readGateEvidence throws loud when request, result, or metadata is missing"
     withTempRoot((root) => {
       const finalPath = gateEvidencePath(root, "08", "plan");
       mkdirSync(path.dirname(finalPath), { recursive: true });
-      const corrupt = evidence() as Record<string, unknown>;
+      const corrupt: Record<string, unknown> = { ...evidence() };
       delete corrupt[field];
       writeFileSync(finalPath, JSON.stringify(corrupt), "utf8");
       assert.throws(

@@ -10,7 +10,10 @@
  * change is one edit, not many. Pure: no I/O, no clock, no random.
  */
 import path from "node:path";
+import type { GateId } from "../enforcement/types.js";
 import type { Phase } from "../types.js";
+
+const PHASE_NUMBER_RE = /^\d{2}(?:\.\d+)?$/;
 
 /**
  * The governance directory under a project root. Created on first write by
@@ -49,4 +52,15 @@ export function phaseRecordPath(
   key: string,
 ): string {
   return path.join(phaseDir(projectRoot, phase), `${key}.json`);
+}
+
+export function gateEvidencePath(
+  projectRoot: string,
+  phaseNumber: string,
+  gateId: GateId,
+): string {
+  if (!PHASE_NUMBER_RE.test(phaseNumber)) {
+    throw new Error(`invalid gate evidence phase number: ${phaseNumber}`);
+  }
+  return path.join(governanceDir(projectRoot), "gates", `${phaseNumber}-${gateId}.json`);
 }
