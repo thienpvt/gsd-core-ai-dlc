@@ -98,10 +98,10 @@ Plans:
   2. At the verify gate, the overlay collects verification evidence (tests run, lint, scans, policy) through enforcement adapters and records pass/fail per rule (GATE-04).
   3. At the ship gate, the overlay checks audit records, approvals, rollback plan, and test evidence before release and blocks on incomplete prior gates (GATE-05).
 
-**Plans**: 1/5 plans executed
+**Plans**: 2/5 plans executed
 
 - [x] 08-01-PLAN.md
-- [ ] 08-02-PLAN.md
+- [x] 08-02-PLAN.md
 - [ ] 08-03-PLAN.md
 - [ ] 08-04-PLAN.md
 - [ ] 08-05-PLAN.md
@@ -149,7 +149,7 @@ v2.0 Phases execute in numeric order: 6 → 7 → 8 → 9 → 10.
 | 5. Audit-Artifact Writer | v1.0 | 2/2 | Complete | 2026-07-06 |
 | 6. v1.0 Tech-Debt Fold-In | v2.0 | 3/3 | Complete    | 2026-07-06 |
 | 7. Enforcement Contracts & Adapter Stubs | v2.0 | 4/4 | Complete    | 2026-07-07 |
-| 8. Remaining Gate Hooks | v2.0 | 1/5 | In Progress|  |
+| 8. Remaining Gate Hooks | v2.0 | 2/5 | In Progress|  |
 | 9. Complete Audit Record & Approval | v2.0 | 0/? | Not started | - |
 | 10. Selection-Quality Harness | v2.0 | 0/? | Not started | - |
 
