@@ -72,7 +72,11 @@ Full phase details (goals, success criteria, plans, waves) archived at
   3. A rule author following the authoring guide can write a new Markdown+frontmatter rule (`id`, `scope`, `triggers`, `phases`, `severity`, `summary`, `detailPath`), integrate it at the correct enterprise/domain/project scope, declare binding-vs-advisory via `x-binding`, and verify via `build-index` + `select`/`eval` that the rule fires for its intended task/phase
   4. The three doc deliverables (onboarding, workflow usage, rule-authoring guide) are discoverable from the repo root and cross-reference each other so a reader can navigate between install → operate → author without leaving the docs
 
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 12-01-PLAN.md — onboarding guide (DOC-01) + governance workflow usage doc (DOC-02)
+- [ ] 12-02-PLAN.md — rule-authoring guide (DOC-03) + README.md Documentation section
 
 ## Progress
 
