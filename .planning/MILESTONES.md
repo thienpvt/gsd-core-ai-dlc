@@ -1,5 +1,31 @@
 # Milestones
 
+## v2.0 Govern (Shipped: 2026-07-08)
+
+**Phases completed:** 5 phases, 19 plans, 40 tasks
+
+**Key accomplishments:**
+
+- Shared `atomicWriteFile` with `.<pid>-<uuid>.tmp` temp suffix eliminates the fixed-`.tmp` collision between `atomicWriteText` and `atomicWriteJson`; concurrent writers to the same governance artifact now produce exactly one intact payload, never a merged/empty/truncated file (TD-03)
+- 1. [Rule 2 - Missing critical functionality] Existing test expected the old fragmented selector_reason error shape
+- 1. [Rule 3 - Blocking] Test file path `test/governance/` not compiled by build
+- `src/schema/gate-request.schema.json`
+- Static GateAdapter registry with 7 reference no-op/echo stubs for ENF-03
+- runAdapter hard-fail wrapper with malformed-fixture contract tests for ENF-02 and ENF-04
+- Durable gate evidence store with fixed atomic JSON files for plan, verify, and ship gates
+- Plan gate hook deriving validated planner signals, rendering summary-only governance, and writing separate plan evidence
+- Verify gate hook using runAdapter-validated evidence and per-rule pass/fail/waived status derivation
+- Ship preflight gate that fails closed on missing, malformed, or failing plan/verify governance evidence
+- Registered remaining governance gate hooks without replacing existing discuss, execute, verify audit, or consent behavior
+- APPR-01 human approval checkpoint: draft 2020-12 schema, Ajv 2020 validator (5th instance of validate.ts pattern), and durable store routing approval persistence through validateApproval to inherit ENF-02 malformed-hard-fail + D-07 anti-auto-approve invariant.
+- AUDIT-04 test-evidence capture: pure TAP-summary parser for `node --test --test-reporter=tap` stdout (the actual `npm test` runner — D-01 reconciliation), draft 2020-12 schema with runner const, and durable store persisting under `.planning/governance/tests/{NN}.json` (D-02). Malformed runner output hard-fails (D-04); model-authored narration is rejected (D-03).
+- Audit artifact bumped to v2 (schema_version 1->2, forward-incompatible by design) with 4 optional enrichment fields (requirements_covered, tests_executed, remaining_risks, approvals) appended AFTER the existing 7 to preserve V8 insertion-order and v1 byte-stability. Three pure helpers in audit-enrich.ts (D-14) prepare the payload: extractRequirementsCovered (D-10), collectRemainingRisks (D-11 never-empty), summarizeApprovals (D-12 from store). buildAuditRecord exports and accepts an optional AuditEnrichment arg.
+- Ship gate extended with approval blocking (D-07 pending-only writes, D-08 fail-closed on pending/rejected) via three new helpers in ship-gate-hook.ts, plus capability manifest extended (verify:post audit consumes CONTEXT.md; ship:pre produces approvals + consumes GOVERNANCE.md). Full Phase 9 audit+approval surface wired: approval store (01) + test evidence (02) + audit enrichment (03) + ship-gate blocking (04).
+- AUDIT-04 producer-side wiring: thin captureTestEvidence orchestrator + injectable spawnRunner seam spawns `node --test --test-reporter=tap`, feeds stdout to parseTapSummary, and persists via writeTestEvidence — giving parseTapSummary and writeTestEvidence their first production callers and lifting the single root cause behind both Phase 9 VERIFICATION failures (SC-2 + D-03/D-04 production enforcement).
+- 1. [Rule 3 - Blocking issue] `runDirect` not exported for CLI shim
+
+---
+
 ## v1.0 Core (Shipped: 2026-07-06)
 
 **Phases completed:** 5 phases, 14 plans, 38 tasks

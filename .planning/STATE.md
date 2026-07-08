@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Govern
-current_phase: 10
-status: verifying
+current_phase: 0
+status: Awaiting next milestone
 stopped_at: Completed 10-02-PLAN.md
-last_updated: "2026-07-08T00:57:33.686Z"
+last_updated: "2026-07-08T07:21:22.148Z"
 last_activity: 2026-07-08
-last_activity_desc: Phase 10 complete
+last_activity_desc: Milestone v2.0 completed and archived
 progress:
   total_phases: 5
   completed_phases: 5
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-07)
 
 ## Current Position
 
-Phase: 10
-Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-07-08 — Phase 10 complete
+Phase: Milestone v2.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-07-08 — Milestone v2.0 completed and archived
 
 ## Performance Metrics
 
@@ -178,3 +178,7 @@ Items acknowledged and carried forward from previous milestone close:
 Last session: 2026-07-08T00:35:11.448Z
 Stopped at: Completed 10-02-PLAN.md
 Resume file: None
+
+## Operator Next Steps
+
+- Start the next milestone with /gsd-new-milestone
