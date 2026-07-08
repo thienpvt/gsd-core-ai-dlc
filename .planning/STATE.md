@@ -5,8 +5,8 @@ milestone_name: Adoption & Hygiene
 current_phase: 12
 current_phase_name: Onboarding & Rule-Authoring Docs
 status: verifying
-stopped_at: Completed 12-01-PLAN.md
-last_updated: "2026-07-08T19:32:37.887Z"
+stopped_at: Completed 12-02-PLAN.md
+last_updated: "2026-07-08T19:35:59.779Z"
 last_activity: 2026-07-08
 last_activity_desc: Phase 12 execution started
 progress:
@@ -82,6 +82,7 @@ Last activity: 2026-07-08 — Phase 12 execution started
 *Updated after each plan completion*
 | Phase 11-summary-frontmatter-hygiene P01 | 7min | 2 tasks | 7 files |
 | Phase 12 P01 | 14min | 2 tasks | 2 files |
+| Phase 12 P02 | 16min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -99,6 +100,9 @@ Recent decisions affecting current work:
 - [Phase 11]: [11-01]: Task 2 scanner was made CRLF-tolerant after the literal plan command skipped CRLF frontmatter in existing archived summaries.
 - [Phase 12]: [12-01] Documented CB-3 as loader consent grant separate from governance.enabled activation toggle; both are required for governance hooks to fire.
 - [Phase 12]: [12-01] Kept CLI docs source-grounded to command source signatures and verified examples against the built bin/governance.cjs.
+- [Phase 12]: [12-02] Used require-mfa only as the 6-base-field plus classification example; billing-review demonstrates all fields including detailPath.
+- [Phase 12]: [12-02] Placed detail examples under details/ because the loader skips details/ subtrees during indexing.
+- [Phase 12]: [12-02] Negative selector docs parse JSON and inspect selected[].id because skipped[] intentionally keeps non-matching rule ids.
 
 ### Pending Todos
 
@@ -126,8 +130,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-08T19:32:37.882Z
-Stopped at: Completed 12-01-PLAN.md
+Last session: 2026-07-08T19:35:59.773Z
+Stopped at: Completed 12-02-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
