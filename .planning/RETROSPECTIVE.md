@@ -49,6 +49,53 @@
 
 ---
 
+## Milestone: v2.0 — Govern
+
+**Shipped:** 2026-07-08
+**Phases:** 5 | **Plans:** 19 | **Tasks:** 40 | **Sessions:** ~3 (continued)
+**Timeline:** 2 days (2026-07-06 → 2026-07-08)
+**Tests:** 417 (414 pass, 3 skip, 0 fail) — up from v1.0's 178
+
+### What Was Built
+- Tech-debt fold-in (Phase 6): shared `atomicWriteFile` with PID+UUID temp suffix (concurrent-write race fix), consent-gated verify:post onError:halt test, config namespacing
+- Tool-agnostic enforcement contracts (Phase 7): draft 2020-12 JSON Schema gate-request/gate-result/audit-artifact + `GateAdapter` interface + 7 named no-op/echo stubs (semgrep, bandit, checkov, grype, gitleaks, generic-exit-ci, human-approval) + `runAdapter` hard-fail boundary + `x-binding` advisory/binding split
+- Remaining gate hooks (Phase 8): plan/verify/ship hooks producing durable `.planning/governance/gates/{NN}-{plan,verify,ship}.json` with fail-closed prior-evidence checks (GATE-05)
+- Complete audit record + approval (Phase 9): audit-artifact v2 (4 optional enrichment fields appended after existing 7, `schema_version` 1→2, v1 byte-stable) + approval checkpoint schema + durable approval store + `capture-test-evidence.ts` wiring real `node --test` TAP into `tests/{NN}.json` + ship-gate fail-closed on pending/rejected approvals
+- Selection-quality harness (Phase 10): `governance eval` CLI wrapping pure `eval-harness.ts` (runCases/aggregate) + `eval-evidence.ts` durable store under `eval/{NN}.json` + `eval-report.schema.json` + ship-gate `readEvalOrFail`/`assertNoFailedEval` (forward-scoped phase ≥ 10) + verify:post eval step + critical-recall ===1.0 ship-blocking floor + corpus-hash determinism
+
+### What Worked
+- **Code review caught a goal-blocking dead-code gap (Phase 9 WR-01)** — the audit-enrichment helpers were written but never wired into `writeGovernanceAudit`; deep review flagged it before verification, and the gap-closure plan (09-05) fixed it in one TDD round. This validated v1's lesson "code review during, not after" — extended here to "review catches wiring gaps the plan-checker doesn't."
+- **Gap-closure mode (`--gaps`)** turned a `gaps_found` verification into a single bounded plan (09-05) rather than a full replan — the 1-retry cap prevented infinite loops while fixing the real root cause (AUDIT-04 producer-side wiring).
+- **Pure-function reuse** — Phase 10 wrapped v1's `eval-harness.ts` (runCases/aggregate) with zero re-derivation; the standing harness was a thin I/O + reporting + gating wrapper around math that already shipped. This is the v1 "pure cores + I/O shells" pattern paying off.
+- **Nyquist backfill caught a real gap** — Phase 6's TD-05 (`isDirectRun` narrowing) had runtime-probe-only coverage (tests passed whether the narrowing used basename or `__filename`); the backfill auditor added a behavioral test that actually fails on the old behavior. Backfilling advisory phases wasn't wasted work.
+- **Deterministic serialization as a contract** — audit-artifact v1 byte-stability (Phase 9) + eval-report determinism (Phase 10) both proved reproducibility with string-compare, not deep-equal. The "audit derives from persisted state" v1 lesson extended to "reproducible-by-construction across the whole governance pipeline."
+
+### What Was Inefficient
+- **D-01 "run-tests.cjs" imprecision in Phase 9 CONTEXT** referenced upstream GSD's runner, not this repo's `node --test`. The researcher caught it (Open Question 1), but the planner had to reconcile it mid-planning. A pre-discuss codebase scout of the test command would have caught it before CONTEXT was written.
+- **Capability manifest `consumes` extension blocked by installed-runtime `bundleContentHash`** (Phase 9 deferral) — the audit hook reads files directly regardless, but the `consumes` metadata can't be updated without coordinating with gsd-core upstream. This is the first debt item that genuinely can't be fixed in-repo; it surfaced only at the consent-integration test boundary.
+- **Phase 9 plan-checker said all D-01..D-16 covered but the deterministic decision-coverage gate flagged 4** — the agent checked substance, the tool checked citations. Reconciliation required editing CONTEXT (D-02 imprecision) + tagging non-action decisions `[informational]`. The two gates measure different things; the workflow should document that the deterministic gate is citation-shape, not coverage-substance.
+- **Two researcher/pattern-mapper agents dropped connections mid-write** (Phase 10) — resume-via-SendMessage recovered both, but the pattern repeated. Windows stdio/MCP instability under long agent runs is a known issue; the resume path worked but cost a round-trip each time.
+
+### Patterns Established
+- **Durable state under `.planning/governance/{gates,tests,approvals,eval}/` as one JSON file per phase** — every governed step persists its evidence; the next step (ship gate, audit) reads it. This is the v2 extension of v1's "persisted state as audit source of truth" — now spanning the full discuss→ship loop.
+- **Fail-closed prior-evidence composition at ship** — GATE-05 (prior gates) AND D-08 (approvals) AND SEL-06 (eval, forward-scoped) — three independent checks, none bypasses another. The ship gate is now the single blocking chokepoint for the whole governance pipeline.
+- **`gap_closure: true` plan frontmatter** — a distinct plan class for post-verification fixes, executed via `--gaps-only`, bounded to 1 retry. Separates "the plan was wrong" from "the verification found a real gap."
+- **Forward-scoping gates** — new evidence requirements (eval, approvals) apply only to phases at-or-after their introduction, so legacy phases aren't retroactively failed. The `phaseNumber >= "10"` guard is the pattern for adding ship-blocking checks without breaking history.
+
+### Key Lessons
+1. **Code review's job is wiring gaps, not just bugs** — the plan-checker verifies plan quality, but "the helpers exist" ≠ "the helpers are called from production." Deep review caught the dead-code gap the plan-checker couldn't. Review is a distinct gate from plan-check.
+2. **Gap closure is a bounded mode, not a replan** — `--gaps` + `gap_closure: true` + 1-retry cap turned a verification failure into a single targeted plan. This is the right shape for post-verification fixes: scoped, bounded, no infinite loop.
+3. **The deterministic decision-coverage gate measures citations, the plan-checker measures substance** — both passed their own bar, but they disagreed on 4 decisions. The workflow should name this: substance-coverage (agent) vs citation-shape (tool). Reconciling via CONTEXT edits + `[informational]` tags is the cleanup.
+4. **Some debt is genuinely upstream-only** — the `consumes` constraint can't be fixed in-repo; documenting it as a coordination item (not a milestone debt) is the honest classification. Not every deferred item is actionable locally.
+5. **Backfilling advisory Nyquist for shipped phases can find real gaps** — Phase 6 TD-05 had a coverage hole invisible to the green suite. "Already passed" doesn't mean "fully covered"; the auditor's behavioral-test lens catches what example tests normalize away.
+
+### Cost Observations
+- Model mix: executor=opus, planner=opus, researcher=opus, checker=sonnet, verifier=sonnet, reviewer=opus(deep), integration-checker=sonnet, nyquist-auditor=sonnet, code-fixer=opus
+- Sessions: ~3 (continued from v1.0)
+- Notable: The deep code review (Phase 9) caught a goal-blocking gap that would have caused a `gaps_found` verification + gap-closure round-trip anyway — paying for review upfront was cheaper than the round-trip it prevented. The Phase 10 pattern-mapper/researcher connection drops cost 2 resume round-trips but no lost work.
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -56,15 +103,19 @@
 | Milestone | Sessions | Phases | Key Change |
 |-----------|----------|--------|------------|
 | v1.0 | ~3 | 5 | Established: dependency-forced spine, RED→GREEN→docs TDD on every plan, pure-core + IO-shell architecture, closed-enum validation at persistence boundary |
+| v2.0 | ~3 | 5 | Extended: durable per-gate evidence + fail-closed ship composition, gap-closure bounded mode, forward-scoping gates, deep code review as wiring-gap gate, advisory Nyquist backfill as gap-finder |
 
 ### Cumulative Quality
 
 | Milestone | Tests | Coverage | Zero-Dep Additions |
 |-----------|-------|----------|-------------------|
 | v1.0 | 178 (176 pass, 2 skip, 0 fail) | (c8 available, not measured this milestone) | 0 new runtime deps — reused GSD Core's `js-yaml`; added only `ajv`+`ajv-formats`+`picomatch` as the JSON-Schema/glob contract layer |
+| v2.0 | 417 (414 pass, 3 skip, 0 fail) | (c8 available, not measured) | 0 new runtime deps — reused the v1.0 contract layer (ajv/ajv-formats/picomatch) for all v2.0 schemas + validators |
 
 ### Top Lessons (Verified Across Milestones)
 
-1. *(First milestone — lessons above become the cross-milestone baseline for v2.)*
-2.
-3.
+1. **Pure cores pay off across milestones** — v1's `eval-harness.ts` was wrapped unchanged in v2 Phase 10; v1's "persisted state as audit source" became v2's full-loop durable-state pattern. Pure + persisted design compounds.
+2. **Code review is a distinct gate from plan-check** — the plan-checker verifies plan quality; deep review catches wiring gaps (helpers exist vs helpers are called). Both ran every v2 phase; review caught the one goal-blocking gap.
+3. **Bounded gap-closure beats replanning** — `--gaps` + `gap_closure: true` + 1-retry cap turned a verification failure into a single targeted plan in Phase 9. The right shape for post-verification fixes.
+4. **Some debt is upstream-only — document, don't force** — the capability manifest `consumes` constraint can't be fixed in-repo. Honest classification (coordination item, not milestone debt) beats a half-fix.
+5. **"Already passed" ≠ "fully covered"** — Phase 6 Nyquist backfill found a real TD-05 gap the green suite hid. Advisory backfill of shipped phases is not wasted work.
