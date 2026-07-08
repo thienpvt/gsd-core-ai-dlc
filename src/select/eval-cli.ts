@@ -297,8 +297,12 @@ export function runDirect(argv: string[]): void {
   }
 
   // D-05: critical-recall regression → exit 2. Failed evidence already persisted.
+  // WR-03: reset to 0 on pass so a prior failed run in the same process does
+  // not leak exitCode (defensive against future in-process loop reuse).
   if (report.aggregate.recallBySeverity.critical < 1.0) {
     process.exitCode = 2;
+  } else {
+    process.exitCode = 0;
   }
 }
 
