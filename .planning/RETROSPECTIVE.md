@@ -96,6 +96,42 @@
 
 ---
 
+## Milestone: v3.0 — Adoption & Hygiene
+
+**Shipped:** 2026-07-09
+**Phases:** 2 | **Plans:** 3
+
+### What Was Built
+- Backfilled `requirements-completed` frontmatter on 6 archived v2.0 SUMMARYs (06-02/06-03/07-01/07-02/10-01/10-02) with verified REQ-IDs from each phase's VERIFICATION.md Source Plan column — 21/21 v2.0 REQ-IDs now discoverable from per-plan SUMMARY metadata.
+- End-user onboarding doc (`docs/onboarding.md`): prerequisites, install+build, CB-3 `gsd-tools capability install` consent grant, `governance.enabled` toggle, first-run smoke check.
+- Governance workflow usage doc (`docs/governance-workflow.md`): all 5 CLI commands (build-index/select/inject/rule-detail/eval) + audit/ship gate chain + one E2E worked example + TaskSignal format.
+- Rule-authoring guide (`docs/rule-authoring.md`): 7 frontmatter fields + `classification`, 3 scope dirs, 3 trigger axes, runnable verify-the-rule-fires loop with a temp triggered rule (billing-review).
+- Root README Documentation section linking all 3 docs; each doc cross-references install→operate→author.
+
+### What Worked
+- Smart-discuss infra-path skip for Phase 11 (pure docs hygiene, no grey areas) — zero ceremony, straight to plan.
+- Codebase maps (STACK/STRUCTURE/CONVENTIONS/INTEGRATIONS) as the docs source-of-truth — kept all CLI signatures accurate; no invented flags.
+- Plan-checker caught 7 real defects across 2 iterations (consent command wrong, smoke phase wrong, rule-detail output wrong, eval not dry-run, negative-test rule impossible, set -e exit-capture, whole-JSON grep on skipped[]) — all grounded in actual code reads.
+
+### What Was Inefficient
+- Plan-checker iteration: Phase 12 took 4 check rounds. Each round surfaced 1-2 code-grounded blockers the prior round missed. The fixes were all real, but a single deeper first pass could have caught the selector `common`-phase + skipped[] behavior together.
+- My (orchestrator) first coverage scan used an LF-only frontmatter regex and false-failed on CRLF v2.0 SUMMARYs — wasted one verification pass before I added `\r\n` normalization. Lesson: CRLF is the default on Windows-authored archives.
+
+### Patterns Established
+- Docs verification = behavioral dry-run: every documented CLI command must run as-written against the built binary, not just be grepped in prose.
+- Negative selection tests must `JSON.parse` and check `selected[].id` membership — selector emits non-matching rules in `skipped[]` with the same id, so whole-JSON grep false-fails.
+
+### Key Lessons
+1. **Docs are runtime contracts** — a command in a doc that doesn't run is a broken integration link, same as a missing import. The integration checker treating docs→runtime as wiring caught the RUN-01 blocker that pure doc review missed.
+2. **Some blockers are accurate docs + broken upstream** — Phase 12's consent command is correct (matches consent.test.ts); the runtime failure is the deferred RUN-01 capability-manifest `consumes` constraint. Honest audit = document the gap, don't degrade the doc.
+3. **CRLF normalization is mandatory on Windows** — frontmatter regexes that assume `\n` silently miss CRLF files. Always `.replace(/\r\n/g, '\n')` before matching.
+
+### Cost Observations
+- Model mix: planner opus, executors/verifiers/checker sonnet.
+- Notable: 2 executor dispatches died on transient API "malformed response" errors — both recovered on first retry with zero lost work (clean spot-check confirmed no partial commits). Transient infra errors don't justify plan changes.
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
