@@ -20,7 +20,8 @@ import {
   type ApprovalDecision,
 } from "./approval-store.js";
 import { shipGateHook } from "./ship-gate-hook.js";
-import { approvalPath, gateEvidencePath } from "./paths.js";
+import { approvalPath, gateEvidencePath, evalEvidencePath } from "./paths.js";
+import { writeEvalEvidence, type EvalReport } from "./eval-evidence.js";
 
 const RUNNER = path.resolve(process.cwd(), "dist-test", "governance", "ship-gate-hook.js");
 const STRICT_ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
@@ -361,5 +362,167 @@ test("WR-02 shipGateHook does not overwrite an existing pending approval with a 
     const after = readApproval(root, "08");
     assert.ok(after);
     assert.equal(after!.requestedAt, beforeRequestedAt, "existing pending requestedAt must be preserved (WR-02)");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// SEL-06 Plan 02 — ship gate consumes eval evidence fail-closed (D-07, D-05).
+// Forward-scoping guard (RESEARCH Open Q2): only phases >= "10" are checked;
+// legacy phases 06-09 shipped without eval evidence and are not retroactively
+// failed. These 4 cases FAIL at RED because shipGateHook does not yet read
+// eval evidence.
+// ---------------------------------------------------------------------------
+
+/**
+ * Minimal schema-valid EvalReport fixture (mirrors makeValidEvalReport from
+ * validate-eval-report.test.ts). "pass" → criticalRecall 1.0, no misses.
+ * "fail" → criticalRecall 0.5 with one critical miss naming the
+ * keywords-input-validation case.
+ */
+function evalReportFixture(
+  status: "pass" | "fail",
+  phaseNumber: string,
+): EvalReport {
+  const fail = status === "fail";
+  return {
+    phase: phaseNumber,
+    capturedAt: "2026-07-08T00:00:00.000Z",
+    aggregate: {
+      microRecall: fail ? 0.75 : 1,
+      microPrecision: 1,
+      recallBySeverity: {
+        critical: fail ? 0.5 : 1,
+        high: 1,
+        medium: 1,
+        low: 1,
+      },
+    },
+    cases: [
+      {
+        name: "keywords-input-validation",
+        selectedIds: fail ? ["secrets-management"] : ["input-validation", "secrets-management"],
+        expectedRuleIds: ["input-validation", "secrets-management"],
+        tp: fail ? 1 : 2,
+        fp: 0,
+        fn: fail ? 1 : 0,
+      },
+    ],
+    criticalMisses: fail
+      ? [
+          {
+            case: "keywords-input-validation",
+            expectedNotSelected: ["input-validation"],
+            severity: "critical",
+          },
+        ]
+      : [],
+    precisionOffenders: [],
+    corpusHash: "a".repeat(64),
+  };
+}
+
+/**
+ * Phase-parameterized variant of seedPriorEvidence + makeApproval for the
+ * eval-blocking tests (phases 10/08). The legacy helpers are hardcoded to
+ * metadata.phase "08" and approvalId "ship-08"; the gate-evidence-store
+ * asserts metadata.phase === path phaseNumber, so phase-10 evidence needs its
+ * own fixture.
+ */
+function evidenceFor(
+  gateId: GateId,
+  phaseNumber: string,
+  status: GateResult["status"] = "pass",
+): GateEvidence {
+  return {
+    request: request(gateId),
+    result: result(gateId, status),
+    metadata: {
+      phase: phaseNumber,
+      writtenAt: "2026-07-07T00:00:02.000Z",
+      source: `${gateId}-fixture`,
+    },
+  };
+}
+
+function seedPriorEvidenceFor(
+  root: string,
+  phaseNumber: string,
+  statuses: Partial<Record<"plan" | "verify", GateResult["status"]>> = {},
+): void {
+  writeGateEvidence(root, phaseNumber, evidenceFor("plan", phaseNumber, statuses.plan ?? "pass"));
+  writeGateEvidence(root, phaseNumber, evidenceFor("verify", phaseNumber, statuses.verify ?? "pass"));
+}
+
+function makeApprovalFor(
+  decision: ApprovalDecision,
+  root: string,
+  phaseNumber: string,
+  overrides: Partial<ApprovalRecord> = {},
+): ApprovalRecord {
+  const pending = decision === "pending";
+  return {
+    approvalId: `ship-${phaseNumber}`,
+    phase: "construction",
+    gateId: "ship",
+    artifactPath: gateEvidencePath(root, phaseNumber, "ship"),
+    requestedBy: "test-fixture",
+    requestedAt: "2026-07-07T00:00:00.000Z",
+    decision,
+    ...(pending
+      ? {}
+      : { decidedBy: "human-approver", decidedAt: "2026-07-07T00:01:00.000Z" }),
+    ...overrides,
+  };
+}
+
+test("shipGateHook fails closed when eval evidence is missing for phase >= 10 (D-07)", () => {
+  withTempRoot((root) => {
+    seedPriorEvidenceFor(root, "10");
+    writeApproval(root, "10", makeApprovalFor("approved", root, "10"));
+    // Deliberately do NOT seed eval evidence.
+
+    assert.throws(
+      () => shipGateHook({ projectRoot: root, phaseNumber: "10" }),
+      /ship gate: missing eval evidence .*\.planning[\\/]governance[\\/]eval[\\/]10\.json/i,
+    );
+    assert.equal(existsSync(gateEvidencePath(root, "10", "ship")), false);
+  });
+});
+
+test("shipGateHook fails closed when eval evidence has criticalRecall < 1.0 (D-05)", () => {
+  withTempRoot((root) => {
+    seedPriorEvidenceFor(root, "10");
+    writeApproval(root, "10", makeApprovalFor("approved", root, "10"));
+    writeEvalEvidence(root, "10", evalReportFixture("fail", "10"));
+
+    assert.throws(
+      () => shipGateHook({ projectRoot: root, phaseNumber: "10" }),
+      /ship gate: eval evidence failed - criticalRecall=0\.5.*keywords-input-validation.*input-validation/i,
+    );
+    assert.equal(existsSync(gateEvidencePath(root, "10", "ship")), false);
+  });
+});
+
+test("shipGateHook proceeds when eval evidence passes (criticalRecall===1.0) and approval approved (D-05 pass path)", () => {
+  withTempRoot((root) => {
+    seedPriorEvidenceFor(root, "10");
+    writeApproval(root, "10", makeApprovalFor("approved", root, "10"));
+    writeEvalEvidence(root, "10", evalReportFixture("pass", "10"));
+
+    shipGateHook({ projectRoot: root, phaseNumber: "10" });
+    assert.equal(existsSync(gateEvidencePath(root, "10", "ship")), true);
+  });
+});
+
+test("shipGateHook skips eval check for legacy phases (phaseNumber < '10') (RESEARCH Open Q2 — forward-scoping)", () => {
+  withTempRoot((root) => {
+    seedPriorEvidenceFor(root, "08");
+    writeApproval(root, "08", makeApprovalFor("approved", root, "08"));
+    // No eval evidence seeded — legacy phases shipped without it and must not
+    // retroactively fail.
+
+    shipGateHook({ projectRoot: root, phaseNumber: "08" });
+    assert.equal(existsSync(gateEvidencePath(root, "08", "ship")), true);
+    assert.equal(existsSync(evalEvidencePath(root, "08")), false);
   });
 });
