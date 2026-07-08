@@ -2,15 +2,19 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Adoption & Hygiene
-status: planning
-last_updated: "2026-07-08T16:00:00.000Z"
+current_phase: 11
+current_phase_name: SUMMARY Frontmatter Hygiene
+status: verifying
+stopped_at: Completed 11-01-PLAN.md
+last_updated: "2026-07-08T16:38:27.062Z"
 last_activity: 2026-07-08
+last_activity_desc: Phase 11 execution started
 progress:
   total_phases: 2
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  completed_phases: 1
+  total_plans: 1
+  completed_plans: 1
+  percent: 50
 ---
 
 # Project State
@@ -20,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-07)
 
 **Core value:** The rule selection engine injects only the relevant AI-DLC rule summaries for the current task and phase — enough governance to be safe, little enough to avoid context bloat.
-**Current focus:** Phase 11 — SUMMARY Frontmatter Hygiene
+**Current focus:** Phase 12 — Onboarding & Rule-Authoring Docs
 
 ## Current Position
 
-Phase: 11 (not yet planned)
-Plan: —
-Status: Roadmap created — ready for /gsd-plan-phase 11
-Last activity: 2026-07-08 — v3.0 roadmap created (Phases 11-12, 4 requirements mapped)
+Phase: 12 (Onboarding & Rule-Authoring Docs) — READY TO PLAN
+Plan: 1 of 1
+Status: Phase 11 complete — ready for verification; Phase 12 ready to plan
+Last activity: 2026-07-08 — Phase 11 Plan 01 complete; ready for verification
 
 ## Performance Metrics
 
@@ -66,8 +70,8 @@ Last activity: 2026-07-08 — v3.0 roadmap created (Phases 11-12, 4 requirements
 
 | Phase | Plans | Status |
 |-------|-------|--------|
-| 11. SUMMARY Frontmatter Hygiene | 0/? | Not started — next to plan |
-| 12. Onboarding & Rule-Authoring Docs | 0/? | Not started |
+| 11. SUMMARY Frontmatter Hygiene | 1/1 | Complete — ready for verification |
+| 12. Onboarding & Rule-Authoring Docs | 0/? | Not started — next to plan |
 
 **Recent Trend:**
 
@@ -75,6 +79,7 @@ Last activity: 2026-07-08 — v3.0 roadmap created (Phases 11-12, 4 requirements
 - Trend: —
 
 *Updated after each plan completion*
+| Phase 11-summary-frontmatter-hygiene P01 | 7min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -87,6 +92,9 @@ Recent decisions affecting current work:
 - [Roadmap v3.0]: Phase 11 edits archived SUMMARY files in `.planning/milestones/v2.0-phases/` — live `.planning/phases/` is empty after `/gsd-cleanup`.
 - [Roadmap v3.0]: Phase 11 is additive-only — `requirements-completed` inserted, existing SUMMARY fields untouched.
 - [Roadmap v3.0]: No hard dependency Phase 11 → Phase 12; docs can cite existing v2.0 VERIFICATION.md regardless of frontmatter backfill.
+- [Phase 11]: [11-01]: Used each phase VERIFICATION.md Requirements Coverage Source Plan column as authoritative REQ-ID mapping; no IDs re-derived or invented.
+- [Phase 11]: [11-01]: Kept archived SUMMARY edits additive-only: no coverage block added, no existing field/body changed.
+- [Phase 11]: [11-01]: Task 2 scanner was made CRLF-tolerant after the literal plan command skipped CRLF frontmatter in existing archived summaries.
 
 ### Pending Todos
 
@@ -114,10 +122,10 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-08
-Stopped at: v3.0 roadmap created (Phases 11-12)
+Last session: 2026-07-08T16:38:14.827Z
+Stopped at: Completed 11-01-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
 
-- Run `/gsd-plan-phase 11` to plan the SUMMARY frontmatter backfill.
+- Run `/gsd-plan-phase 12` to plan onboarding and rule-authoring docs.

@@ -9,7 +9,7 @@ Requirements for milestone **v3.0 Adoption & Hygiene**. Each maps to a roadmap p
 
 ### Tech Debt (continues TD numbering from v2.0)
 
-- [ ] **TD-10**: 6 v2.0 per-plan SUMMARYs omitted `requirements-completed` (06-02, 06-03, 07-01, 07-02, 10-01, 10-02) — backfill the field with verified requirement IDs, so the 3-source milestone-audit cross-reference (VERIFICATION + SUMMARY frontmatter + traceability) no longer reports "partial (verify manually)" for any v2.0 requirement.
+- [x] **TD-10**: 6 v2.0 per-plan SUMMARYs omitted `requirements-completed` (06-02, 06-03, 07-01, 07-02, 10-01, 10-02) — backfill the field with verified requirement IDs, so the 3-source milestone-audit cross-reference (VERIFICATION + SUMMARY frontmatter + traceability) no longer reports "partial (verify manually)" for any v2.0 requirement.
 
 ### Documentation
 
@@ -49,7 +49,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TD-10 | Phase 11 | Pending |
+| TD-10 | Phase 11 | Complete |
 | DOC-01 | Phase 12 | Pending |
 | DOC-02 | Phase 12 | Pending |
 | DOC-03 | Phase 12 | Pending |

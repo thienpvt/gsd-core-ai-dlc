@@ -40,31 +40,38 @@ Full phase details (goals, success criteria, plans, waves) archived at
 
 ### v3.0 Adoption & Hygiene (Active)
 
-- [ ] **Phase 11: SUMMARY Frontmatter Hygiene** - Backfill `requirements-completed` on the 6 v2.0 SUMMARYs that omitted it so the 3-source cross-reference is fully satisfied
+- [x] **Phase 11: SUMMARY Frontmatter Hygiene** - Backfill `requirements-completed` on the 6 v2.0 SUMMARYs that omitted it so the 3-source cross-reference is fully satisfied (completed 2026-07-08)
 - [ ] **Phase 12: Onboarding & Rule-Authoring Docs** - End-user onboarding/install/consent/first-run docs, core governance workflow usage examples, and governance-rule authoring guide
 
 ## Phase Details
 
 ### Phase 11: SUMMARY Frontmatter Hygiene
+
 **Goal**: Archived v2.0 SUMMARYs carry verified `requirements-completed` frontmatter, so the 3-source milestone-audit cross-reference (VERIFICATION + SUMMARY frontmatter + traceability) no longer reports "partial (verify manually)" for any v2.0 requirement
 **Depends on**: Nothing — edits archived v2.0 SUMMARY files in place under `.planning/milestones/v2.0-phases/` (the live `.planning/phases/` dir is now empty after `/gsd-cleanup`)
 **Requirements**: TD-10
 **Success Criteria** (what must be TRUE):
+
   1. All 6 target SUMMARY files (06-02, 06-03, 07-01, 07-02, 10-01, 10-02) carry a `requirements-completed` frontmatter field populated with verified REQ-IDs drawn from their corresponding VERIFICATION.md / PLAN.md
   2. A re-run of the 3-source milestone-audit cross-reference (VERIFICATION + SUMMARY frontmatter + REQUIREMENTS.md traceability) reports every v2.0 requirement as "satisfied", not "partial (verify manually)"
   3. No other SUMMARY frontmatter fields are altered — the backfill is purely additive (`requirements-completed` inserted, existing fields untouched)
-**Plans:** 1 plan
-- [ ] 11-01-PLAN.md — Backfill `requirements-completed` on 6 v2.0 SUMMARYs + verify 3-source cross-reference
+
+**Plans:** 1/1 plans complete
+
+- [x] 11-01-PLAN.md — Backfill `requirements-completed` on 6 v2.0 SUMMARYs + verify 3-source cross-reference
 
 ### Phase 12: Onboarding & Rule-Authoring Docs
+
 **Goal**: An end user can install, activate, and first-run the governance overlay, operate the core governance CLI workflow, and a rule author can write, integrate, and verify a new governance rule — all by following documentation alone
 **Depends on**: Nothing — greenfield docs. MAY reference Phase 11's verified requirement mapping (via the existing v2.0 VERIFICATION.md) at implementer's discretion; no hard dependency
 **Requirements**: DOC-01, DOC-02, DOC-03
 **Success Criteria** (what must be TRUE):
+
   1. A new end user following the onboarding doc can install the overlay, complete the CB-3 consent flow, and run a first-run smoke check that confirms governance is active — without reading source code
   2. An end user can operate the core governance workflow end-to-end (`governance build-index`, `governance select`, `governance inject`, `governance rule-detail`, `governance eval`, and the audit/ship gate chain) using documented usage examples as the sole reference
   3. A rule author following the authoring guide can write a new Markdown+frontmatter rule (`id`, `scope`, `triggers`, `phases`, `severity`, `summary`, `detailPath`), integrate it at the correct enterprise/domain/project scope, declare binding-vs-advisory via `x-binding`, and verify via `build-index` + `select`/`eval` that the rule fires for its intended task/phase
   4. The three doc deliverables (onboarding, workflow usage, rule-authoring guide) are discoverable from the repo root and cross-reference each other so a reader can navigate between install → operate → author without leaving the docs
+
 **Plans**: TBD
 
 ## Progress
@@ -81,7 +88,7 @@ Full phase details (goals, success criteria, plans, waves) archived at
 | 8. Remaining Gate Hooks | v2.0 | 5/5 | Complete | 2026-07-07 |
 | 9. Complete Audit Record & Approval | v2.0 | 5/5 | Complete | 2026-07-07 |
 | 10. Selection-Quality Harness | v2.0 | 2/2 | Complete | 2026-07-08 |
-| 11. SUMMARY Frontmatter Hygiene | v3.0 | 0/? | Not started | - |
+| 11. SUMMARY Frontmatter Hygiene | v3.0 | 1/1 | Complete   | 2026-07-08 |
 | 12. Onboarding & Rule-Authoring Docs | v3.0 | 0/? | Not started | - |
 
 ---
