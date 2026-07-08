@@ -16,7 +16,7 @@ Wrap the existing pure `eval-harness.ts` measurement layer (Phase 2 SEL-01 evide
 
 ### Invocation & CLI
 - **D-01:** New CLI command `governance eval` — matches the existing `select`/`inject`/`rule-detail`/`build-index` command family in `src/cli/commands/`. Registered through `src/index.ts` like its siblings.
-- **D-02:** The harness loads the built `rule-index.json` (from `build-index`) and the labeled corpus `test/fixtures/eval/cases/eval-cases.json` — both single-sourced, already the SEL-01 ground truth. No separate eval-corpus copy, no in-process rebuild.
+- **D-02:** The harness builds the eval index on-the-fly via `buildIndex("test/fixtures/eval/eval-rules")` (the `recall.test.ts` idiom — RESEARCH Open Q1 resolution) and loads the labeled corpus `test/fixtures/eval/cases/eval-cases.json` — both single-sourced, already the SEL-01 ground truth. No separate eval-corpus copy; "no rebuild" means "don't rebuild from production `aidlc-rules`", not "don't call `buildIndex`". The corpus hash pins the corpus, not the built index.
 - **D-03:** Output modes — `--json` emits machine-readable JSON; default (no flag) emits pretty markdown to stdout for humans.
 - **D-04:** New module `src/select/eval-cli.ts` (CLI entrypoint + I/O) alongside the existing pure `src/select/eval-harness.ts`; new command shim `src/cli/commands/eval.ts`. The pure measurement layer stays pure; all I/O lives in the CLI wrapper.
 
@@ -30,12 +30,12 @@ Wrap the existing pure `eval-harness.ts` measurement layer (Phase 2 SEL-01 evide
 - **D-09:** Report artifacts persist under `.planning/governance/eval/`: `{NN}-report.md` (human) + `{NN}.json` (machine) per phase, matching the durable-state convention.
 - **D-10:** Markdown report contains: aggregate scores (microRecall, microPrecision, per-severity recall), a per-case TP/FP/FN table, **named critical misses** (under-injection — the goal-blocking signal), precision offenders (over-injection — advisory), a timestamp, and a corpus hash pinning the eval-set version for reproducibility.
 - **D-11:** New `src/schema/eval-report.schema.json` (draft 2020-12 + `x-binding`, cloned from `test-evidence.schema.json`). Runtime validation via the existing Ajv/validate pattern; malformed report = hard fail.
-- **D-12:** Phase 10 does NOT bump `audit-artifact.schema.json`. An `eval_summary` field in the audit artifact is a future bump (v3), explicitly deferred — Phase 10 only persists eval evidence alongside the other governance state (D-07), following the same "audit reads durable state" pattern Phase 9 established for approvals.
+- **D-12 [informational]:** Phase 10 does NOT bump `audit-artifact.schema.json`. An `eval_summary` field in the audit artifact is a future bump (v3), explicitly deferred — Phase 10 only persists eval evidence alongside the other governance state (D-07), following the same "audit reads durable state" pattern Phase 9 established for approvals. (Non-action constraint — no plan implements an audit bump.)
 
 ### Repeatability & Standing Integration
 - **D-13:** `npm run eval` script runs `node dist/select/eval-cli.js`. The `aidlc-governance-verify` skill (verify:post) gets a new step invoking `node dist/select/eval-cli.js <phaseNumber>` AFTER `capture-test-evidence` and BEFORE the audit step — so every governed phase's ship evidence includes a fresh eval run.
 - **D-14:** Determinism — deterministic case ordering (sort by case name), no clock/random in the measurement path (already pure in `eval-harness.ts`), corpus hash pins the eval-set version into the report.
-- **D-15:** Eval corpus growth — new cases are appended to the single `test/fixtures/eval/cases/eval-cases.json`. The harness reads whatever is there; adding a case is the only change needed to extend coverage.
+- **D-15 [informational]:** Eval corpus growth — new cases are appended to the single `test/fixtures/eval/cases/eval-cases.json`. The harness reads whatever is there; adding a case is the only change needed to extend coverage. (Emergent property of D-02's single-source load — no separate plan task.)
 - **D-16:** TDD plan shape — single TDD plan (RED: harness fails to load/run/report; GREEN: CLI + report + evidence + schema + ship-gate consumption; REFACTOR). Reuses existing `eval-harness.ts` pure functions (`scoreCase`/`runCases`/`aggregate`) — NO re-derivation of selection math.
 
 ### Claude's Discretion
