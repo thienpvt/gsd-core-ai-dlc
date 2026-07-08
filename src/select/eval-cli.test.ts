@@ -338,8 +338,8 @@ test("renderMarkdown emits aggregate + per-case table + critical-misses + corpus
   assert.match(md, /microPrecision/i);
   assert.match(md, /critical/i);
   assert.match(md, /clean-hit/);
-  assert.match(md, /corpusHash/i);
-  assert.match(md, report.corpusHash.slice(0, 12));
+  assert.match(md, /corpus hash/i);
+  assert.ok(md.includes(report.corpusHash.slice(0, 12)), "markdown embeds corpusHash prefix");
 });
 
 test("End-to-end: node dist/select/eval-cli.js 10 writes 10.json + 10-report.md (D-09, D-13)", () => {

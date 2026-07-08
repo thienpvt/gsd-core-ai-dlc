@@ -90,3 +90,27 @@ export function testEvidencePath(projectRoot: string, phaseNumber: string): stri
   }
   return path.join(governanceDir(projectRoot), "tests", `${phaseNumber}.json`);
 }
+
+/**
+ * Path to a per-phase eval-evidence record (SEL-06, D-07, D-09). One JSON file
+ * per phase under `.planning/governance/eval/{NN}.json`. PHASE_NUMBER_RE-validated
+ * to reject `..` / absolute paths (T-10-02). Ship gate consumes this fail-closed.
+ */
+export function evalEvidencePath(projectRoot: string, phaseNumber: string): string {
+  if (!PHASE_NUMBER_RE.test(phaseNumber)) {
+    throw new Error(`invalid eval evidence phase number: ${phaseNumber}`);
+  }
+  return path.join(governanceDir(projectRoot), "eval", `${phaseNumber}.json`);
+}
+
+/**
+ * Path to a per-phase eval-report markdown (SEL-06, D-09, D-10). One markdown
+ * file per phase under `.planning/governance/eval/{NN}-report.md`. PHASE_NUMBER_RE
+ * -validated; mirrors {@link evalEvidencePath} for the human-readable companion.
+ */
+export function evalReportPath(projectRoot: string, phaseNumber: string): string {
+  if (!PHASE_NUMBER_RE.test(phaseNumber)) {
+    throw new Error(`invalid eval report phase number: ${phaseNumber}`);
+  }
+  return path.join(governanceDir(projectRoot), "eval", `${phaseNumber}-report.md`);
+}

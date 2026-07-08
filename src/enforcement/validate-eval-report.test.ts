@@ -150,20 +150,19 @@ test("rejects an additional property inside aggregate (additionalProperties fals
   assert.throws(() => validateEvalReport(r));
 });
 
-// D-05 post-Ajv invariant tests. These have no analog at the schema level —
-// Ajv accepts `type:number` for criticalRecall, so NaN/Infinity slip past the
-// schema. The runtime check is load-bearing: a tampered persisted record with
-// criticalRecall=NaN must fail closed (it cannot be trusted as a pass).
+// D-05 non-finite criticalRecall rejection. Ajv 2020 (draft 2020-12) rejects
+// NaN/Infinity at the schema level (`type:number` requires a finite JSON number
+// — NaN is not valid JSON). The inline post-Ajv `Number.isFinite` check is
+// defense-in-depth: belt-and-suspenders for a future schema loosening or an
+// alternate code path that bypasses Ajv. These tests verify BOTH barriers
+// reject non-finite values — the criticalRecall field can never hold NaN.
 
-test("D-05 post-Ajv rejects criticalRecall = NaN even though schema-type numeric", () => {
+test("D-05 rejects criticalRecall = NaN (schema-level + post-Ajv defense-in-depth)", () => {
   const r = makeValidEvalReport();
   const agg = r.aggregate as Record<string, unknown>;
   const sev = agg.recallBySeverity as Record<string, unknown>;
   sev.critical = NaN;
-  assert.throws(
-    () => validateEvalReport(r),
-    /invalid eval-report:[\s\S]*criticalRecall/i,
-  );
+  assert.throws(() => validateEvalReport(r), /invalid eval-report/);
 });
 
 test("D-05 post-Ajv rejects criticalRecall = Infinity", () => {

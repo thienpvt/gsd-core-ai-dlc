@@ -22,6 +22,9 @@ export async function main(argv: string[]): Promise<void> {
     case "rule-detail":
       return (await import("./commands/rule-detail.js")).run(rest);
 
+    case "eval":
+      return (await import("./commands/eval.js")).run(rest);
+
     default:
       process.stderr.write(`Unknown command: ${subcommand ?? "(none)"}\n`);
       process.stderr.write(
@@ -29,7 +32,8 @@ export async function main(argv: string[]): Promise<void> {
           "  governance build-index [--root <dir>] [--out <file>]\n" +
           "  governance select --phase <p> [--index <f>] [--input <f>] [--domains a,b] [--budget <n>] [--format json|text]\n" +
           "  governance inject [--input <file>]\n" +
-          "  governance rule-detail <id> [--index <f>]\n",
+          "  governance rule-detail <id> [--index <f>]\n" +
+          "  governance eval <phaseNumber> [--json]\n",
       );
       // CR-02 discipline (WR-02): set process.exitCode + return rather than
       // process.exit(2). process.exit() forces an immediate exit that can truncate

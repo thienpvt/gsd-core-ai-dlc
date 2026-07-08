@@ -14,3 +14,6 @@ coverage/
 
 # Generated GSD research cache
 .planning/research/.cache/
+
+# Generated GSD governance durable state (gates/tests/approvals/eval evidence)
+.planning/governance/
