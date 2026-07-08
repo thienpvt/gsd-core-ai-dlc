@@ -150,7 +150,12 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 10-01-PLAN.md — Standing eval harness producer (eval-cli.ts + eval-evidence.ts + schema + CLI + npm script)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 10-02-PLAN.md — Ship-gate eval blocking (readEvalOrFail + assertNoFailedEval) + verify:post SKILL.md step
 
 ## Progress

@@ -493,19 +493,19 @@ case "eval":
 | A2 | `npm run eval` forwards argv (`npm run eval 10` or `npm run eval -- 10`). D-13 scripts `node dist/select/eval-cli.js` with no embedded positional. | Pitfall 6 | Wrong = user-facing CLI broken; verify:post skill bypasses this by invoking `node dist/select/eval-cli.js <NN>` directly. Low risk. |
 | A3 | Ship-gate eval check applies forward-looking (phase ≥ 10). Phases 06-09 shipped without eval evidence and should not retroactively fail ship. | Pitfall 5 | Wrong = re-running ship gate on legacy phases throws on missing eval evidence. Planner chooses: backfill legacy phases OR scope gate to phase ≥ 10. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Index source for the harness**
+1. **Index source for the harness** — RESOLVED in Plan 10-01 Task 2(c): `buildIndex("test/fixtures/eval/eval-rules")` (recall.test.ts idiom; option (b)). Hash pins the corpus, not the built index.
    - What we know: `recall.test.ts` builds via `buildIndex("test/fixtures/eval/eval-rules")` at test time. D-02 says "no in-process rebuild".
    - What's unclear: Does "no in-process rebuild" mean (a) ship a prebuilt `test/fixtures/eval/eval-rules/rule-index.json` and load it, or (b) build on-the-fly via `buildIndex` (the recall.test.ts path) and "no rebuild" just means "don't rebuild from production aidlc-rules"?
    - Recommendation: Option (b) — call `buildIndex(EVAL_ROOT)` in the harness. It's what `recall.test.ts` does, mirrors the purity boundary, and avoids a stale prebuilt artifact drifting from the source corpus. The hash pins the corpus, not the built index.
 
-2. **Ship-gate scoping for legacy phases**
+2. **Ship-gate scoping for legacy phases** — RESOLVED in Plan 10-02 Task 2(a): forward-looking guard `if (phaseNumber >= "10")` — legacy phases 06-09 are NOT retroactively failed (no eval evidence expected before Phase 10). Test case (d) covers.
    - What we know: Phases 6-9 shipped without `.planning/governance/eval/{NN}.json`.
    - What's unclear: Should `readEvalOrFail` apply to ALL phases or only phase ≥ 10?
    - Recommendation: Add a forward-looking guard — check eval evidence only when `phaseNumber >= "10"` (string compare works for 2-digit padding). OR run the harness once per shipped phase to backfill (low cost; gives baseline evidence).
 
-3. **Markdown report table column ordering (D-10 discretion)**
+3. **Markdown report table column ordering (D-10 discretion)** — RESOLVED in Plan 10-01 Task 2(c): implementer discretion; tests assert content presence (aggregate, per-case TP/FP/FN, critical misses, precision offenders, timestamp, corpus hash), not column ordering/formatting.
    - What we know: Required content (aggregate, per-case TP/FP/FN, critical misses, precision offenders, timestamp, corpus hash).
    - What's unclear: Exact column ordering and styling.
    - Recommendation: Mirror a standard precision/recall table layout. Leave to implementer; tests assert content presence, not formatting.
