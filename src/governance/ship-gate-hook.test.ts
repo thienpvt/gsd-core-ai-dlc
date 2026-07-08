@@ -514,6 +514,20 @@ test("shipGateHook proceeds when eval evidence passes (criticalRecall===1.0) and
   });
 });
 
+test("IN-02: forward-scoping guard fires for dotted phase number '10.1' (lexical compare handles dotted phases)", () => {
+  withTempRoot((root) => {
+    seedPriorEvidenceFor(root, "10.1");
+    writeApproval(root, "10.1", makeApprovalFor("approved", root, "10.1"));
+    writeEvalEvidence(root, "10.1", evalReportFixture("pass", "10.1"));
+
+    shipGateHook({ projectRoot: root, phaseNumber: "10.1" });
+    // Guard is `phaseNumber >= "10"`; "10.1" >= "10" is true lexically, so the
+    // eval check fires and ship evidence is written (guard consumed the eval).
+    assert.equal(existsSync(gateEvidencePath(root, "10.1", "ship")), true);
+    assert.equal(existsSync(evalEvidencePath(root, "10.1")), true, "eval evidence required + present");
+  });
+});
+
 test("shipGateHook skips eval check for legacy phases (phaseNumber < '10') (RESEARCH Open Q2 — forward-scoping)", () => {
   withTempRoot((root) => {
     seedPriorEvidenceFor(root, "08");
