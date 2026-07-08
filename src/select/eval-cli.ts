@@ -39,6 +39,7 @@ import {
   type CriticalMiss,
   type PrecisionOffender,
 } from "../governance/eval-evidence.js";
+import { evalEvidencePath, evalReportPath } from "../governance/paths.js";
 
 // ---------------------------------------------------------------------------
 // Injectable seams — tests pass fixture loaders; production callers omit them.
@@ -280,8 +281,10 @@ export function runDirect(argv: string[]): void {
   writeEvalEvidence(projectRoot, phaseNumber, report);
   writeEvalReportMarkdown(projectRoot, phaseNumber, renderMarkdown(report));
 
-  const jsonPath = path.join(projectRoot, ".planning", "governance", "eval", `${phaseNumber}.json`);
-  const mdPath = path.join(projectRoot, ".planning", "governance", "eval", `${phaseNumber}-report.md`);
+  // WR-02: route path rendering through paths.ts helpers (single source of
+  // truth for the governance layout) instead of re-deriving the layout inline.
+  const jsonPath = evalEvidencePath(projectRoot, phaseNumber);
+  const mdPath = evalReportPath(projectRoot, phaseNumber);
   // Status lines go to stderr so stdout is clean for both --json (machine-parseable)
   // and default markdown (human-readable) — `JSON.parse(stdout)` must not see these.
   process.stderr.write(`eval-cli: persisted ${jsonPath}\n`);
