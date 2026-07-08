@@ -147,7 +147,11 @@ Plans:
   2. The harness flags under-injection (critical-recall misses) and over-injection (precision drops) loudly enough to block a ship on regression (SEL-06).
   3. The harness is repeatable and auditable — its output can be archived as governance evidence alongside the audit artifact (SEL-06).
 
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 10-01-PLAN.md — Standing eval harness producer (eval-cli.ts + eval-evidence.ts + schema + CLI + npm script)
+- [ ] 10-02-PLAN.md — Ship-gate eval blocking (readEvalOrFail + assertNoFailedEval) + verify:post SKILL.md step
 
 ## Progress
 
