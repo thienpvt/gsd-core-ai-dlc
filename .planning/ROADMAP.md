@@ -72,10 +72,11 @@ Full phase details (goals, success criteria, plans, waves) archived at
   3. A rule author following the authoring guide can write a new Markdown+frontmatter rule (`id`, `scope`, `triggers`, `phases`, `severity`, `summary`, `detailPath`), integrate it at the correct enterprise/domain/project scope, declare binding-vs-advisory via `x-binding`, and verify via `build-index` + `select`/`eval` that the rule fires for its intended task/phase
   4. The three doc deliverables (onboarding, workflow usage, rule-authoring guide) are discoverable from the repo root and cross-reference each other so a reader can navigate between install → operate → author without leaving the docs
 
-**Plans**: 2 plans
+**Plans**: 1/2 plans executed
 
 Plans:
-- [ ] 12-01-PLAN.md — onboarding guide (DOC-01) + governance workflow usage doc (DOC-02)
+
+- [x] 12-01-PLAN.md — onboarding guide (DOC-01) + governance workflow usage doc (DOC-02)
 - [ ] 12-02-PLAN.md — rule-authoring guide (DOC-03) + README.md Documentation section
 
 ## Progress
@@ -93,7 +94,7 @@ Plans:
 | 9. Complete Audit Record & Approval | v2.0 | 5/5 | Complete | 2026-07-07 |
 | 10. Selection-Quality Harness | v2.0 | 2/2 | Complete | 2026-07-08 |
 | 11. SUMMARY Frontmatter Hygiene | v3.0 | 1/1 | Complete    | 2026-07-08 |
-| 12. Onboarding & Rule-Authoring Docs | v3.0 | 0/? | Not started | - |
+| 12. Onboarding & Rule-Authoring Docs | v3.0 | 1/2 | In Progress|  |
 
 ---
 *See `.planning/MILESTONES.md` for shipped-milestone summaries, `.planning/milestones/v1.0-ROADMAP.md` for full v1.0 phase detail, and `.planning/milestones/v2.0-ROADMAP.md` for v2.0 phase detail.*

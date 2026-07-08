@@ -5,15 +5,15 @@ milestone_name: Adoption & Hygiene
 current_phase: 12
 current_phase_name: Onboarding & Rule-Authoring Docs
 status: executing
-stopped_at: Completed 11-01-PLAN.md
-last_updated: "2026-07-08T18:43:00.709Z"
+stopped_at: Completed 12-01-PLAN.md
+last_updated: "2026-07-08T19:08:27.058Z"
 last_activity: 2026-07-08
-last_activity_desc: Phase 11 complete, transitioned to Phase 12
+last_activity_desc: Phase 12 execution started
 progress:
   total_phases: 2
   completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
+  total_plans: 3
+  completed_plans: 2
   percent: 50
 ---
 
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-07)
 
 ## Current Position
 
-Phase: 12 — Onboarding & Rule-Authoring Docs
-Plan: Not started
+Phase: 12 (Onboarding & Rule-Authoring Docs) — EXECUTING
+Plan: 2 of 2
 Status: Ready to execute
-Last activity: 2026-07-08 — Phase 11 complete, transitioned to Phase 12
+Last activity: 2026-07-08 — Phase 12 execution started
 
 ## Performance Metrics
 
@@ -81,6 +81,7 @@ Last activity: 2026-07-08 — Phase 11 complete, transitioned to Phase 12
 
 *Updated after each plan completion*
 | Phase 11-summary-frontmatter-hygiene P01 | 7min | 2 tasks | 7 files |
+| Phase 12 P01 | 14min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -96,6 +97,8 @@ Recent decisions affecting current work:
 - [Phase 11]: [11-01]: Used each phase VERIFICATION.md Requirements Coverage Source Plan column as authoritative REQ-ID mapping; no IDs re-derived or invented.
 - [Phase 11]: [11-01]: Kept archived SUMMARY edits additive-only: no coverage block added, no existing field/body changed.
 - [Phase 11]: [11-01]: Task 2 scanner was made CRLF-tolerant after the literal plan command skipped CRLF frontmatter in existing archived summaries.
+- [Phase 12]: [12-01] Documented CB-3 as loader consent grant separate from governance.enabled activation toggle; both are required for governance hooks to fire.
+- [Phase 12]: [12-01] Kept CLI docs source-grounded to command source signatures and verified examples against the built bin/governance.cjs.
 
 ### Pending Todos
 
@@ -123,8 +126,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-08T16:38:14.827Z
-Stopped at: Completed 11-01-PLAN.md
+Last session: 2026-07-08T19:08:27.052Z
+Stopped at: Completed 12-01-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
