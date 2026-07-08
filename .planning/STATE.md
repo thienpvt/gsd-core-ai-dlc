@@ -4,17 +4,17 @@ milestone: v2.0
 milestone_name: Govern
 current_phase: 10
 current_phase_name: Selection-Quality Harness
-status: executing
-stopped_at: Completed 09-04-PLAN.md
-last_updated: "2026-07-08T00:29:22.795Z"
+status: verifying
+stopped_at: Completed 10-02-PLAN.md
+last_updated: "2026-07-08T00:35:11.455Z"
 last_activity: 2026-07-08
 last_activity_desc: Phase 10 execution started
 progress:
   total_phases: 5
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 19
-  completed_plans: 18
-  percent: 80
+  completed_plans: 19
+  percent: 100
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-07-07)
 
 Phase: 10 (Selection-Quality Harness) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-07-08 — Phase 10 execution started
 
 ## Performance Metrics
@@ -88,6 +88,7 @@ Last activity: 2026-07-08 — Phase 10 execution started
 | Phase 9 P04 | 25 | 3 tasks | 6 files |
 | Phase 09 P05 | 4min | 3 tasks | 3 files |
 | Phase 10 P01 | 9min | 3 tasks | 10 files |
+| Phase 10 P02 | 7min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -144,6 +145,8 @@ Recent decisions affecting current work:
 - [Phase ?]: 09-04: D-08 ship gate fail-closed on pending/rejected approvals — mirrors GATE-05 assertNonBlocking
 - [Phase ?]: 09-04: D-13/D-16 manifest consumes uses bare host artifact names — gsd-core validateConsumesGlobal rejects path-prefixed forms
 - [Phase ?]: 09-05: captureTestEvidence orchestrator/persist split — captureTestEvidence returns record, runDirect persists (writeTestEvidence gains first production caller). defaultSpawnRunner uses process.execPath + shell:false + hardcoded argv (closes T-09-05-01 PATH-hijack + shell-injection surfaces).
+- [Phase 10]: D-07 ship gate consumes eval evidence fail-closed (readEvalOrFail)
+- [Phase 10]: Forward-scoping guard phaseNumber >= 10 resolves RESEARCH Open Q2 (legacy 06-09 not retroactively failed)
 
 ### Pending Todos
 
@@ -171,6 +174,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-08T00:29:15.418Z
-Stopped at: Completed 09-04-PLAN.md
+Last session: 2026-07-08T00:35:11.448Z
+Stopped at: Completed 10-02-PLAN.md
 Resume file: None

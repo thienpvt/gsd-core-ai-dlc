@@ -31,7 +31,7 @@ Phase numbering continues at 6 (no reset). First phase owns the v1.0 tech-debt f
 - [x] **Phase 7: Enforcement Contracts & Adapter Stubs** - JSON Schema gate contracts + GateAdapter interface + no-op stubs named after AI-DLC-implied tools (completed 2026-07-07)
 - [x] **Phase 8: Remaining Gate Hooks** - Plan, verify, and ship gates consume Phase 7 contracts and produce per-rule pass/fail records (completed 2026-07-07)
 - [x] **Phase 9: Complete Audit Record & Approval** - Audit artifact records requirements, tests, risks, approvals; human approval flows through contracts (completed 2026-07-07)
-- [ ] **Phase 10: Selection-Quality Harness** - Standing recall/precision harness against the labeled eval set as a repeatable auditable check
+- [x] **Phase 10: Selection-Quality Harness** - Standing recall/precision harness against the labeled eval set as a repeatable auditable check (completed 2026-07-08)
 
 ## Phase Details
 
@@ -147,7 +147,7 @@ Plans:
   2. The harness flags under-injection (critical-recall misses) and over-injection (precision drops) loudly enough to block a ship on regression (SEL-06).
   3. The harness is repeatable and auditable — its output can be archived as governance evidence alongside the audit artifact (SEL-06).
 
-**Plans**: 1/2 plans executed
+**Plans**: 2/2 plans complete
 
 Plans:
 **Wave 1**
@@ -156,7 +156,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 10-02-PLAN.md — Ship-gate eval blocking (readEvalOrFail + assertNoFailedEval) + verify:post SKILL.md step
+- [x] 10-02-PLAN.md — Ship-gate eval blocking (readEvalOrFail + assertNoFailedEval) + verify:post SKILL.md step
 
 ## Progress
 
@@ -175,7 +175,7 @@ v2.0 Phases execute in numeric order: 6 → 7 → 8 → 9 → 10.
 | 7. Enforcement Contracts & Adapter Stubs | v2.0 | 4/4 | Complete    | 2026-07-07 |
 | 8. Remaining Gate Hooks | v2.0 | 5/5 | Complete    | 2026-07-07 |
 | 9. Complete Audit Record & Approval | v2.0 | 5/5 | Complete    | 2026-07-07 |
-| 10. Selection-Quality Harness | v2.0 | 1/2 | In Progress|  |
+| 10. Selection-Quality Harness | v2.0 | 2/2 | Complete   | 2026-07-08 |
 
 ---
 *See `.planning/MILESTONES.md` for shipped-milestone summary and `.planning/milestones/v1.0-ROADMAP.md` for full v1.0 phase detail.*
