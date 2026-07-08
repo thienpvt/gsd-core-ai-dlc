@@ -10,7 +10,11 @@ import {
   readApproval,
   type ApprovalRecord,
 } from "./approval-store.js";
-import { approvalPath, gateEvidencePath } from "./paths.js";
+import {
+  readEvalEvidence,
+  type EvalReport,
+} from "./eval-evidence.js";
+import { approvalPath, gateEvidencePath, evalEvidencePath } from "./paths.js";
 
 const { O_CREAT, O_EXCL, O_WRONLY } = constants;
 
@@ -148,6 +152,40 @@ function assertNoBlockingApprovals(approval: ApprovalRecord): void {
   }
 }
 
+/**
+ * D-07: read the per-phase eval-evidence record; throw fail-closed when absent.
+ * Clone of readRequiredEvidence shape (GATE-05 prior-evidence pattern). Only
+ * invoked for phases >= "10" (forward-scoping guard below).
+ */
+function readEvalOrFail(projectRoot: string, phaseNumber: string): EvalReport {
+  const report = readEvalEvidence(projectRoot, phaseNumber);
+  if (report === null) {
+    throw new Error(
+      `ship gate: missing eval evidence ${evalEvidencePath(projectRoot, phaseNumber)}`,
+    );
+  }
+  return report;
+}
+
+/**
+ * D-05: enforce the critical-recall floor at the ship boundary. A persisted
+ * failed eval report (criticalRecall < 1.0) blocks ship. The value is re-read
+ * from the persisted `aggregate.recallBySeverity.critical` field — even a
+ * forged record cannot raise the floor above what `aggregate` (severity sourced
+ * from the index at write time) produced. Defense-in-depth with Plan 01's
+ * exit-2 + failed-report-persisted enforcement.
+ */
+function assertNoFailedEval(report: EvalReport): void {
+  if (report.aggregate.recallBySeverity.critical < 1.0) {
+    const misses = report.criticalMisses
+      .map((m) => `${m.case}: ${m.expectedNotSelected.join(", ")}`)
+      .join("; ");
+    throw new Error(
+      `ship gate: eval evidence failed - criticalRecall=${report.aggregate.recallBySeverity.critical} (${misses})`,
+    );
+  }
+}
+
 export function shipGateHook(args: ShipGateHookArgs): ShipGateHookResult {
   const planEvidence = readRequiredEvidence(args.projectRoot, args.phaseNumber, "plan");
   const verifyEvidence = readRequiredEvidence(args.projectRoot, args.phaseNumber, "verify");
@@ -160,6 +198,17 @@ export function shipGateHook(args: ShipGateHookArgs): ShipGateHookResult {
     verifyEvidence.request.phase,
   );
   assertNoBlockingApprovals(approval);
+
+  // RESEARCH Open Q2 resolution — forward-scoping guard. Only phases >= "10"
+  // are eval-checked. Legacy phases 06-09 shipped without eval evidence and
+  // are NOT retroactively failed. String compare is safe because PHASE_NUMBER_RE
+  // enforces 2-digit zero-padded phase numbers, so lexical order matches numeric
+  // order for the "10" threshold. MUST run before writeGateEvidence (fail-closed
+  // ordering — no ship evidence on blocking condition).
+  if (args.phaseNumber >= "10") {
+    const evalReport = readEvalOrFail(args.projectRoot, args.phaseNumber);
+    assertNoFailedEval(evalReport);
+  }
 
   const requestedAt = new Date().toISOString();
   const evidence: GateEvidence = {

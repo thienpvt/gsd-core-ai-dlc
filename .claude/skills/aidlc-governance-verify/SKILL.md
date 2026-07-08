@@ -44,7 +44,24 @@ NOT an adapter implementation and NOT an audit writer.
    exits non-zero on this step, surface stderr and fail the `verify:post` step —
    evidence loss is blocking.
 
-5. **Propagate failures.** If the runner exits non-zero, surface stderr and fail
+5. **Run the standing eval harness (SEL-06).** AFTER test evidence and BEFORE
+   the audit step, run the recall/precision harness so every governed phase's
+   ship evidence includes a fresh eval run. Invoke:
+
+   ```bash
+   node dist/select/eval-cli.js <phaseNumber>
+   ```
+
+   Pass the concrete `{NN}` phase number. The harness loads
+   `test/fixtures/eval/cases/eval-cases.json`, builds the index from
+   `test/fixtures/eval/eval-rules/`, runs every case through `select()`,
+   persists `.planning/governance/eval/{NN}.json` + `{NN}-report.md`, and emits
+   pretty markdown to stdout (or JSON with `--json`). Exit 0 = pass; exit 2 =
+   critical-recall regression (blocking — the ship gate reads this evidence
+   fail-closed); exit 3 = parse/index/load error. Any non-zero exit fails
+   `verify:post` — surface stderr and halt.
+
+6. **Propagate failures.** If the runner exits non-zero, surface stderr and fail
    the `verify:post` step. Evidence loss is blocking.
 
 ## Failure mode
