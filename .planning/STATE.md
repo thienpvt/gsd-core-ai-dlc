@@ -4,9 +4,9 @@ milestone: v3.0
 milestone_name: Adoption & Hygiene
 current_phase: 12
 current_phase_name: Onboarding & Rule-Authoring Docs
-status: planning
+status: executing
 stopped_at: Completed 11-01-PLAN.md
-last_updated: "2026-07-08T16:55:11.586Z"
+last_updated: "2026-07-08T18:43:00.709Z"
 last_activity: 2026-07-08
 last_activity_desc: Phase 11 complete, transitioned to Phase 12
 progress:
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-07-07)
 
 Phase: 12 — Onboarding & Rule-Authoring Docs
 Plan: Not started
-Status: Phase 11 complete — ready for verification; Phase 12 ready to plan
+Status: Ready to execute
 Last activity: 2026-07-08 — Phase 11 complete, transitioned to Phase 12
 
 ## Performance Metrics
