@@ -88,7 +88,7 @@ Full phase details (goals, success criteria, plans, waves) archived at
 | 8. Remaining Gate Hooks | v2.0 | 5/5 | Complete | 2026-07-07 |
 | 9. Complete Audit Record & Approval | v2.0 | 5/5 | Complete | 2026-07-07 |
 | 10. Selection-Quality Harness | v2.0 | 2/2 | Complete | 2026-07-08 |
-| 11. SUMMARY Frontmatter Hygiene | v3.0 | 1/1 | Complete   | 2026-07-08 |
+| 11. SUMMARY Frontmatter Hygiene | v3.0 | 1/1 | Complete    | 2026-07-08 |
 | 12. Onboarding & Rule-Authoring Docs | v3.0 | 0/? | Not started | - |
 
 ---
