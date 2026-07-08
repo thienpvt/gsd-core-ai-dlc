@@ -378,6 +378,42 @@ test("compiled direct runner rejects output paths outside project .planning/phas
   });
 });
 
+test("TD-05: isDirectRun narrowed to dist entry — a same-basename sibling requiring the dist module does NOT trigger runDirect", () => {
+  // ponytail: ceiling is a unit test on isDirectRun itself; this integration test
+  // observes the actual runtime narrowing via a sibling script. Upgrade path:
+  // export isDirectRun for direct unit testing if it grows more complex.
+  withTempRoot((root) => {
+    writeSelection(fixtureRecord(), root);
+    const outputPath = path.join(
+      root,
+      ".planning",
+      "phases",
+      "05-audit-artifact-writer",
+      "GOVERNANCE.md",
+    );
+    // Sibling named audit-artifact.js in a temp dir merely requires the dist module.
+    // OLD basename match: basename(argv[1]) === "audit-artifact.js" -> runDirect fires -> writes GOVERNANCE.md.
+    // NEW __filename match: path.resolve(argv[1]=sibling) !== __filename(dist) -> runDirect NOT called.
+    const siblingDir = mkdtempSync(path.join(os.tmpdir(), "gsd-isdirectrun-"));
+    const siblingPath = path.join(siblingDir, "audit-artifact.js");
+    writeFileSync(siblingPath, `require(${JSON.stringify(RUNNER)});`);
+    try {
+      execFileSync(process.execPath, [siblingPath, root, outputPath], {
+        encoding: "utf8",
+        stdio: "pipe",
+      });
+    } catch {
+      // Sibling may exit non-zero if runDirect throws or no args produce an error.
+      // Invariant: runDirect did NOT write GOVERNANCE.md (narrowed match).
+    }
+    assert.ok(
+      !existsSync(outputPath),
+      "TD-05: same-basename sibling must NOT trigger runDirect — GOVERNANCE.md must not be written by merely requiring the dist module",
+    );
+    rmSync(siblingDir, { recursive: true, force: true });
+  });
+});
+
 test("writeGovernanceAudit rejects non-ISO-8601 timestamps so malformed metadata cannot enter the audit trail (TD-01)", () => {
   withTempRoot((root) => {
     for (const [label, badTimestamp, message] of [
