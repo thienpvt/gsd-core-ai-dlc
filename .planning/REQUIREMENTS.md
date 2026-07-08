@@ -28,7 +28,7 @@ Requirements for milestone **v2.0 Govern**. Each maps to a roadmap phase (number
 
 ### Selection Quality
 
-- [ ] **SEL-06**: A standing recall/precision harness exercises the selection engine against the labeled eval set and reports under-injection (critical recall) and over-injection (precision) as a repeatable, auditable check
+- [x] **SEL-06**: A standing recall/precision harness exercises the selection engine against the labeled eval set and reports under-injection (critical recall) and over-injection (precision) as a repeatable, auditable check
 
 ### Approval — Human-in-the-Loop
 
@@ -91,7 +91,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUDIT-05 | Phase 9 | Complete |
 | AUDIT-06 | Phase 9 | Complete |
 | APPR-01 | Phase 9 | Complete |
-| SEL-06 | Phase 10 | Pending |
+| SEL-06 | Phase 10 | Complete |
 
 **Coverage:**
 

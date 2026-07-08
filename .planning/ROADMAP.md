@@ -147,12 +147,12 @@ Plans:
   2. The harness flags under-injection (critical-recall misses) and over-injection (precision drops) loudly enough to block a ship on regression (SEL-06).
   3. The harness is repeatable and auditable — its output can be archived as governance evidence alongside the audit artifact (SEL-06).
 
-**Plans**: 2 plans
+**Plans**: 1/2 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 10-01-PLAN.md — Standing eval harness producer (eval-cli.ts + eval-evidence.ts + schema + CLI + npm script)
+- [x] 10-01-PLAN.md — Standing eval harness producer (eval-cli.ts + eval-evidence.ts + schema + CLI + npm script)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -175,7 +175,7 @@ v2.0 Phases execute in numeric order: 6 → 7 → 8 → 9 → 10.
 | 7. Enforcement Contracts & Adapter Stubs | v2.0 | 4/4 | Complete    | 2026-07-07 |
 | 8. Remaining Gate Hooks | v2.0 | 5/5 | Complete    | 2026-07-07 |
 | 9. Complete Audit Record & Approval | v2.0 | 5/5 | Complete    | 2026-07-07 |
-| 10. Selection-Quality Harness | v2.0 | 0/? | Not started | - |
+| 10. Selection-Quality Harness | v2.0 | 1/2 | In Progress|  |
 
 ---
 *See `.planning/MILESTONES.md` for shipped-milestone summary and `.planning/milestones/v1.0-ROADMAP.md` for full v1.0 phase detail.*
