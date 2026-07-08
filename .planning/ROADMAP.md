@@ -175,7 +175,7 @@ v2.0 Phases execute in numeric order: 6 → 7 → 8 → 9 → 10.
 | 7. Enforcement Contracts & Adapter Stubs | v2.0 | 4/4 | Complete    | 2026-07-07 |
 | 8. Remaining Gate Hooks | v2.0 | 5/5 | Complete    | 2026-07-07 |
 | 9. Complete Audit Record & Approval | v2.0 | 5/5 | Complete    | 2026-07-07 |
-| 10. Selection-Quality Harness | v2.0 | 2/2 | Complete   | 2026-07-08 |
+| 10. Selection-Quality Harness | v2.0 | 2/2 | Complete    | 2026-07-08 |
 
 ---
 *See `.planning/MILESTONES.md` for shipped-milestone summary and `.planning/milestones/v1.0-ROADMAP.md` for full v1.0 phase detail.*
