@@ -15,7 +15,7 @@ Requirements for milestone **v3.0 Adoption & Hygiene**. Each maps to a roadmap p
 
 - [x] **DOC-01**: End user can install, consent-activate, and run the governance overlay following onboarding documentation (prerequisites, install steps, CB-3 consent flow, first-run smoke check).
 - [x] **DOC-02**: End user can operate the core governance workflow — `governance build-index`, `governance select`, `governance inject`, `governance rule-detail`, `governance eval`, and the audit/ship gate chain — following documented usage examples.
-- [ ] **DOC-03**: Rule author can write, integrate, and verify a new governance rule following the authoring guide — Markdown + frontmatter (`id`, `scope`, `triggers`, `phases`, `severity`, `summary`, `detailPath`), enterprise/domain/project scope, trigger axes (keywords/taskType/paths), binding-vs-advisory (`x-binding`), `build-index` + `select`/`eval` verification that the rule fires for its intended task/phase.
+- [x] **DOC-03**: Rule author can write, integrate, and verify a new governance rule following the authoring guide — Markdown + frontmatter (`id`, `scope`, `triggers`, `phases`, `severity`, `summary`, `detailPath`), enterprise/domain/project scope, trigger axes (keywords/taskType/paths), binding-vs-advisory (`x-binding`), `build-index` + `select`/`eval` verification that the rule fires for its intended task/phase.
 
 ## v2 Requirements (Deferred beyond v3.0)
 
@@ -52,7 +52,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TD-10 | Phase 11 | Complete |
 | DOC-01 | Phase 12 | Complete |
 | DOC-02 | Phase 12 | Complete |
-| DOC-03 | Phase 12 | Pending |
+| DOC-03 | Phase 12 | Complete |
 
 **Coverage:** 4/4 v3.0 requirements mapped (100%), 0 orphans.
 
