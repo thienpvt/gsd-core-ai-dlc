@@ -94,7 +94,7 @@ Plans:
 | 9. Complete Audit Record & Approval | v2.0 | 5/5 | Complete | 2026-07-07 |
 | 10. Selection-Quality Harness | v2.0 | 2/2 | Complete | 2026-07-08 |
 | 11. SUMMARY Frontmatter Hygiene | v3.0 | 1/1 | Complete    | 2026-07-08 |
-| 12. Onboarding & Rule-Authoring Docs | v3.0 | 2/2 | Complete   | 2026-07-08 |
+| 12. Onboarding & Rule-Authoring Docs | v3.0 | 2/2 | Complete    | 2026-07-08 |
 
 ---
 *See `.planning/MILESTONES.md` for shipped-milestone summaries, `.planning/milestones/v1.0-ROADMAP.md` for full v1.0 phase detail, and `.planning/milestones/v2.0-ROADMAP.md` for v2.0 phase detail.*
