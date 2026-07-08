@@ -53,7 +53,8 @@ Full phase details (goals, success criteria, plans, waves) archived at
   1. All 6 target SUMMARY files (06-02, 06-03, 07-01, 07-02, 10-01, 10-02) carry a `requirements-completed` frontmatter field populated with verified REQ-IDs drawn from their corresponding VERIFICATION.md / PLAN.md
   2. A re-run of the 3-source milestone-audit cross-reference (VERIFICATION + SUMMARY frontmatter + REQUIREMENTS.md traceability) reports every v2.0 requirement as "satisfied", not "partial (verify manually)"
   3. No other SUMMARY frontmatter fields are altered — the backfill is purely additive (`requirements-completed` inserted, existing fields untouched)
-**Plans**: TBD
+**Plans:** 1 plan
+- [ ] 11-01-PLAN.md — Backfill `requirements-completed` on 6 v2.0 SUMMARYs + verify 3-source cross-reference
 
 ### Phase 12: Onboarding & Rule-Authoring Docs
 **Goal**: An end user can install, activate, and first-run the governance overlay, operate the core governance CLI workflow, and a rule author can write, integrate, and verify a new governance rule — all by following documentation alone
