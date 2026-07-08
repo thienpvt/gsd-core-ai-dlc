@@ -8,19 +8,25 @@ A working extension to GSD Core that layers AI-DLC-style enterprise SDLC governa
 
 The rule selection engine correctly injects only the relevant AI-DLC rule summaries for the current task and phase — enough governance to be safe, little enough to avoid context bloat. If this fails, the entire premise fails.
 
-## Current Milestone: v2.0 Govern
+## Current Milestone: v2.0 Govern (SHIPPED 2026-07-08)
 
 **Goal:** Extend the validated Core to full enterprise SDLC control — remaining gate hooks, a complete audit record, tool-agnostic enforcement contracts with adapter stubs, and a human approval checkpoint — all layered on v1's selection/injection/audit foundation without re-opening the context window.
 
-**Target features:**
-- Fold 9 v1.0 tech-debt items (3 correctness: WR-01/03/05; 6 hygiene: WR-02/04, IN-01/02/03, config namespacing) into the first v2.0 phase before new gates open a fresh debt surface
-- Remaining GSD gate hooks: plan gate (GATE-03), verify gate (GATE-04), ship gate (GATE-05)
-- Complete audit record: AUDIT-03 (requirements covered), AUDIT-04 (tests executed), AUDIT-05 (remaining risks), AUDIT-06 (approvals)
-- Tool-agnostic enforcement contracts: ENF-02 (JSON Schema gate contracts), ENF-03 (`GateAdapter` interface + no-op/echo stubs named after AI-DLC-implied tools — semgrep, bandit, checkov, grype, gitleaks, generic CI, human approval), ENF-04 (binding rules route through named contracts)
-- SEL-06 standing recall/precision harness for the selection engine
-- APPR-01 human approval checkpoint schema
+**Shipped features (21/21 requirements validated):**
+- Folded 9 v1.0 tech-debt items (3 correctness: TD-01/02/03; 6 hygiene: TD-04..09) into Phase 6 before the new gate surface opened
+- Remaining GSD gate hooks: plan gate (GATE-03), verify gate (GATE-04), ship gate (GATE-05) — all producing durable per-gate evidence under `.planning/governance/gates/`
+- Complete audit record: AUDIT-03 (requirements covered), AUDIT-04 (tests executed from real `node --test` TAP), AUDIT-05 (remaining risks), AUDIT-06 (approvals) — audit-artifact v2 with 4 optional enrichment fields + v1 byte-stability
+- Tool-agnostic enforcement contracts: ENF-02 (draft 2020-12 JSON Schema gate contracts + Ajv runtime validation), ENF-03 (`GateAdapter` interface + 7 no-op/echo stubs — semgrep, bandit, checkov, grype, gitleaks, generic-exit-ci, human-approval), ENF-04 (`runAdapter` hard-fail boundary + `x-binding` advisory/binding split)
+- SEL-06 standing recall/precision harness (`governance eval` CLI, ship-blocking critical-recall ===1.0 floor, corpus-hash determinism, durable eval evidence)
+- APPR-01 human approval checkpoint schema + durable approval store + ship-gate fail-closed on pending/rejected
 
-**Phase numbering:** continues at 6 (no reset). First phase owns v1.0 tech-debt fold-in atomically.
+**Phase numbering:** continues at 6 (no reset). 5 phases / 19 plans / 40 tasks. 417 tests, 0 fail.
+
+**Milestone audit:** `passed` — see `.planning/v2.0-MILESTONE-AUDIT.md` (21/21 reqs, 5/5 phases, 9/9 integration, 7/7 E2E flows, 5/5 Nyquist-compliant). One documented upstream-only deferred item (capability manifest `consumes` extension blocked by installed gsd-core `bundleContentHash` constraint — outside this repo).
+
+## Next Milestone Goals
+
+_(Not yet defined. Run `/gsd-new-milestone` to start the next milestone: questioning → research → requirements → roadmap. Candidate areas from v2.0 deferred items: real scanner/policy integrations beyond no-op stubs, dynamic adapter loading, operations-phase (deploy/monitor) governance (OPS-01), capability manifest `consumes` coordination with gsd-core upstream.)_
 
 ## Requirements
 
@@ -102,4 +108,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-08 — Phase 10 completed (selection-quality harness validated); v2.0 Govern milestone complete*
+*Last updated: 2026-07-08 — v2.0 Govern milestone shipped (21/21 requirements validated, 5 phases, 417 tests green)*
