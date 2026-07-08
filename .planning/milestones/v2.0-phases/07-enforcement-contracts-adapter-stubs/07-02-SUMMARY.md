@@ -31,6 +31,7 @@ metrics:
   completed: 2026-07-07
   tasks: 2
   files: 2
+requirements-completed: [ENF-02]
 status: complete
 ---
 

@@ -26,6 +26,7 @@ metrics:
   completed: 2026-07-06T15:57:35Z
   tasks: 3
   files: 4
+requirements-completed: [TD-02, TD-08, TD-09]
 status: complete
 ---
 

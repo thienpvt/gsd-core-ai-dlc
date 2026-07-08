@@ -33,6 +33,7 @@ metrics:
   completed: 2026-07-06
   tasks: 2
   files: 2
+requirements-completed: [TD-01, TD-04, TD-05, TD-06, TD-07]
 status: complete
 ---
 

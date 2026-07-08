@@ -43,6 +43,7 @@ metrics:
   files: 3 (0 created, 3 modified)
   tests: 4 new (2 blocking RED cases + 2 forward-scoping/pass-path cases)
   commits: 2 (RED + GREEN)
+requirements-completed: [SEL-06]
 status: complete
 ---
 

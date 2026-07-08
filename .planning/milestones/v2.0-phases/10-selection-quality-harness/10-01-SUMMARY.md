@@ -57,6 +57,7 @@ metrics:
   files: 10 (6 created, 4 modified)
   tests: 28 new (eval-cli: 10, validate-eval-report: 18)
   commits: 2 (RED + GREEN; REFACTOR intentional no-op)
+requirements-completed: [SEL-06]
 status: complete
 ---
 
