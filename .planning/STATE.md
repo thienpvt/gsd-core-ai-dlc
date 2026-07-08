@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Adoption & Hygiene
-current_phase: 12
-status: verifying
+current_phase: 0
+status: Awaiting next milestone
 stopped_at: Completed 12-02-PLAN.md
-last_updated: "2026-07-08T19:52:41.148Z"
+last_updated: "2026-07-08T23:41:02.886Z"
 last_activity: 2026-07-08
-last_activity_desc: Phase 12 complete
+last_activity_desc: Milestone v3.0 completed and archived
 progress:
   total_phases: 2
   completed_phases: 2
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-07)
 
 ## Current Position
 
-Phase: 12
-Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-07-08 — Phase 12 complete
+Phase: Milestone v3.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-07-08 — Milestone v3.0 completed and archived
 
 ## Performance Metrics
 
@@ -137,4 +137,4 @@ Resume file: None
 
 ## Operator Next Steps
 
-- Run `/gsd-plan-phase 12` to plan onboarding and rule-authoring docs.
+- Start the next milestone with /gsd-new-milestone

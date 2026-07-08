@@ -8,16 +8,13 @@ A working extension to GSD Core that layers AI-DLC-style enterprise SDLC governa
 
 The rule selection engine correctly injects only the relevant AI-DLC rule summaries for the current task and phase — enough governance to be safe, little enough to avoid context bloat. If this fails, the entire premise fails.
 
-## Current Milestone: v3.0 Adoption & Hygiene
+## Current Milestone: Planning next milestone
 
-**Goal:** Make the governance overlay adoptable by end users and rule authors — onboarding documentation plus a governance-rule authoring guide — and close the remaining v2.0 documentation-hygiene tech debt.
+v3.0 shipped 2026-07-09. Run `/gsd-new-milestone` to define the next milestone.
 
-**Target features:**
-- End-user onboarding documentation (what the overlay does, how to install/use it)
-- Governance-rule authoring guide (how end users develop their own governance rules)
-- SUMMARY frontmatter hygiene (backfill `requirements-completed` on the 6 v2.0 plans that omitted it — 06-02, 06-03, 07-01, 07-02, 10-01, 10-02)
+## Previous Milestone: v3.0 Adoption & Hygiene (SHIPPED 2026-07-09)
 
-**Phase numbering:** continues at 11 (no reset).
+4/4 requirements validated. 2 phases (11-12), 3 plans, 6 tasks. SUMMARY frontmatter backfill closed the last v2.0 audit debt; end-user onboarding + governance-workflow + rule-authoring docs shipped (`docs/onboarding.md`, `docs/governance-workflow.md`, `docs/rule-authoring.md` + README). Full milestone audit: `.planning/milestones/v3.0-MILESTONE-AUDIT.md` — 3-source cross-reference 4/4 satisfied, 3/4 integration links wired; 1 runtime blocker on DOC-01 consent-activate rooted in the previously-deferred RUN-01 upstream gsd-core capability-manifest `consumes` constraint (documented command is accurate; will activate once upstream fix lands).
 
 ## Previous Milestone: v2.0 Govern (SHIPPED 2026-07-08)
 
@@ -37,12 +34,13 @@ The rule selection engine correctly injects only the relevant AI-DLC rule summar
 - [x] Remaining GSD gate hooks beyond v1: plan, verify, and ship are registered in the capability host and produce durable gate evidence — **Validated in Phase 8: Remaining Gate Hooks** (GATE-03/04/05: `planHook` derives planner signals and writes plan evidence, `verifyGateHook` routes through `runAdapter` and derives per-rule statuses, `shipGateHook` blocks missing/malformed/failing prior evidence, and capability consent/render-hooks tests prove `plan:pre`, `verify:post`, and `ship:pre` wiring)
 - [x] Complete audit record and human approval: requirements covered, test results from real runner output, remaining risks, approvals required/granted, and APPR-01 approval schema — **Validated in Phase 9: Complete Audit Record & Approval** (AUDIT-03/04/05/06 + APPR-01: audit-artifact v2 with optional `requirements_covered`/`tests_executed`/`remaining_risks`/`approvals` fields + v1 byte-stability, `approval.schema.json` + `approval-store.ts` durable lifecycle, `capture-test-evidence.ts` wiring real `node --test` TAP into `tests/{NN}.json`, ship-gate fail-closed on pending/rejected approvals)
 - [x] Standing selection-quality harness for recall/precision regression reporting — **Validated in Phase 10: Selection-Quality Harness** (SEL-06: `governance eval` CLI + `eval-cli.ts` wrapping pure `eval-harness.ts` runCases/aggregate, `eval-report.schema.json` (draft 2020-12 + x-binding) + Ajv validation, durable evidence under `eval/{NN}.json` + `{NN}-report.md`, critical-recall ===1.0 ship-blocking floor (D-05), precision reported-not-blocked (D-06), corpus-hash determinism, ship-gate forward-scoped to phase ≥ 10)
+- [x] SUMMARY frontmatter hygiene (backfill `requirements-completed` on 6 v2.0 plans) — **Validated in Phase 11: SUMMARY Frontmatter Hygiene** (TD-10: 6 archived v2.0 SUMMARYs 06-02/06-03/07-01/07-02/10-01/10-02 backfilled with verified REQ-IDs from each phase's VERIFICATION.md Source Plan column; 21/21 v2.0 REQ-IDs now discoverable from per-plan SUMMARY metadata; purely additive +1/-0 per file)
+- [x] End-user onboarding documentation (what the overlay does, install/use guide) — **Validated in Phase 12: Onboarding & Rule-Authoring Docs** (DOC-01: `docs/onboarding.md` — prerequisites Node>=22/npm>=10, install+build, CB-3 `gsd-tools capability install` consent grant, `governance.enabled` toggle, first-run smoke check `build-index` → `select --phase inception`)
+- [x] Governance-rule authoring guide (how end users develop their own governance rules) — **Validated in Phase 12: Onboarding & Rule-Authoring Docs** (DOC-02+DOC-03: `docs/governance-workflow.md` all 5 CLI commands + E2E worked example; `docs/rule-authoring.md` 7 frontmatter fields + classification, 3 scopes, 3 trigger axes, runnable verify-the-rule-fires loop with temp triggered rule)
 
 ### Active
 
-- [ ] End-user onboarding documentation (what the overlay does, install/use guide) — v3.0
-- [ ] Governance-rule authoring guide (how end users develop their own governance rules) — v3.0
-- [ ] SUMMARY frontmatter hygiene (backfill `requirements-completed` on 6 v2.0 plans) — v3.0
+(None — v3.0 shipped. Run `/gsd-new-milestone` to define the next milestone.)
 
 ### Out of Scope
 
@@ -105,4 +103,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-08 — v3.0 Adoption & Hygiene milestone started (v2.0 shipped: 21/21 requirements validated, 5 phases, 417 tests green)*
+*Last updated: 2026-07-09 after v3.0 Adoption & Hygiene milestone (4/4 requirements validated, 2 phases, 3 plans; v2.0 shipped: 21/21 requirements validated, 5 phases)*

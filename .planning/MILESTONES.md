@@ -1,5 +1,19 @@
 # Milestones
 
+## v3.0 Adoption & Hygiene (Shipped: 2026-07-09)
+
+**Phases completed:** 2 phases, 3 plans, 6 tasks
+**Closeout type:** verified_closeout (2/2 phases verified passed; 4/4 requirements 3-source satisfied)
+**Known gaps:** 1 runtime blocker on DOC-01 install→consent→activate flow — `gsd-tools capability install` fails because capability.json `plan:pre` consumes RESEARCH.md/PATTERNS.md that no host hook resolves (RUN-01 upstream gsd-core constraint, deferred from v2.0). The documented consent command is accurate (matches consent.test.ts); governance hooks will activate once the upstream capability-manifest `consumes` fix lands. DOC-03 optional warning: `rule-detail <temp-pack>` outside repo root is rejected by containment (IN-05) — core verify loop passes.
+
+**Key accomplishments:**
+
+- Six archived v2.0 SUMMARY files now carry verified `requirements-completed` frontmatter, making all 21 v2.0 REQ-IDs discoverable from per-plan SUMMARY metadata.
+- Source-grounded onboarding and CLI workflow docs with CB-3 consent, smoke checks, five commands, and gate evidence paths.
+- Schema-grounded rule-authoring guide with runnable selector verification plus root README documentation entrypoint
+
+---
+
 ## v2.0 Govern (Shipped: 2026-07-08)
 
 **Phases completed:** 5 phases, 19 plans, 40 tasks
