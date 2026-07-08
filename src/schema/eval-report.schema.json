@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gsd.dev/schemas/eval-report.schema.json",
+  "title": "Selection Eval Report",
+  "description": "SEL-06 standing recall/precision harness report. Persisted under .planning/governance/eval/{NN}.json per phase; the ship gate consumes it fail-closed (D-07). criticalRecall < 1.0 blocks ship (D-05); precision is reported only, never gated (D-06). x-binding: binding — persisted state blocks ship via the ship-gate read ladder.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["phase", "capturedAt", "aggregate", "cases", "criticalMisses", "precisionOffenders", "corpusHash"],
+  "properties": {
+    "phase": {
+      "type": "string",
+      "pattern": "^\\d{2}(?:\\.\\d+)?$",
+      "description": "Two-digit phase number (matches PHASE_NUMBER_RE from paths.ts)."
+    },
+    "capturedAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$",
+      "description": "ISO-8601 strict timestamp (TD-01 shape). When the eval corpus was run through the harness."
+    },
+    "aggregate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["microRecall", "microPrecision", "recallBySeverity"],
+      "properties": {
+        "microRecall": { "type": "number", "minimum": 0, "maximum": 1 },
+        "microPrecision": { "type": "number", "minimum": 0, "maximum": 1 },
+        "recallBySeverity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["critical", "high", "medium", "low"],
+          "properties": {
+            "critical": { "type": "number", "minimum": 0, "maximum": 1 },
+            "high": { "type": "number", "minimum": 0, "maximum": 1 },
+            "medium": { "type": "number", "minimum": 0, "maximum": 1 },
+            "low": { "type": "number", "minimum": 0, "maximum": 1 }
+          }
+        }
+      }
+    },
+    "cases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "selectedIds", "expectedRuleIds", "tp", "fp", "fn"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "selectedIds": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "expectedRuleIds": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "tp": { "type": "integer", "minimum": 0 },
+          "fp": { "type": "integer", "minimum": 0 },
+          "fn": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "criticalMisses": {
+      "type": "array",
+      "description": "Under-injection signal (D-05): expected critical-severity ids not selected, per case. Non-empty alongside aggregate.recallBySeverity.critical < 1.0 blocks ship.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["case", "expectedNotSelected", "severity"],
+        "properties": {
+          "case": { "type": "string", "minLength": 1 },
+          "expectedNotSelected": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "severity": { "type": "string", "enum": ["critical", "high", "medium", "low"] }
+        }
+      }
+    },
+    "precisionOffenders": {
+      "type": "array",
+      "description": "Over-injection signal (D-06, advisory only — NEVER gates): selected ids not in expected, per case.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["case", "extraSelected"],
+        "properties": {
+          "case": { "type": "string", "minLength": 1 },
+          "extraSelected": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    },
+    "corpusHash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "SHA-256 over the canonicalized (pretty-printed, name-sorted) eval-cases.json. Pins the eval-set version for reproducibility (D-14)."
+    }
+  },
+  "x-binding": "binding"
+}
