@@ -65,3 +65,18 @@ test("WR-01: governance eval shim returns exit 3 on parse/load error (D-08 contr
     assert.match(child.stderr, /eval:/, "shim prefixes the error message with 'eval:'");
   });
 });
+
+test("IN-03: governance eval shim returns exit 3 on usage error (no positional)", () => {
+  withTempRoot((root) => {
+    const child = spawnSync(process.execPath, [CLI_RUNNER, "eval"], {
+      cwd: root,
+      encoding: "utf8",
+    });
+    assert.equal(
+      child.status,
+      3,
+      `expected exit 3 on usage error (no phaseNumber), got ${child.status}\nstdout:\n${child.stdout}\nstderr:\n${child.stderr}`,
+    );
+    assert.match(child.stderr, /eval:/, "shim prefixes the usage error with 'eval:'");
+  });
+});
