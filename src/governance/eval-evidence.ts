@@ -39,11 +39,14 @@ export interface EvalCaseRow {
   fn: number;
 }
 
-/** Under-injection signal (D-05): expected ids of a severity not selected, per case. */
+/** Under-injection signal (D-05): expected critical ids not selected, per case.
+ * Only critical-severity misses populate this list (the producer filters on
+ * `sev === "critical"`), so `severity` is narrowed to the literal `"critical"` —
+ * the over-broad union was a contract smell (IN-01), never emitted in practice. */
 export interface CriticalMiss {
   case: string;
   expectedNotSelected: string[];
-  severity: "critical" | "high" | "medium" | "low";
+  severity: "critical";
 }
 
 /** Over-injection signal (D-06, advisory only — NEVER gates): selected ids not in expected, per case. */

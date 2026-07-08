@@ -127,6 +127,22 @@ test("rejects a bad severity enum value in criticalMisses", () => {
   assert.throws(() => validateEvalReport(r));
 });
 
+test("rejects non-critical severity in criticalMisses (IN-01 narrowing: only 'critical' is valid)", () => {
+  for (const bad of ["high", "medium", "low"] as const) {
+    const r = makeValidEvalReport();
+    (r.criticalMisses as unknown[]).push({
+      case: "x",
+      expectedNotSelected: ["y"],
+      severity: bad,
+    });
+    assert.throws(
+      () => validateEvalReport(r),
+      /invalid eval-report|severity|critical/i,
+      `criticalMisses.severity='${bad}' must be rejected after IN-01 narrowing (only 'critical' is valid)`,
+    );
+  }
+});
+
 test("rejects aggregate with an unknown severity key", () => {
   const r = makeValidEvalReport();
   const agg = r.aggregate as Record<string, unknown>;
