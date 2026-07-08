@@ -22,5 +22,14 @@ export async function run(rest: string[]): Promise<void> {
   }
 
   const argv = [positionals[0], ...(values.json ? ["--json"] : [])];
-  runDirect(argv);
+  // D-08: wrap runDirect so parse/load errors surface as exit 3 (not exit 1
+  // via index.ts's generic top-level catch). runDirect sets process.exitCode
+  // = 2 directly for critical-recall regression (no throw), so this catch
+  // only fires for parse/load/usage errors — exit 3 is the documented signal.
+  try {
+    runDirect(argv);
+  } catch (err) {
+    process.stderr.write(`eval: ${err instanceof Error ? err.message : String(err)}\n`);
+    process.exitCode = 3;
+  }
 }
