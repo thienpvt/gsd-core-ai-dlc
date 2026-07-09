@@ -167,4 +167,12 @@ None — all three rules have full summaries, triggers, verification checklists,
 
 None — content-only surface under aidlc-rules; no new network endpoints, auth paths, or schema boundaries. Advisory classification preserved (no binding enforcement theater).
 
-## Self-Check: PENDING
+## Self-Check: PASSED
+
+- FOUND: `aidlc-rules/domain/java-spring/java-spring-logging-audit.md`
+- FOUND: `aidlc-rules/domain/java-spring/java-spring-api-contract.md`
+- FOUND: `aidlc-rules/domain/java-spring/java-spring-saga-outbox.md`
+- FOUND: three matching detail files under `details/`
+- FOUND: commit `aace394` (feat content)
+- FOUND: commit `8f644d9` (inventory lock)
+- FOUND: suite GREEN 42/42; full npm test 522 pass / 0 fail
