@@ -4,17 +4,17 @@ milestone: v4.0
 milestone_name: Developer Coding Conventions
 current_phase: 14
 current_phase_name: Hexagonal + Tactical DDD Rules
-status: ready
-stopped_at: Phase 13 verified and transitioned
-last_updated: "2026-07-09T17:05:00.000Z"
-last_activity: 2026-07-09
-last_activity_desc: Phase 13 complete (verify 4/4), transitioned to Phase 14
+status: in_progress
+stopped_at: Completed 14-01-PLAN.md
+last_updated: "2026-07-10T00:30:00.000Z"
+last_activity: 2026-07-10
+last_activity_desc: Phase 14 plan 01 RED suite complete (HEX/DDD)
 progress:
   total_phases: 6
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
-  percent: 17
+  total_plans: 4
+  completed_plans: 3
+  percent: 50
 ---
 
 # Project State
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-07-09)
 ## Current Position
 
 Phase: 14 of 18 (Hexagonal + Tactical DDD Rules)
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-07-09 — Phase 13 complete (verify 4/4), transitioned to Phase 14
+Plan: 2 of 2
+Status: Ready to execute
+Last activity: 2026-07-10 — Phase 14 plan 01 RED suite complete (HEX/DDD)
 
-Progress: [███░░░░░░░] 17%
+Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
@@ -83,7 +83,7 @@ Progress: [███░░░░░░░] 17%
 | Phase | Plans | Status |
 |-------|-------|--------|
 | 13. Domain Pack + Service Classification + Integrations | 2/2 | Complete (verified 4/4) |
-| 14. Hexagonal + Tactical DDD Rules | 0/? | Not started — next to plan |
+| 14. Hexagonal + Tactical DDD Rules | 1/2 | Plan 01 RED complete — next 14-02 GREEN content |
 | 15. Logging, API Contract & Saga Decision Rules | 0/? | Not started |
 | 16. Starter Examples Outside Index | 0/? | Not started |
 | 17. Coverage Parser + Binding GateAdapter | 0/? | Not started |
@@ -100,6 +100,7 @@ Progress: [███░░░░░░░] 17%
 | Phase 12 P02 | 16min | 2 tasks | 2 files |
 | Phase 13 P01 | 12min | 2 tasks | 1 files |
 | Phase 13 P02 | 18min | 3 tasks | 9 files |
+| Phase 14 P01 | 12min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -133,6 +134,9 @@ Recent decisions affecting current work:
 - [Phase 13]: [13-02] rule-index.json stays gitignored; rebuild via governance build-index is durable path
 - [Phase 13]: [13-02] WSO2 only in internet detail/triggers Markdown; never production src/
 - [Phase 13]: Internal vs internet-facing classified via keyword+path hybrid on TaskSignal (no new SelectionConfig field)
+- [Phase 14]: Sibling suite java-spring-hex-ddd.test.ts (not extending Phase 13 pack suite)
+- [Phase 14]: LOCKED_ENTITY_PATH_GLOB domain-scoped Entity path (infra EntityManagerConfig/JpaEntityScanner negatives)
+- [Phase 14]: Engine frozen — zero production src edits outside new test file; zero new npm deps
 
 ### Pending Todos
 
@@ -170,10 +174,10 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-09
-Stopped at: Phase 13 complete → Phase 14 ready to plan
+Last session: 2026-07-09T17:28:41.151Z
+Stopped at: Completed 14-01-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
 
-- Plan Phase 13: `/gsd-plan-phase 13` (or discuss first if Internal vs internet-facing signal unresolved)
+- Execute Phase 14 plan 02: `/gsd-execute-phase 14` (GREEN: author HEX/DDD rules + details)
