@@ -10,31 +10,43 @@ GSD Core stays the runtime brain: `.planning/`, roadmap, state, phase execution,
 
 Requirements: Node.js `>=22.0.0`, npm `>=10.0.0`, and GSD Core (`@opengsd/gsd-core` / `gsd-tools`) already installed.
 
-This overlay is private/self-hosted. Obtain it from your org git host or a local checkout — not the public npm registry.
+### Primary: org private registry
 
 ```bash
-# 1. Clone (org-hosted private git) or use a local checkout
-git clone <org-host>/<team>/gsd-core-ai-dlc.git
-cd gsd-core-ai-dlc
+# 1. Configure scope + auth (project, user, or org-managed)
+cp .npmrc.example .npmrc
+# replace registry URL + REPLACE_WITH_ORG_TOKEN with org values
 
-# 2. Install deps and build
-npm install
-npm run build
+# 2. Install (requires gsd-core first)
+npm install @opengsd/gsd-aidlc-overlay
 ```
 
-Optional: install into a consumer project via local path or private git URL:
+> **Org private registry only — not public npmjs.com.** Package name `@opengsd/gsd-aidlc-overlay` uses `@opengsd` because the **org private registry** owns that scope locally. This is **not** a public-registry package and does **not** claim public npmjs.com ownership of `@opengsd`.
+
+### Fallback: git / local path
 
 ```bash
-# local path
-npm install /path/to/gsd-core-ai-dlc
-# or
+# clone + build in repo
+git clone <org-host>/<team>/gsd-core-ai-dlc.git
+cd gsd-core-ai-dlc
+npm install
+npm run build
+
+# consumer project — local path
 npm install file:../gsd-core-ai-dlc
 
-# private git (placeholder host — use your org remote)
+# consumer project — private git
 npm install git+ssh://git@<org-host>/<team>/gsd-core-ai-dlc.git
 ```
 
-> **Package name note:** in-repo name is `@opengsd/gsd-aidlc-overlay`. It is **not** published to the public npm registry under `@opengsd` (that scope is owned by open-gsd maintainers). Private git / local install does not require public npm ownership.
+### For maintainers (publish)
+
+Publish to the **org private registry** only (`publishConfig.registry` in `package.json`). Never publish to public npmjs.com.
+
+```bash
+# auth + registry via .npmrc (see .npmrc.example)
+npm run build && npm publish
+```
 
 Full setup, consent, and first-run smoke checks: [Onboarding Guide](docs/onboarding.md).
 

@@ -10,30 +10,42 @@ Install, consent-activate, and first-run the GSD Governance Overlay. The overlay
 
 ## Installation
 
-Private/self-hosted install. Source of truth is your org git repo (or a local checkout), not the public npm registry.
+Primary path is the **org private npm registry**. Fallbacks: private git, local checkout, `file:`, `git+ssh`.
 
-> **Package name note:** in-repo name is `@opengsd/gsd-aidlc-overlay`. It is **not** published to the public npm registry under `@opengsd` (that scope is owned by open-gsd maintainers). Private git / local install does not require public npm ownership.
+> **Org private registry only — not public npmjs.com.** Package name `@opengsd/gsd-aidlc-overlay` uses `@opengsd` because the **org private registry** owns that scope locally. This is **not** a public-registry package and does **not** claim public npmjs.com ownership of `@opengsd`.
 
-### 1. Get the overlay from private git or local checkout
+### 1. Configure private registry (primary)
 
 ```bash
-# org-hosted private git
-git clone <org-host>/<team>/gsd-core-ai-dlc.git
-cd gsd-core-ai-dlc
+# project, user, or org-managed npmrc
+cp .npmrc.example .npmrc
+# replace https://npm.example-org.local/repository/npm-private/
+# and REPLACE_WITH_ORG_TOKEN with org values
 ```
 
-Or use an existing local checkout of this repo.
+`.npmrc` holds tokens — never commit it (gitignored). Commit only `.npmrc.example`.
 
-### 2. Install deps and build
+### 2. Install from private registry
+
+Requires GSD Core (`@opengsd/gsd-core` / `gsd-tools`) already installed.
 
 ```bash
+npm install @opengsd/gsd-aidlc-overlay
+```
+
+### 3. Fallback: git clone / local path / git+ssh
+
+```bash
+# org-hosted private git + build
+git clone <org-host>/<team>/gsd-core-ai-dlc.git
+cd gsd-core-ai-dlc
 npm install
 npm run build
 ```
 
 `npm run build` compiles TypeScript to `dist/` with `tsc -p tsconfig.build.json`.
 
-Optional consumer-project install (after the overlay is built):
+Consumer project (after overlay is built, or via git URL):
 
 ```bash
 # local path
@@ -45,9 +57,18 @@ npm install file:../gsd-core-ai-dlc
 npm install git+ssh://git@<org-host>/<team>/gsd-core-ai-dlc.git
 ```
 
-### 3. Let GSD register capability and skills
+### 4. Let GSD register capability and skills
 
 The GSD Core installer registers the capability from `.gsd/capabilities/aidlc-governance/capability.json` and the skills from `.claude/skills/aidlc-governance-*/SKILL.md`. No manual copying from `agents/`, `commands/`, or skill directories is needed.
+
+### For maintainers (publish)
+
+Publish to the **org private registry** only (`publishConfig.registry` in `package.json`). Never publish to public npmjs.com.
+
+```bash
+# .npmrc must point @opengsd + auth at the org private registry
+npm run build && npm publish
+```
 
 ### Verify install
 
