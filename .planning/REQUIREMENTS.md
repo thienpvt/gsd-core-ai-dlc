@@ -89,8 +89,8 @@ Which phases cover which requirements. Filled during roadmap creation.
 |-------------|-------|--------|
 | JAVA-PACK-01 | Phase 13 | Complete |
 | JAVA-PACK-02 | Phase 13 | Complete |
-| JAVA-HEX-01 | Phase 14 | Pending (14-01 RED; content 14-02) |
-| JAVA-DDD-01 | Phase 14 | Pending (14-01 RED; content 14-02) |
+| JAVA-HEX-01 | Phase 14 | Complete |
+| JAVA-DDD-01 | Phase 14 | Complete |
 | JAVA-SVC-01 | Phase 13 | Complete |
 | JAVA-SVC-02 | Phase 13 | Complete |
 | JAVA-SVC-03 | Phase 13 | Complete |
