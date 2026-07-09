@@ -177,7 +177,7 @@ Plans:
 | 12. Onboarding & Rule-Authoring Docs | v3.0 | 2/2 | Complete | 2026-07-09 |
 | 13. Domain Pack + Service Classification + Integrations | v4.0 | 2/2 | Complete    | 2026-07-09 |
 | 14. Hexagonal + Tactical DDD Rules | v4.0 | 2/2 | Complete   | 2026-07-09 |
-| 15. Logging, API Contract & Saga Decision Rules | v4.0 | 2/2 | Complete   | 2026-07-09 |
+| 15. Logging, API Contract & Saga Decision Rules | v4.0 | 2/2 | Complete    | 2026-07-09 |
 | 16. Starter Examples Outside Index | v4.0 | 0/? | Not started | - |
 | 17. Coverage Parser + Binding GateAdapter | v4.0 | 0/? | Not started | - |
 | 18. Verify/Ship Wire + Consumer Docs | v4.0 | 0/? | Not started | - |

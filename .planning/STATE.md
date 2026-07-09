@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Developer Coding Conventions
-current_phase: 15
-current_phase_name: Logging, API Contract & Saga Decision Rules
-status: verifying
-stopped_at: Completed 15-01-PLAN.md
-last_updated: "2026-07-09T17:55:05.254Z"
+current_phase: 16
+current_phase_name: Starter Examples Outside Index
+status: ready
+stopped_at: Phase 15 verified and transitioned — autonomous stop requested by user
+last_updated: "2026-07-09T18:34:00.000Z"
 last_activity: 2026-07-09
-last_activity_desc: Phase 15 execution started
+last_activity_desc: Phase 15 complete (verify 8/8), transitioned to Phase 16; autonomous mode stopped at user request
 progress:
   total_phases: 6
   completed_phases: 3
@@ -24,22 +24,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-09)
 
 **Core value:** The rule selection engine injects only the relevant AI-DLC rule summaries for the current task and phase — enough governance to be safe, little enough to avoid context bloat.
-**Current focus:** Phase 15 — Logging, API Contract & Saga Decision Rules
+**Current focus:** Phase 16 — Starter Examples Outside Index (not started; autonomous mode stopped after Phase 15)
 
 ## Current Position
 
-Phase: 15 (Logging, API Contract & Saga Decision Rules) — EXECUTING
-Plan: 2 of 2
-Status: Phase complete — ready for verification
-Last activity: 2026-07-09 — Phase 15 execution started
+Phase: 16 — Starter Examples Outside Index
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-07-09 — Phase 15 complete (verify 8/8), transitioned to Phase 16
 
-Progress: [███░░░░░░░] 33%
+Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 40 (all milestones)
+- Total plans completed: 42 (all milestones)
 - Average duration: — min
 - Total execution time: 0.0 hours
 
@@ -61,6 +61,7 @@ Progress: [███░░░░░░░] 33%
 | 12 | 2 | - | - |
 | 13 | 2 | - | - |
 | 14 | 2 | - | - |
+| 15 | 2 | - | - |
 
 **v2.0 Phases:**
 
@@ -85,7 +86,8 @@ Progress: [███░░░░░░░] 33%
 |-------|-------|--------|
 | 13. Domain Pack + Service Classification + Integrations | 2/2 | Complete (verified 4/4) |
 | 14. Hexagonal + Tactical DDD Rules | 2/2 | Complete (verified 7/7) |
-| 15. Logging, API Contract & Saga Decision Rules | 0/? | Not started — next to plan |
+| 15. Logging, API Contract & Saga Decision Rules | 2/2 | Complete (verified 8/8) |
+| 16. Starter Examples Outside Index | 0/? | Not started — next to plan |
 | 16. Starter Examples Outside Index | 0/? | Not started |
 | 17. Coverage Parser + Binding GateAdapter | 0/? | Not started |
 | 18. Verify/Ship Wire + Consumer Docs | 0/? | Not started |

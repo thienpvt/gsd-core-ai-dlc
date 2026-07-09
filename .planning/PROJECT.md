@@ -52,11 +52,11 @@ The rule selection engine correctly injects only the relevant AI-DLC rule summar
 - [x] Governance-rule authoring guide (how end users develop their own governance rules) — **Validated in Phase 12: Onboarding & Rule-Authoring Docs** (DOC-02+DOC-03: `docs/governance-workflow.md` all 5 CLI commands + E2E worked example; `docs/rule-authoring.md` 7 frontmatter fields + classification, 3 scopes, 3 trigger axes, runnable verify-the-rule-fires loop with temp triggered rule)
 - [x] Subscribe-able `java-spring` domain pack with one-sentence summaries + Internal vs internet-facing outbound + inbound REST/Kafka conventions — **Validated in Phase 13: Domain Pack + Service Classification + Integrations** (JAVA-PACK-01/02, JAVA-SVC-01/02/03, JAVA-IN-01/02; 4 advisory rules under `aidlc-rules/domain/java-spring/`; pack suite green; verify 4/4)
 - [x] Hexagonal + tactical DDD coding-convention rules (path-triggered, advisory) — **Validated in Phase 14** (JAVA-HEX-01, JAVA-DDD-01; sibling suite 36/36; verify 7/7)
+- [x] Error/audit logging, API contract, and saga/event pattern rules — **Validated in Phase 15** (JAVA-LOG-01, JAVA-API-01, JAVA-EVT-01; sibling suite 42/42; verify 8/8; saga when-NOT-to-use guidance)
 
 ### Active
 
 - [ ] Unit-test coverage >70% rule with consumer-side real CI check (coverage report parser adapter)
-- [ ] Error/audit logging, API contract, and saga/event pattern rules
 - [ ] Starter examples: project structure + thin Java/Spring reference snippets
 
 ### Out of Scope
@@ -123,4 +123,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-09 after Phase 14*
+*Last updated: 2026-07-09 after Phase 15*
