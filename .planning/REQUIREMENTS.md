@@ -8,8 +8,8 @@
 
 ### Domain Pack
 
-- [ ] **JAVA-PACK-01**: Team can subscribe the `java-spring` domain pack (`aidlc-rules/domain/java-spring/`) so only opted-in projects receive coding-convention rules
-- [ ] **JAVA-PACK-02**: Every pack rule carries a one-sentence `summary` suitable for injection; full prose lives behind `detailPath` (no essay injection)
+- [x] **JAVA-PACK-01**: Team can subscribe the `java-spring` domain pack (`aidlc-rules/domain/java-spring/`) so only opted-in projects receive coding-convention rules
+- [x] **JAVA-PACK-02**: Every pack rule carries a one-sentence `summary` suitable for injection; full prose lives behind `detailPath` (no essay injection)
 
 ### Architecture (Hexagonal + DDD)
 
@@ -18,11 +18,11 @@
 
 ### Service Classification & Integration
 
-- [ ] **JAVA-SVC-01**: Selector can classify Internal vs internet-facing service context and inject the matching outbound rule
-- [ ] **JAVA-SVC-02**: Internal services: JDBC/ORM/direct DB access is allowed; no forced API gateway on outbound
-- [ ] **JAVA-SVC-03**: Internet-facing services: all outbound calls to external systems MUST go through WSO2 (or declared API gateway); no raw external SDK/WebClient/RestTemplate from domain
-- [ ] **JAVA-IN-01**: Inbound REST conventions inject on controller/API work: thin controllers → application ports; validation at boundary; no business logic in controller
-- [ ] **JAVA-IN-02**: Inbound Kafka conventions inject on listener/consumer work: idempotent consumers; retry/DLQ policy; no Kafka client types in domain (port + adapter)
+- [x] **JAVA-SVC-01**: Selector can classify Internal vs internet-facing service context and inject the matching outbound rule
+- [x] **JAVA-SVC-02**: Internal services: JDBC/ORM/direct DB access is allowed; no forced API gateway on outbound
+- [x] **JAVA-SVC-03**: Internet-facing services: all outbound calls to external systems MUST go through WSO2 (or declared API gateway); no raw external SDK/WebClient/RestTemplate from domain
+- [x] **JAVA-IN-01**: Inbound REST conventions inject on controller/API work: thin controllers → application ports; validation at boundary; no business logic in controller
+- [x] **JAVA-IN-02**: Inbound Kafka conventions inject on listener/consumer work: idempotent consumers; retry/DLQ policy; no Kafka client types in domain (port + adapter)
 
 ### Logging, API, Events
 
@@ -87,15 +87,15 @@ Which phases cover which requirements. Filled during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| JAVA-PACK-01 | Phase 13 | Pending |
-| JAVA-PACK-02 | Phase 13 | Pending |
+| JAVA-PACK-01 | Phase 13 | Complete |
+| JAVA-PACK-02 | Phase 13 | Complete |
 | JAVA-HEX-01 | Phase 14 | Pending |
 | JAVA-DDD-01 | Phase 14 | Pending |
-| JAVA-SVC-01 | Phase 13 | Pending |
-| JAVA-SVC-02 | Phase 13 | Pending |
-| JAVA-SVC-03 | Phase 13 | Pending |
-| JAVA-IN-01 | Phase 13 | Pending |
-| JAVA-IN-02 | Phase 13 | Pending |
+| JAVA-SVC-01 | Phase 13 | Complete |
+| JAVA-SVC-02 | Phase 13 | Complete |
+| JAVA-SVC-03 | Phase 13 | Complete |
+| JAVA-IN-01 | Phase 13 | Complete |
+| JAVA-IN-02 | Phase 13 | Complete |
 | JAVA-LOG-01 | Phase 15 | Pending |
 | JAVA-API-01 | Phase 15 | Pending |
 | JAVA-EVT-01 | Phase 15 | Pending |
@@ -107,6 +107,7 @@ Which phases cover which requirements. Filled during roadmap creation.
 | JAVA-DOC-01 | Phase 18 | Pending |
 
 **Coverage:**
+
 - v4.0 requirements: 18 total
 - Mapped to phases: 18/18 ✓
 - Unmapped: 0

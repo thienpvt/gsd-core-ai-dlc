@@ -4,17 +4,17 @@ milestone: v4.0
 milestone_name: Developer Coding Conventions
 current_phase: 13
 current_phase_name: v4.0 phases 13-18
-status: executing
+status: verifying
 stopped_at: Completed 13-01-PLAN.md
-last_updated: "2026-07-09T16:51:34.058Z"
+last_updated: "2026-07-09T16:54:46.881Z"
 last_activity: 2026-07-09
 last_activity_desc: v4.0 roadmap created (6 phases, 18/18 requirements mapped)
 progress:
   total_phases: 6
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
-  percent: 0
+  completed_plans: 2
+  percent: 17
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-07-09)
 
 Phase: 13 of 18 (v4.0 phases 13-18)
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-07-09 — v4.0 roadmap created (6 phases, 18/18 requirements mapped)
 
 Progress: [█████░░░░░] 50%
@@ -98,6 +98,7 @@ Progress: [█████░░░░░] 50%
 | Phase 12 P01 | 14min | 2 tasks | 2 files |
 | Phase 12 P02 | 16min | 2 tasks | 2 files |
 | Phase 13 P01 | 12min | 2 tasks | 1 files |
+| Phase 13 P02 | 18min | 3 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -128,6 +129,9 @@ Recent decisions affecting current work:
 - [Phase 13]: Primary RED suite targets real aidlc-rules via buildIndex (missing pack = expected RED)
 - [Phase 13]: Body canaries BODY_CANARY java-spring-<id> documented for plan 02 parity
 - [Phase 13]: Engine frozen; zero production src edits outside test file
+- [Phase ?]: [Phase 13]: [13-02] Omitted bare jdbc/jpa/orm positives on internal outbound — class markers + paths only for fail-open XOR
+- [Phase ?]: [Phase 13]: [13-02] rule-index.json stays gitignored; rebuild via governance build-index is durable path
+- [Phase ?]: [Phase 13]: [13-02] WSO2 only in internet detail/triggers Markdown; never production src/
 
 ### Pending Todos
 
@@ -166,7 +170,7 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-09T16:51:23.943Z
+Last session: 2026-07-09T16:54:34.917Z
 Stopped at: Completed 13-01-PLAN.md
 Resume file: None
 
