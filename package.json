@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "description": "AI-DLC governance overlay for GSD Core — indexed, on-demand rule packs.",
   "license": "MIT",
+  "publishConfig": {
+    "registry": "https://npm.example-org.local/repository/npm-private/"
+  },
   "engines": {
     "node": ">=22.0.0",
     "npm": ">=10.0.0"

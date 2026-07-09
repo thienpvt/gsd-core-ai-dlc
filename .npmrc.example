@@ -1,0 +1,5 @@
+# Org private registry config (NOT public npmjs.com).
+# Copy to project/user .npmrc, replace placeholders with org values. Never commit real tokens.
+
+@opengsd:registry=https://npm.example-org.local/repository/npm-private/
+//npm.example-org.local/repository/npm-private/:_authToken=REPLACE_WITH_ORG_TOKEN

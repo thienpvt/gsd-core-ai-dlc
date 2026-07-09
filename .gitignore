@@ -1,6 +1,9 @@
 # Dependencies
 node_modules/
 
+# Local npm auth (copy from .npmrc.example — never commit tokens)
+.npmrc
+
 # Build output (tsc)
 dist/
 dist-test/
