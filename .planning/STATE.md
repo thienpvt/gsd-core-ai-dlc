@@ -2,14 +2,18 @@
 gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Developer Coding Conventions
-status: planning
-last_updated: "2026-07-09T18:00:00.000Z"
+current_phase: 13
+current_phase_name: v4.0 phases 13-18
+status: executing
+stopped_at: Completed 13-01-PLAN.md
+last_updated: "2026-07-09T16:51:34.058Z"
 last_activity: 2026-07-09
+last_activity_desc: v4.0 roadmap created (6 phases, 18/18 requirements mapped)
 progress:
   total_phases: 6
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 2
+  completed_plans: 1
   percent: 0
 ---
 
@@ -25,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-07-09)
 ## Current Position
 
 Phase: 13 of 18 (v4.0 phases 13-18)
-Plan: —
-Status: Ready to plan
+Plan: 2 of 2
+Status: Ready to execute
 Last activity: 2026-07-09 — v4.0 roadmap created (6 phases, 18/18 requirements mapped)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
@@ -93,6 +97,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 11-summary-frontmatter-hygiene P01 | 7min | 2 tasks | 7 files |
 | Phase 12 P01 | 14min | 2 tasks | 2 files |
 | Phase 12 P02 | 16min | 2 tasks | 2 files |
+| Phase 13 P01 | 12min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -119,6 +124,10 @@ Recent decisions affecting current work:
 - [Phase 12]: [12-02] Negative selector docs parse JSON and inspect selected[].id because skipped[] intentionally keeps non-matching rule ids.
 - [Quick 260709-uk6]: Kept package name @opengsd/gsd-aidlc-overlay; private registry owns @opengsd scope locally via publishConfig + .npmrc.example placeholders.
 - [Quick 260709-uk6]: Docs lead with org private-registry install; git/file/git+ssh demoted to Fallback; never claim public npmjs.com ownership.
+- [Phase ?]: test
+- [Phase 13]: Primary RED suite targets real aidlc-rules via buildIndex (missing pack = expected RED)
+- [Phase 13]: Body canaries BODY_CANARY java-spring-<id> documented for plan 02 parity
+- [Phase 13]: Engine frozen; zero production src edits outside test file
 
 ### Pending Todos
 
@@ -157,8 +166,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-09
-Stopped at: v4.0 ROADMAP.md written — ready for `/gsd-plan-phase 13`
+Last session: 2026-07-09T16:51:23.943Z
+Stopped at: Completed 13-01-PLAN.md
 Resume file: None
 
 ## Operator Next Steps

@@ -71,14 +71,17 @@ Content + one real adapter. Engine from v1–v3 stays frozen. Ship selectable `j
 **Depends on**: Nothing (first v4.0 phase; uses shipped pack/select/inject engine)
 **Requirements**: JAVA-PACK-01, JAVA-PACK-02, JAVA-SVC-01, JAVA-SVC-02, JAVA-SVC-03, JAVA-IN-01, JAVA-IN-02
 **Success Criteria** (what must be TRUE):
+
   1. Project can subscribe `domains: ["java-spring"]` and only then receive rules from `aidlc-rules/domain/java-spring/` in select/inject output
   2. Every pack rule summary is one sentence suitable for injection; full prose loads only via `detailPath` / `governance rule-detail`
   3. Selector classifies Internal vs internet-facing context and injects the matching outbound rule (Internal: JDBC/ORM OK; internet-facing: outbound via gateway/WSO2 capability language — vendor names only in rule content, not engine `src/`)
   4. Construction tasks on controller/API paths inject thin-controller REST conventions; listener/consumer paths inject idempotent Kafka conventions with no client types in domain
-**Plans**: 2 plans
+
+**Plans**: 1/2 plans executed
 
 Plans:
-- [ ] 13-01-PLAN.md — TDD RED pack suite (subscription, summary, outbound XOR, inbound path matrices)
+
+- [x] 13-01-PLAN.md — TDD RED pack suite (subscription, summary, outbound XOR, inbound path matrices)
 - [ ] 13-02-PLAN.md — Author four java-spring rules + details, rebuild rule-index.json, GREEN suite
 
 ### Phase 14: Hexagonal + Tactical DDD Rules
@@ -87,9 +90,11 @@ Plans:
 **Depends on**: Phase 13 (pack root + summary contract)
 **Requirements**: JAVA-HEX-01, JAVA-DDD-01
 **Success Criteria** (what must be TRUE):
+
   1. Tasks touching domain/application/adapter paths inject Hexagonal layering: dependencies point inward; domain has no Spring/JPA/framework/gateway types
   2. Tasks involving aggregates/entities/domain events inject tactical DDD: aggregate root per consistency boundary; immutable VOs; past-tense domain event names
   3. Unrelated tasks (e.g. README typo, non-Java paths) do not select HEX/DDD rules (path/taskType triggers, no empty always-on triggers)
+
 **Plans**: TBD
 
 ### Phase 15: Logging, API Contract & Saga Decision Rules
@@ -98,9 +103,11 @@ Plans:
 **Depends on**: Phase 13 (pack IA); Phase 14 recommended for id/prefix consistency
 **Requirements**: JAVA-LOG-01, JAVA-API-01, JAVA-EVT-01
 **Success Criteria** (what must be TRUE):
+
   1. Relevant tasks inject logging rules: correlation/trace id propagation, no PII/secrets in logs, audit events for state-changing operations
   2. API work injects OpenAPI source-of-truth or generated-and-checked, one versioning policy, and uniform error envelope (`code`, `message`, `correlationId`)
   3. Distributed-workflow tasks inject saga/outbox/domain-event decision rules including explicit when-NOT-to-use (no saga cargo-cult on single-service ACID)
+
 **Plans**: TBD
 
 ### Phase 16: Starter Examples Outside Index
@@ -109,8 +116,10 @@ Plans:
 **Depends on**: Phases 13–15 (rules that detail may point at examples exist first)
 **Requirements**: JAVA-EX-01, JAVA-EX-02
 **Success Criteria** (what must be TRUE):
+
   1. `examples/java-spring/` ships folder layout plus thin snippets (ports, adapters, handlers, REST, Kafka) outside rule-index scan roots
   2. `build-index` / load path never treats starter content under `examples/` as selectable rules (layout proof and/or explicit guard)
+
 **Plans**: TBD
 
 ### Phase 17: Coverage Parser + Binding GateAdapter
@@ -119,10 +128,12 @@ Plans:
 **Depends on**: Phase 13 (domain pack root for binding rule placement); uses shipped GateAdapter/runAdapter
 **Requirements**: JAVA-COV-01, JAVA-COV-02, JAVA-COV-03
 **Success Criteria** (what must be TRUE):
+
   1. Pack carries a binding coverage rule (`classification: binding`, named `enforcement` contract) requiring unit line coverage ≥ 70% for consumer Java work
   2. Real `coverage-report` GateAdapter parses consumer JaCoCo XML (primary) and LCOV (secondary) via Node stdlib only and emits schema-valid `GateResult` through `runAdapter`
   3. Missing coverage report or line coverage &lt; 70% fails closed at verify and blocks ship when coverage evidence is required
   4. Fixture tests prove pass-at-threshold, fail-under, missing report, and malformed report — zero new npm deps; no Maven/JDK shell-out; vendor-neutral `src/`
+
 **Plans**: TBD
 
 ### Phase 18: Verify/Ship Wire + Consumer Docs
@@ -131,9 +142,11 @@ Plans:
 **Depends on**: Phase 17 (adapter + binding rule); Phase 13 (domain subscribe)
 **Requirements**: JAVA-DOC-01
 **Success Criteria** (what must be TRUE):
+
   1. Consumer docs explain how to subscribe `domains: ["java-spring"]` and how to produce/configure JaCoCo or LCOV report path for the coverage gate
   2. Verify/ship path is configured so binding coverage uses `coverage-report` evidence (not left on always-pass generic-exit-ci while claiming coverage enforced)
   3. Docs are discoverable from existing onboarding/docs entrypoints without reading engine source
+
 **Plans**: TBD
 
 ## Progress
@@ -152,7 +165,7 @@ Plans:
 | 10. Selection-Quality Harness | v2.0 | 2/2 | Complete | 2026-07-08 |
 | 11. SUMMARY Frontmatter Hygiene | v3.0 | 1/1 | Complete | 2026-07-08 |
 | 12. Onboarding & Rule-Authoring Docs | v3.0 | 2/2 | Complete | 2026-07-09 |
-| 13. Domain Pack + Service Classification + Integrations | v4.0 | 0/? | Not started | - |
+| 13. Domain Pack + Service Classification + Integrations | v4.0 | 1/2 | In Progress|  |
 | 14. Hexagonal + Tactical DDD Rules | v4.0 | 0/? | Not started | - |
 | 15. Logging, API Contract & Saga Decision Rules | v4.0 | 0/? | Not started | - |
 | 16. Starter Examples Outside Index | v4.0 | 0/? | Not started | - |
