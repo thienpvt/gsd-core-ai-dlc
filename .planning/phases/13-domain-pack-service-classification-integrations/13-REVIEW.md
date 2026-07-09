@@ -19,7 +19,15 @@ findings:
   warning: 3
   info: 3
   total: 9
-status: findings
+status: fixed
+fixed_at: 2026-07-09
+fixes:
+  - CR-01: removed bare `rest` keyword; multi-token rest-* needles + path-primary
+  - CR-02: removed bare `consumer`/`listener`; kafka-* keywords only
+  - CR-03: narrowed paths to messaging/kafka-shaped globs
+  - WR-01: internet outbound class markers only (dropped webclient/resttemplate/etc.)
+  - WR-02: hard-assert WSO2 + BODY_CANARY in internet detail
+  - WR-03: real-corpus inventory exact 5 ids (mfa + 4 pack)
 ---
 
 # Phase 13: Code Review Report
@@ -27,7 +35,7 @@ status: findings
 **Reviewed:** 2026-07-10T00:15:00Z
 **Depth:** deep
 **Files Reviewed:** 10
-**Status:** findings
+**Status:** fixed (post-review remediation; suite 444 pass / 0 fail)
 
 ## Summary
 
