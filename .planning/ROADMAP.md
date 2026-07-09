@@ -95,7 +95,11 @@ Plans:
   2. Tasks involving aggregates/entities/domain events inject tactical DDD: aggregate root per consistency boundary; immutable VOs; past-tense domain event names
   3. Unrelated tasks (e.g. README typo, non-Java paths) do not select HEX/DDD rules (path/taskType triggers, no empty always-on triggers)
 
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 14-01-PLAN.md — TDD RED hex-ddd suite (path matrices, CR negatives, inject quarantine)
+- [ ] 14-02-PLAN.md — Author HEX/DDD rules + details, rebuild rule-index.json, GREEN suite
 
 ### Phase 15: Logging, API Contract & Saga Decision Rules
 
