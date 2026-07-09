@@ -1,355 +1,531 @@
 # Architecture Research
 
-**Domain:** Governance overlay on an AI-development-workflow runtime (GSD Core + AI-DLC governance)
-**Researched:** 2026-07-05
-**Confidence:** HIGH (integration seam read directly from installed GSD Core source at `C:\Users\thien\.claude\gsd-core`)
+**Domain:** Developer coding-convention rule packs + starter examples + coverage GateAdapter on existing GSD governance overlay
+**Researched:** 2026-07-09
+**Confidence:** HIGH (integration seams read from live `src/` — load/select/adapters/verify/ship; pack layout from `docs/rule-authoring.md` + `scope.ts`)
 
 ## Headline Finding
 
-GSD Core already exposes a **formal, first-class plugin API** — the **Capability Registry** (ADR-894 "Loop Host Contract" + ADR-1244 "role-partitioned Capability Registry"). We do **not** need to fork GSD, monkey-patch workflows, or invent a hook API. A governance overlay ships as a **third-party capability**: a directory `<project>/.gsd/capabilities/aidlc-governance/capability.json` plus artifact files. GSD's `capability-loader.cjs` discovers it at runtime, validates it, and merges it into the same registry the first-party features use. Governance gates then fire at the exact same 12 lifecycle points as built-in features like `security`, `tdd`, `ui`, and `drift`.
+v4.0 is **content + one real adapter**, not a new runtime. Existing spine stays:
 
-This is the single most important architectural decision: **the overlay is a data-declared capability, not a code fork.** Everything else follows from it.
+```
+aidlc-rules → build-index → body-free rule-index.json → select() → summary inject → lazy rule-detail
+GateAdapter → runAdapter → gate evidence under .planning/governance/ → verify/ship fail-closed
+```
 
-### Evidence (cited, from installed source)
+Coding conventions ship as a **domain pack** (`aidlc-rules/domain/java-spring/`). Starter Java examples ship **outside** the rule walk. Coverage >70% is a **real `GateAdapter`** that parses consumer JaCoCo/XML/LCOV — first non-stub enforcement path for consumers. This repo stays Node/TS; adapter only reads report files consumers produce in their CI.
 
-- `bin/lib/loop-host-contract.cjs` — the 12 canonical extension points, generated from workflow markers: `discuss:pre/post`, `plan:pre/post`, `execute:pre/wave:pre/wave:post/post`, `verify:pre/post`, `ship:pre/post`. Each step declares `agentRoles` and `coreArtifacts` (produces/consumes).
-- `bin/lib/capability-registry.cjs` — the generated registry. Each capability declares `steps`, `contributions`, and `gates`, each bound to a `point`, an activation `when` (a config key), a `blocking` flag, and an `onError` policy (`skip` | `halt`). The built-in `security`, `tdd`, `ui`, `drift`, `schema-gate`, `gap-analysis`, and `mempalace` capabilities are working templates for exactly what we need.
-- `bin/lib/capability-loader.cjs` — `loadRegistry({ includeInstalled })` composes the frozen first-party registry with a **validated installed overlay** read from `$GSD_HOME/.gsd/capabilities/<id>/capability.json` (global) and `<projectRoot>/.gsd/capabilities/<id>/capability.json` (project). First-party always wins; overlays that collide or fail validation are skipped. **A skipped capability that declares a gate is recorded so the loop fails CLOSED for that gate** — governance-friendly by design.
-- `bin/lib/loop-resolver.cjs` — `resolveLoopHooks({ point, registry, config })` filters the registry by config activation and returns active hooks (steps, then contributions, then gates) with a rendered-markdown envelope. Command surface: `gsd-tools loop render-hooks <point>`.
-- `bin/lib/capability-source.cjs` — the installer/resolver (`resolveCapabilitySource`) that stages a capability from local path / git / npm / tarball with full validation. Install **never executes capability code** (copy-only); declarations only.
+Core value unchanged: summary-only injection. Examples never enter index. Full Java snippets load only via explicit paths or lazy detail prose pointers — never as selected rule bodies.
 
-The overlay's job is therefore: (1) ship a `capability.json` that registers governance steps/contributions/gates at the right points, and (2) provide the rule-pack store + selection engine + audit writer that those hooks call into. The seam is real and stable; the novel engineering is the selection engine.
+---
 
-## Standard Architecture
+## Standard Architecture (v4.0 delta on existing system)
 
 ### System Overview
 
 ```
-┌───────────────────────────────────────────────────────────────────────┐
-│                         GSD CORE RUNTIME (unmodified)                    │
-│   .planning/ loop:  discuss → plan → execute → verify → ship            │
-│   capability-loader.cjs → loop-resolver.cjs → gsd-tools loop render-hooks│
-│                                                                          │
-│   12 loop points: discuss:pre/post plan:pre/post execute:pre/wave:*/post │
-│                   verify:pre/post ship:pre/post                          │
-└───────────────┬──────────────────────────────────────────────────────┬─┘
-                │  registers steps/contributions/gates via capability.json│
-                │  (project-scope .gsd/capabilities/aidlc-governance/)     │
-┌───────────────▼──────────────────────────────────────────────────────▼─┐
-│                    AI-DLC GOVERNANCE OVERLAY (this project)               │
-│                                                                          │
-│  ┌────────────────┐   ┌──────────┐   ┌───────────────────────────────┐  │
-│  │  Gate Hooks     │   │  Selection│  │        Rule-Pack Store         │  │
-│  │ (capability.json│──▶│  Engine   │◀─│  enterprise / domain / project  │  │
-│  │  step/gate refs)│   │ task+phase│  │  scoped rule files + frontmatter│  │
-│  └───────┬─────────┘   │ → rules   │  └────────────────┬──────────────┘  │
-│          │             └────┬──────┘                    │                 │
-│          │                  │  reads                     │ built by        │
-│          │                  ▼                            ▼                 │
-│          │           ┌────────────┐            ┌──────────────────┐       │
-│          │           │ Rule Index  │◀───────────│  Index Builder    │      │
-│          │           │(id,trigger, │            │ (scan → manifest) │      │
-│          │           │ phase,sev,  │            └──────────────────┘       │
-│          │           │ summary,path)│                                      │
-│          │           └────┬────────┘                                       │
-│          ▼                │ selected summaries only                        │
-│  ┌────────────────┐       ▼                                                │
-│  │Summary Injector │──▶ [markdown fragment into GSD prompt at point]       │
-│  └────────────────┘                                                        │
-│  ┌──────────────────────┐   on-demand full body                           │
-│  │ Detail Loader (lazy)  │──▶ [full rule text when summary insufficient]   │
-│  └──────────────────────┘                                                  │
-│  ┌────────────────┐   ┌────────────────────────────────────────────────┐  │
-│  │ Audit Writer    │──▶│ Enforcement Adapters (tool-agnostic contracts)  │  │
-│  │(GOVERNANCE.md,  │   │  CI / SAST / tests / policy-as-code / human      │  │
-│  │ audit-state)    │   │  approval — stubs, no vendor lock-in             │  │
-│  └───────┬─────────┘   └────────────────────────────────────────────────┘  │
-│          │ persists                                                         │
-└──────────┼─────────────────────────────────────────────────────────────────┘
-           ▼
-   .planning/governance/   (survives context compaction — see Persistence)
-   ├── rule-index.json           (built manifest: summaries + pointers)
-   ├── selection-state.json      (per-phase selected rule ids + reasons)
-   └── <phase>/GOVERNANCE.md     (per-phase audit artifact, frontmatter-gated)
+┌──────────────────────────────────────────────────────────────────────────┐
+│  GSD CORE RUNTIME (unmodified) — discuss → plan → execute → verify → ship │
+│  capability-loader → loop-resolver → aidlc-governance capability.json      │
+└───────────────────────────────┬──────────────────────────────────────────┘
+                                │ existing hooks (consent-gated)
+┌───────────────────────────────▼──────────────────────────────────────────┐
+│  GOVERNANCE OVERLAY (shipped v1–v3)                                        │
+│                                                                            │
+│  Rule-Pack Store          Index Builder         Selection Engine           │
+│  enterprise/              build-index ──▶       select(index,signal,cfg)   │
+│  domain/<name>/  ◀NEW     rule-index.json       domains: ["java-spring"]   │
+│  project/                 (no bodies)           keywords|taskType|paths    │
+│       │                         │                      │                   │
+│       │                         ▼                      ▼                   │
+│       │                  Summary Injector ◀── selected summaries only      │
+│       │                  Detail Loader    ◀── governance rule-detail <id>  │
+│       │                                                                    │
+│  GateAdapter registry + runAdapter (Ajv hard-fail)                         │
+│  ├── stubs: semgrep, bandit, checkov, grype, gitleaks, generic-exit-ci,    │
+│  │          human-approval                                                 │
+│  └── ◀NEW coverage  (JaCoCo XML / LCOV parser → GateResult)                │
+│                                                                            │
+│  verifyGateHook ──runAdapter──▶ gates/{NN}-verify.json                     │
+│  shipGateHook    ──prior evidence + approvals + eval ──▶ block/pass        │
+│  Audit Writer    ──GOVERNANCE.md + selection-state.json                    │
+└───────────────────────────────────────────────────────────────────────────┘
+
+◀NEW content (not in select path):
+  examples/java-spring/   # starter layout + thin snippets; NEVER indexed
+  aidlc-rules/domain/java-spring/**/*.md  # rules + optional details/
 ```
 
-### Component Responsibilities
+### Component Responsibilities (v4.0 focus)
 
-| Component | Responsibility | How it's built |
-|-----------|----------------|----------------|
-| **Rule-Pack Store** | Holds rule definitions in three scopes (enterprise/domain/project). Each rule = frontmatter (id, trigger, phases, severity, summary) + body. | Markdown-with-frontmatter files under `governance/rules/{enterprise,domain,project}/`. Mirrors AI-DLC's `## Rule <PREFIX-NN>` + Rule/Verification structure. |
-| **Index Builder** | Scans the store, extracts frontmatter + summary, emits a compact manifest. Run once per store change, not per request. | Node CJS module + `gsd-tools`-style CLI subcommand. Writes `rule-index.json`. |
-| **Rule Index** | Fast in-memory lookup: id → {trigger, phases, severity, summary, bodyPath}. The searchable projection the selector reads. | JSON manifest loaded at gate time; never loads bodies. |
-| **Selection Engine** | Core value. Given (task signals, phase, scope config), returns the minimal set of relevant rule ids + why. | Pure function: trigger-matching + phase-filter + scope-precedence + severity ranking. Testable without I/O. |
-| **Summary Injector** | Renders selected rules' **summaries only** into a markdown fragment for the GSD prompt at the active point. | Emits a capability `contribution` fragment (GSD renders it via loop-resolver). |
-| **Detail Loader** | On demand, loads a single rule's full body by id when a summary is insufficient. | `gsd-tools`-style query subcommand: `governance rule-detail <id>`. |
-| **Gate Hooks** | The `capability.json` step/gate/contribution entries that bind the above to the 12 points. | Declarative JSON — the actual GSD seam. |
-| **Audit Writer** | Records requirements covered, rules applied, rules skipped + reasons, tests run, remaining risks, approvals. | Writes `<phase>/GOVERNANCE.md` with gate-checkable frontmatter + `selection-state.json`. |
-| **Enforcement Adapters** | Tool-agnostic contracts + stubs so binding enforcement routes to CI/SAST/tests/policy/human, not markdown. | Interface + no-op/stub adapters; a gate `check` reads adapter results. |
+| Component | Status | Responsibility |
+|-----------|--------|----------------|
+| **Domain pack `java-spring`** | NEW content | Hexagonal/CQRS/DDD, service classification, WSO2 outbound, REST/Kafka inbound, logging, API contracts, saga/events, coverage binding rule |
+| **Rule loader / index / select** | UNCHANGED core | Already supports `domain/<name>/`, subscription via `config.domains`, `details/` skip, body quarantine |
+| **Loader skip for `examples/`** | MODIFY (small) | Mirror `details/` skip if examples ever nest under pack; prefer top-level `examples/` so zero loader change |
+| **Summary inject + rule-detail** | UNCHANGED | Summaries only; lazy body by id |
+| **`coverage` GateAdapter** | NEW code | Parse consumer coverage report → schema-valid `GateResult`; threshold default 70% |
+| **`runAdapter` / gate schemas** | UNCHANGED | Hard-fail malformed results; coverage must emit valid `gate-result` |
+| **`verifyGateHook`** | MODIFY (wire) | Allow `adapterName: "coverage"` (or multi-adapter later); today single adapter per call — compose via sequential calls or new thin orchestrator |
+| **`shipGateHook`** | MODIFY (light) | Fail-closed on missing/failing verify evidence that includes coverage when binding coverage rule selected |
+| **Eval corpus** | MODIFY content | Add labeled cases for java-spring triggers (WSO2, hexagonal paths, coverage taskType=test) |
+| **capability.json** | MODIFY (light) | Optional config keys: `governance.domains`, `governance.coverage.min`, `governance.coverage.reportPath` |
+| **Starter examples tree** | NEW content | Folder layout + thin Java/Spring snippets for LLM mirror — **not rules** |
 
-## Recommended Project Structure
+---
+
+## Recommended Layout (v4.0)
 
 ```
-.gsd/capabilities/aidlc-governance/     # THE SEAM — installed capability (project scope)
-├── capability.json                     # registers steps/contributions/gates at loop points
-└── fragments/                          # path-based hook fragments (injected markdown)
-    ├── discuss-pre.md                  # "classify task type + risk" contribution
-    ├── plan-pre.md                     # inject selected rule summaries for planning
-    ├── execute-pre.md                  # inject rules for executor/subagent
-    └── verify-post.md                  # audit-artifact + enforcement-check guidance
+aidlc-rules/
+├── enterprise/                    # existing (require-mfa, etc.) — leave alone
+├── domain/
+│   └── java-spring/               # NEW — subscription name = "java-spring"
+│       ├── hexagonal-layering.md
+│       ├── cqrs-command-query.md
+│       ├── ddd-aggregates.md
+│       ├── service-classification.md      # Internal vs internet-facing
+│       ├── outbound-wso2-only.md          # internet-facing outbound
+│       ├── inbound-rest.md
+│       ├── inbound-kafka.md
+│       ├── unit-test-coverage-70.md       # binding → enforcement: coverage:min-70
+│       ├── logging-audit.md
+│       ├── api-contract-openapi.md
+│       ├── saga-outbox-events.md
+│       └── details/                       # lazy full bodies (already skipped by loader)
+│           ├── hexagonal-layering-detail.md
+│           ├── outbound-wso2-only-detail.md
+│           └── ...
+└── project/                       # this repo only if overlay-self rules needed
 
-src/                                    # the overlay implementation (Node CJS, matches GSD)
-├── index/
-│   ├── build-index.js                  # Index Builder (scan store → rule-index.json)
-│   └── rule-index.js                   # Rule Index loader/projection
-├── selection/
-│   └── select.js                       # Selection Engine (pure: task+phase → rule ids)
-├── inject/
-│   ├── summary-injector.js             # render selected summaries → fragment
-│   └── detail-loader.js                # lazy full-body loader by id
-├── audit/
-│   └── audit-writer.js                 # GOVERNANCE.md + selection-state.json
-├── adapters/
-│   ├── contract.js                     # tool-agnostic enforcement interface
-│   └── stubs/                          # ci.js sast.js tests.js policy.js human.js
-└── cli.js                              # subcommands the hooks call (mirror gsd-tools shape)
+examples/                          # NEW — OUTSIDE aidlc-rules (critical)
+└── java-spring/
+    ├── README.md                  # how LLM should use these (mirror, don't inject)
+    ├── layout/                    # ports/adapters + application/domain tree sketch
+    │   └── ...
+    └── snippets/                  # thin .java fragments (not full apps)
+        ├── domain-aggregate.java.txt
+        ├── inbound-rest-adapter.java.txt
+        ├── outbound-wso2-client.java.txt
+        └── ...
 
-governance/
-├── rules/
-│   ├── enterprise/                     # broadest scope, lowest precedence to override
-│   ├── domain/                         # e.g. fintech, healthcare rule packs
-│   └── project/                        # project-specific, highest precedence
-└── schema/
-    └── rule.frontmatter.json           # rule frontmatter contract
+src/enforcement/
+├── adapters.ts                    # MODIFY: register "coverage" (real, not noop)
+├── coverage-adapter.ts            # NEW: parse JaCoCo XML / LCOV → GateResult
+├── coverage-parse.ts              # NEW: pure parsers (testable, no I/O policy)
+└── run-adapter.ts                 # UNCHANGED boundary
 
-.planning/governance/                   # RUNTIME STATE (survives compaction) — see Persistence
-├── rule-index.json
-├── selection-state.json
-└── <phase-dir>/GOVERNANCE.md
+src/rules/load.ts                  # OPTIONAL MODIFY: skip "examples" dir name if nested
+src/governance/verify-gate-hook.ts # MODIFY: coverage adapter selection / multi-run
 ```
 
 ### Structure Rationale
 
-- **`.gsd/capabilities/aidlc-governance/`:** This exact path is what `capability-loader.cjs` scans (`overlayRoots()` → `<projectRoot>/.gsd/capabilities`). Placing the capability here — and nowhere in GSD's own tree — is what makes the overlay upgrade-safe. GSD upgrades replace `gsd-core/`; they never touch `.gsd/capabilities/`.
-- **`fragments/`:** `capability-validator.materializeHookFragments` resolves `fragment.path` entries relative to the capability dir. Path-based fragments keep large rule-injection text out of the JSON manifest.
-- **`src/` in CJS:** GSD Core is authored in `.cts` → compiled to `.cjs`. Matching the module system means the overlay's CLI and the gate `check` queries can be invoked with `node` exactly like `gsd-tools.cjs`.
-- **`governance/rules/{enterprise,domain,project}/`:** Directory = scope. Scope precedence (project > domain > enterprise) is resolved in the selection engine, mirroring AI-DLC's two-tier `aws-aidlc-rules` / `aws-aidlc-rule-details` split and its `extensions/` opt-in model.
-- **`.planning/governance/`:** Runtime state lives under `.planning/` (GSD's state home) so it is co-located with STATE.md/ROADMAP.md and survives the long-running loop and compaction. It is a **new subdirectory**, not a root file, so it does not collide with GSD's canonical `.planning/` root artifacts (see `bin/lib/artifacts.cjs` `CANONICAL_EXACT`).
+- **`domain/java-spring/` not enterprise:** Coding conventions are language/stack-specific. Enterprise pack is org-wide non-negotiables (MFA, etc.). Putting Java rules in enterprise forces them onto every domain subscription — wrong for this Node overlay repo and non-Java consumers. Domain subscription is already first-class (`config.domains` + `domainName()` from `sourceFile`).
+- **`domain/java-spring/` not project:** Project scope is "this git repo only." Starter pack is product content for **consumer** Java services. Domain is the reusable unit.
+- **`examples/` outside `aidlc-rules/`:** `findRuleFiles` indexes every `*.md` except under `details/`. Putting `.java` under rules is safe from index, but `.md` READMEs would become rules. Top-level `examples/` needs zero loader change and cannot pollute `rule-index.json`. **Do not** put examples under `details/` — details are rule prose loaded by id, not starter trees.
+- **Binding coverage rule + real adapter:** Markdown "coverage >70%" alone = governance theater (PITFALLS). Binding frontmatter `enforcement: coverage:min-70` + adapter that parses real reports is the only credible path. Adapter runs in **consumer** verify CI (report path config), not against this repo's node:test suite.
+
+---
 
 ## Architectural Patterns
 
-### Pattern 1: Capability-as-Overlay (the seam)
+### Pattern 1: Domain pack as the coding-convention unit
 
-**What:** Ship governance as a declarative `capability.json` with `role: "feature"`, registered via `steps`/`contributions`/`gates` at loop points. GSD's loader merges it into the live registry.
-**When to use:** Always, for this project. It is the only integration path that is upgrade-safe and uses GSD's own activation/gating machinery.
-**Trade-offs:** Bound to GSD's registry schema and its 12 points (a real constraint, but the points map cleanly onto discuss/plan/execute/verify/ship). Third-party project-scope capabilities require a **user consent record** in the user-owned consent store before activating (see `capability-loader.cjs` §5, `#1459`), so first-run setup must record consent.
+**What:** One domain directory = one opt-in convention stack. Frontmatter uses existing fields only — no schema expansion required for v4.0 content.
+**When:** Any language/stack pack (java-spring now; future packs same shape).
+**Trade-offs:** Consumers must pass `--domains java-spring` (or config). Forgotten subscription = silent under-injection for that pack — mitigate with onboarding docs + eval case that expects domain rules when subscribed.
 
-**Example (capability.json skeleton — shapes verified against the built-in `security` capability):**
-```json
-{
-  "id": "aidlc-governance",
-  "role": "feature",
-  "version": "0.1.0",
-  "title": "AI-DLC governance overlay",
-  "engines": { "gsd": ">=1.6.0" },
-  "config": {
-    "governance.enabled": { "type": "boolean", "default": false,
-      "description": "Master toggle for AI-DLC governance overlay." },
-    "governance.block_on": { "type": "enum",
-      "values": ["critical","high","medium","low","none"], "default": "high",
-      "description": "Minimum rule severity that blocks ship." }
-  },
-  "contributions": [
-    { "point": "discuss:pre", "into": "orchestrator",
-      "fragment": { "path": "fragments/discuss-pre.md" },
-      "when": "governance.enabled", "onError": "skip" },
-    { "point": "plan:pre", "into": "planner",
-      "fragment": { "path": "fragments/plan-pre.md" },
-      "when": "governance.enabled", "onError": "skip" }
-  ],
-  "steps": [
-    { "point": "verify:post", "ref": { "command": "governance audit" },
-      "produces": ["GOVERNANCE.md"], "consumes": ["SUMMARY.md"],
-      "when": "governance.enabled", "onError": "halt" }
-  ],
-  "gates": [
-    { "point": "ship:pre",
-      "check": { "predicate": { "kind": "artifact-frontmatter-equals",
-        "artifact": "GOVERNANCE.md", "field": "rules_open", "equals": 0 } },
-      "when": "governance.enabled", "blocking": true, "onError": "halt" }
-  ]
-}
-```
-The `security` capability uses this exact `artifact-frontmatter-equals` predicate at `ship:pre` (`SECURITY.md` / `threats_open == 0`) — confirmed in `capability-registry.cjs`. We mirror it with `GOVERNANCE.md` / `rules_open`.
-
-### Pattern 2: Index-then-select (summaries-only injection)
-
-**What:** Never inject rule bodies. Build a compact index once; at each gate the selection engine returns ids; the injector renders only summaries; bodies load lazily by id.
-**When to use:** Every injection point. This is the anti-bloat premise of the whole project.
-**Trade-offs:** Requires the index to stay fresh (rebuild on rule-store change). A stale index risks missing a new rule — mitigated by a cheap freshness check at gate time (like GSD's `drift` capability warns on stale STRUCTURE.md).
-
-**Example (selection is a pure function — trivially testable):**
-```javascript
-// select(taskSignals, phase, scopesConfig, index) → { ids, reasons }
-function select(task, phase, cfg, index) {
-  const candidates = index.rules
-    .filter(r => r.phases.includes(phase))          // phase filter
-    .filter(r => triggerMatches(r.trigger, task))   // trigger match
-    .filter(r => scopeEnabled(r.scope, cfg));        // scope/opt-in
-  // project > domain > enterprise on id collision; then severity rank
-  return rankByScopeThenSeverity(candidates);
-}
+**Example frontmatter (service classification):**
+```yaml
+---
+id: service-classification
+scope: domain
+triggers:
+  keywords:
+    - service
+    - microservice
+    - jdbc
+    - outbound
+    - wso2
+    - internet-facing
+    - internal-service
+  paths:
+    - "**/application/**"
+    - "**/adapter/**"
+    - "**/infrastructure/**"
+phases:
+  - inception
+  - construction
+severity: high
+summary: >-
+  Classify service as internal (JDBC/ORM OK) or internet-facing
+  (outbound only via WSO2). Inbound REST or Kafka.
+classification: advisory
+detailPath: ./details/service-classification-detail.md
+---
 ```
 
-### Pattern 3: Advisory-context / binding-enforcement split
+**Example frontmatter (binding coverage):**
+```yaml
+---
+id: unit-test-coverage-70
+scope: domain
+triggers:
+  taskType:
+    - test
+    - feature
+    - bugfix
+  keywords:
+    - coverage
+    - jacoco
+    - unit-test
+  paths:
+    - "**/src/test/**"
+    - "**/pom.xml"
+    - "**/build.gradle*"
+phases:
+  - construction
+  - common
+severity: high
+summary: Unit-test line coverage must exceed 70% (enforced by coverage report adapter).
+classification: binding
+enforcement: coverage:min-70
+detailPath: ./details/unit-test-coverage-70-detail.md
+---
+```
 
-**What:** Injected summaries are advisory context for the model. Binding enforcement is a **gate** whose `check` reads an enforcement adapter (CI/SAST/tests/policy/human), not the markdown.
-**When to use:** Any rule with a severity that must actually block. Markdown never blocks; a `blocking: true` gate with `onError: "halt"` does.
-**Trade-offs:** Requires the adapter contract + at least stub implementations up front so gates have something to read. GSD's fail-closed behavior for skipped gate-declaring capabilities (`capability-loader.cjs`) means a broken adapter blocks rather than silently passes — the safe default.
+### Pattern 2: Examples as non-indexed assets
+
+**What:** Starter layout + snippets live under `examples/java-spring/`. Rules mention example relative paths only inside **detail** bodies (lazy). Injection never lists example file contents.
+**When:** Always for starter material. LLM fetches examples via normal repo read when implementing, not via `select()`.
+**Trade-offs:** Slightly more friction than dumping examples into context; preserves core value. Optional later: `governance example <id>` CLI — not required for MVP.
+
+```
+select()  →  summaries of rules only
+rule-detail service-classification  →  prose + "see examples/java-spring/layout/..."
+LLM / user  →  open example files on demand (outside governance inject path)
+```
+
+### Pattern 3: Coverage adapter as first real GateAdapter
+
+**What:** Implement `GateAdapter` with `name: "coverage"`. `evaluate(request)`:
+1. Resolve report path from env/config (`COVERAGE_REPORT` or `governance.coverage.reportPath`).
+2. Detect format (JaCoCo XML vs LCOV).
+3. Parse line coverage % (pure functions).
+4. Compare to threshold (default 70; config override).
+5. Return `GateResult` `{ status: pass|fail, findings: [...], evaluatedBy: "coverage", ... }`.
+6. Always exit through `runAdapter` → Ajv validate.
+
+**When:** verify gate when binding rule `unit-test-coverage-70` is in `selected[]`, or when consumer CI always runs coverage adapter.
+**Trade-offs:** Report-format surface area (JaCoCo XML + LCOV enough for Java/Spring). No Maven/Gradle execution inside adapter — **parse only**. Consumer CI produces report; adapter adjudicates. Keeps tool-agnostic contract (any producer of JaCoCo/LCOV works).
+
+```typescript
+// Shape only — pure parse + threshold; I/O at adapter edge
+export function coverageFromJacocoXml(xml: string): { lineRate: number };
+export function coverageFromLcov(lcov: string): { lineRate: number };
+
+export function coverageAdapter(opts: { reportPath: string; minLineRate: number }): GateAdapter {
+  return {
+    name: "coverage",
+    async evaluate(request) {
+      // read reportPath → parse → status pass/fail → findings id tied to rule ids
+      // gateId must echo request.gateId ("verify")
+    },
+  };
+}
+```
+
+**Wire into verify:** Today `verifyGateHook` picks one `adapterName` (default `generic-exit-ci`). v4.0 options (prefer A for YAGNI):
+
+| Option | Approach | Choose when |
+|--------|----------|-------------|
+| **A (recommended)** | Consumer/CI calls `runAdapter(coverageAdapter, request)` and/or `verifyGateHook({ adapterName: "coverage" })` when coverage is the binding check for that run | Single binding concern per verify invocation |
+| B | `verifyGateHook` loops adapters listed in config | Multiple real adapters must all pass in one hook |
+
+Ship A first. Multi-adapter composition = later phase if needed.
+
+### Pattern 4: Trigger design for classification + WSO2 (recall-first for high)
+
+**What:** Use **broad keywords + path globs**; severity `high`/`critical` for boundary rules so under-injection is less likely. Prefer over-injection of a short summary over missing WSO2 boundary.
+**When:** Service classification, outbound WSO2, hexagonal layering.
+
+| Rule theme | Primary triggers | Phases | Notes |
+|------------|------------------|--------|-------|
+| Service classification | keywords: `internal`, `internet-facing`, `jdbc`, `wso2`, `outbound`; paths: `**/adapter/**`, `**/infrastructure/**` | inception + construction | Advisory; guides design early |
+| Outbound WSO2 only | keywords: `wso2`, `resttemplate`, `webclient`, `feign`, `http-client`, `outbound`; paths: `**/*Client*.java`, `**/outbound/**` | construction | High; detail lists forbidden direct internet clients |
+| Inbound REST | keywords: `controller`, `restcontroller`, `openapi`, `api`; paths: `**/adapter/in/**`, `**/web/**` | construction | |
+| Inbound Kafka | keywords: `kafka`, `consumer`, `listener`; paths: `**/messaging/**`, `**/kafka/**` | construction | |
+| Hexagonal / CQRS / DDD | keywords: `hexagonal`, `port`, `adapter`, `aggregate`, `cqrs`, `command`, `query`; paths: `**/domain/**`, `**/application/**`, `**/ports/**` | construction (+ inception for structure) | |
+| Coverage | taskType: `test`\|`feature`\|`bugfix` + paths to build files / tests | construction + common | **Binding** → coverage adapter |
+| Logging / API / saga | respective keywords | construction | Advisory unless org marks binding later |
+
+Empty `triggers: {}` only for true always-on domain baselines — use sparingly (token budget). Prefer keyword+path.
+
+**Exclude axis:** Use `exclude.paths: ["**/src/test/**"]` on production-boundary rules so test fakes do not force WSO2 summaries every unit-test edit — optional precision knob after eval measures noise.
+
+---
 
 ## Data Flow
 
-### A task flowing through the loop
+### A. Coding-rule selection (consumer Java task)
 
 ```
-GSD reaches a loop point (e.g. plan:pre)
+Consumer enables governance + domains: ["java-spring"]
     ↓
-gsd-tools loop render-hooks plan:pre
-    ↓  (loop-resolver filters registry by `when` config activation)
-governance contribution active? → invoke overlay
+discuss/plan: TaskSignal from CONTEXT (keywords, paths to *.java, taskType)
     ↓
-Selection Engine: (task signals from CONTEXT.md, phase, scope cfg) → rule ids + reasons
-    ↓  reads Rule Index (summaries only — never bodies)
-Summary Injector → markdown fragment (selected summaries)
+select(index, signal, { phase, domains: ["java-spring"] })
+    ↓  domain gate: only domain/java-spring/* + enterprise + project
+    ↓  trigger gate: keywords/paths/taskType
+selected[] summaries → inject <governance> fragment (no bodies, no examples)
     ↓
-fragment rendered into the GSD planner/orchestrator prompt
-    ↓  (model may request more)
-Detail Loader ← "governance rule-detail <id>"  (lazy, only when needed)
-    ↓
-... execution proceeds ...
-    ↓
-verify:post step → Audit Writer
-    ↓
-writes <phase>/GOVERNANCE.md  (rules applied, skipped+reasons, tests, risks, approvals,
-                               frontmatter: rules_open: N)
-    ↓
-updates .planning/governance/selection-state.json
-    ↓
-ship:pre gate → predicate reads GOVERNANCE.md frontmatter (rules_open == 0?)
-    ↓                       ↘ enforcement adapters consulted for binding checks
-   PASS → ship            FAIL → halt (blocking gate)
+execute: model follows summaries; may `governance rule-detail <id>`
+    ↓ detail prose points to examples/java-spring/... (user/LLM opens files)
 ```
 
-### State management (persistence across compaction)
+### B. Coverage enforcement (consumer CI / verify)
 
 ```
-Rule store (git-committed, static)
-    → Index Builder →  .planning/governance/rule-index.json     (rebuilt on change)
-
-Per-phase run:
-  selection →  .planning/governance/selection-state.json         (append per phase)
-  audit     →  .planning/governance/<phase>/GOVERNANCE.md         (per phase)
+Consumer CI runs tests → writes jacoco.xml or lcov.info
+    ↓
+verifyGateHook({ adapterName: "coverage", ... })
+  or explicit runAdapter(coverageAdapter, gateRequest)
+    ↓
+coverage adapter reads report file (path from config/env)
+    ↓
+parse line rate → GateResult status pass/fail + findings
+    ↓
+runAdapter Ajv-validates → write gates/{NN}-verify.json
+    ↓
+shipGateHook: missing/fail verify evidence → block
+audit: machine-derived tests/coverage status, not model narration
 ```
 
-### Key data flows
+### C. What must NOT flow
 
-1. **Selection flow:** CONTEXT.md task signals + phase + scope config → selection engine → ids. The engine is the linchpin; everything upstream feeds it and everything downstream consumes its output.
-2. **Injection flow:** ids → index lookup → summaries → fragment → GSD prompt. Bounded by design; body text never enters context here.
-3. **Audit flow:** execution results + selection-state → GOVERNANCE.md (with gate-checkable frontmatter) → ship gate. This closes the loop from "which rules applied" to "did we satisfy them."
+```
+examples/**           ✗ never → rule-index.json
+rule Markdown bodies  ✗ never → inject fragment
+full starter trees    ✗ never → select() output
+coverage report XML   ✗ never → LLM context (adapter-only)
+```
 
-## Persistence Model (survives context compaction)
+---
 
-The defining constraint: audit state and selection state must **not** live only in context. They live on disk under `.planning/governance/`.
+## New vs Modified Components
 
-| File | Shape | Lifecycle | Why here |
-|------|-------|-----------|----------|
-| `.planning/governance/rule-index.json` | `{ built_at, rules: [{ id, scope, trigger, phases, severity, summary, body_path }] }` | Rebuilt when the rule store changes | Compact projection; the only thing loaded at gate time |
-| `.planning/governance/selection-state.json` | `{ <phase>: { selected: [ids], reasons: {id: why}, skipped: {id: why} } }` | Appended per phase at selection time | Lets a resumed/compacted session recall what was selected without re-deriving |
-| `.planning/governance/<phase-dir>/GOVERNANCE.md` | Frontmatter `{ rules_applied, rules_skipped, rules_open, tests, risks_open, approvals_required }` + body | Written at `verify:post`, read at `ship:pre` | Review-ready audit artifact; frontmatter is the gate predicate source |
+### New
 
-Rationale grounded in GSD behavior:
-- `.planning/` is GSD's canonical state home (`PROJECT.md`, `STATE.md`, `ROADMAP.md`, `config.json` all live there per `bin/lib/artifacts.cjs`). Placing governance state there means it is committed with the project (config `commit_docs: true`) and reloaded on session resume.
-- Using a **subdirectory** `governance/` avoids GSD-health `W019` flagging (the `artifacts.cjs` canonical-file check only governs `.planning/` **root** files; subdirectories are out of its scope).
-- Per-phase directory layout mirrors GSD's own per-phase artifact convention (RESEARCH.md, PLAN.md, SUMMARY.md, SECURITY.md live in phase dirs), so `artifact-frontmatter-equals` predicates resolve `GOVERNANCE.md` the same way `security` resolves `SECURITY.md`.
-- Configuration attaches through the capability's declared `config` keys (`governance.*`), which GSD merges into its config schema (`config-schema.manifest.json` + capability `config` blocks). We do **not** edit GSD's `config.json` schema; the capability contributes its keys. The existing `.planning/config.json` (read: `workflow.*`, `security_enforcement`, etc.) is untouched; governance keys are additive.
+| Artifact | Kind | Depends on |
+|----------|------|------------|
+| `aidlc-rules/domain/java-spring/*.md` + `details/` | content | existing frontmatter schema |
+| `examples/java-spring/**` | content | nothing in select path |
+| `src/enforcement/coverage-parse.ts` | code | pure string → metrics |
+| `src/enforcement/coverage-adapter.ts` | code | GateAdapter, parse, fs read |
+| Eval fixtures for java-spring signals | test content | eval harness (Phase 10) |
+| Docs: pack install + domain subscribe + coverage CI | docs | onboarding/rule-authoring patterns |
 
-## Build Order (dependencies)
+### Modified
 
-Grounded in the flow above — the selection engine is the core-value linchpin, but it needs the index and store shape defined first.
+| Artifact | Change | Risk |
+|----------|--------|------|
+| `src/enforcement/adapters.ts` | Register `coverage` in map (real adapter, not noop); extend `STUB_NAMES` or split REAL vs STUB | Low if coverage only used when configured |
+| `src/governance/verify-gate-hook.ts` | Document/support `adapterName: "coverage"`; optional default selection when binding coverage rule present | Medium — keep single-adapter call first |
+| `src/governance/ship-gate-hook.ts` | Ensure fail-closed already covers coverage verify fails (likely **no code** if evidence status=fail) | Low |
+| capability config / docs | `governance.domains`, coverage report path + min | Low |
+| `docs/rule-authoring.md` / onboarding | Domain pack + examples placement + coverage adapter | Low |
+| Optional `load.ts` | Skip directory name `examples` if ever nested under rules | Low; avoid need by layout |
 
-1. **Rule frontmatter schema + Rule-Pack Store layout** — everything keys off the rule shape (id, trigger, phases, severity, summary, body). Define scopes and precedence. No dependencies. Mirror AI-DLC's `## Rule <PREFIX-NN>` + Rule/Verification structure and its opt-in model.
-2. **Index Builder + Rule Index** — scan store → `rule-index.json`. Depends on (1). Cheap, and unblocks the selector with real data.
-3. **Selection Engine** — pure function (task+phase+scope → ids+reasons). Depends on (2) for the index shape. **This is the riskiest, highest-value component; build it with a strong test suite before wiring any hooks.** If summary selection is wrong, the anti-bloat premise collapses.
-4. **Summary Injector + Detail Loader** — render selected summaries; lazy body load. Depends on (3).
-5. **capability.json + fragments (the seam)** — register contributions/steps/gates at the 12 points. Depends on (3)/(4) existing as callable CLI subcommands. Validate with `capability-validator` / `gsd-tools loop render-hooks`.
-6. **Audit Writer** — GOVERNANCE.md + selection-state.json. Depends on (3) (needs selection output) and (5) (fires at verify:post).
-7. **Enforcement Adapter contract + stubs** — tool-agnostic interface + no-op stubs. Depends on the gate `check` shape from (5)/(6). Ship stubs only (no vendor integrations).
+### Unchanged (do not rebuild)
 
-Critical-path note: 1 → 2 → 3 is the value spine. Hooks (5) and audit (6) are integration; adapters (7) can be stubbed last. Do not build (5) before (3) works — a registered gate with a broken selector fails closed and blocks the whole loop.
+- Frontmatter schema (unless new field forced — **not required**)
+- `select()` pure core, scope precedence, token budget
+- `renderInjection` body-free guarantee
+- `runAdapter` validation boundary
+- Approval store, audit writer v2 shape, eval harness engine
+
+---
+
+## Build Order (phases 13+)
+
+Continue numbering after v3.0 phases 11–12. Order is dependency-driven.
+
+### Phase 13 — Domain pack skeleton + service boundary rules
+**Ship:** `aidlc-rules/domain/java-spring/` with service-classification, outbound-wso2-only, inbound-rest, inbound-kafka (+ details). Rebuild index. Eval cases for subscribe/unsubscribed domain + WSO2 keywords.
+**Why first:** Content-only; proves domain subscription path with real corpus. No adapter risk.
+**Avoids:** Putting Java rules in enterprise; empty triggers spam.
+
+### Phase 14 — Architecture style rules (Hexagonal + CQRS + DDD)
+**Ship:** layering, ports/adapters, CQRS, DDD aggregate/naming rules + details. Path globs for `domain/application/adapter`.
+**Depends on:** 13 pack root exists.
+**Avoids:** Giant always-in-phase rules; keep path+keyword triggers.
+
+### Phase 15 — Cross-cutting conventions (logging, API, saga/events)
+**Ship:** logging-audit, api-contract-openapi, saga-outbox-events rules.
+**Depends on:** 13–14 patterns for id/prefix consistency.
+**Note:** All advisory unless product later marks binding + contract.
+
+### Phase 16 — Starter examples tree (non-indexed)
+**Ship:** `examples/java-spring/layout` + thin snippets; README usage. Detail files from 13–15 link to example paths. Property/regression: `build-index` rule count unchanged by examples; no example path in `rule-index.json`.
+**Depends on:** rules that point at examples (13–15).
+**Avoids:** examples under `aidlc-rules/**` markdown walk.
+
+### Phase 17 — Coverage parser + GateAdapter
+**Ship:** `coverage-parse.ts` (JaCoCo XML + LCOV), `coverage-adapter.ts`, register in adapter map, unit tests with fixture reports, threshold config (default 0.70). Binding rule `unit-test-coverage-70`.
+**Depends on:** GateAdapter + runAdapter (done Phase 7); binding rule content can land here or end of 13.
+**Avoids:** Shelling out to Maven; parsing only. Avoid treating this repo's node coverage as the consumer check.
+
+### Phase 18 — Verify/ship wiring + consumer CI docs
+**Ship:** verify path runs coverage adapter when configured; ship fail-closed evidence path verified; onboarding section "Java consumer: domains + coverage report path"; optional capability config keys.
+**Depends on:** 17 adapter + 13 binding rule.
+**Avoids:** Multi-adapter orchestration complexity unless proven necessary.
+
+### Phase 19 — Selection-quality eval expansion + token budget check
+**Ship:** Full labeled eval set for java-spring (critical/high recall floor), precision report for noisy keywords, budget regression with full pack enabled.
+**Depends on:** complete rule corpus (13–15) + examples not in index (16).
+**Why last content-quality gate:** Need final corpus before locking recall.
+
+**Optional later (not v4.0 must):** multi-adapter verify loop; `governance example` CLI; BA/PM packs; frontend packs.
+
+### Phase ordering rationale
+
+```
+13 pack + boundary rules     → unblocks domain subscription proof
+14 architecture rules        → needs pack root
+15 cross-cutting rules       → parallelizable with 14 after 13, but serial keeps review simple
+16 examples                  → after rules that reference them; proves non-index
+17 coverage adapter          → independent of 14–16 content-wise, but binding rule + docs clearer after pack exists; can spike parse early
+18 gate wire + consumer docs → needs 17
+19 eval + budget             → needs full corpus
+```
+
+Critical path: **13 → 14 → 15 → 16** (content) parallel-capable with **17** after 13's binding rule id frozen → **18** → **19**.
+
+---
+
+## Scaling Considerations
+
+| Concern | This overlay repo | 1 consumer Java service | Many services / multi-domain |
+|---------|-------------------|-------------------------|------------------------------|
+| Rule corpus size | Small domain pack | One domain subscribed | Multiple domains; budget pressure |
+| Selection | Existing engine | Same; domains filter | Watch token budget; split domains |
+| Coverage adapter | Fixture-tested only | One report path in CI | Per-service report path config |
+| Examples | Shipped in package | Copied/mirrored by LLM | Version with pack; don't inject |
+
+**First bottleneck:** Token budget when java-spring + enterprise + loose keywords over-inject. Mitigate with eval precision + exclude paths, not by dropping critical boundary rules.
+
+**Second bottleneck:** Coverage format drift (JaCoCo versions). Keep parser tolerant; test fixtures from real JaCoCo XML samples.
+
+---
 
 ## Anti-Patterns
 
-### Anti-Pattern 1: Forking or patching GSD internals
+### Anti-Pattern 1: Enterprise dump of all Java rules
 
-**What people do:** Edit `gsd-core/workflows/*.md` or `bin/gsd-tools.cjs` to insert governance logic.
-**Why it's wrong:** Every GSD upgrade overwrites `gsd-core/`, silently destroying the integration. It also opts out of GSD's validation, activation, and fail-closed gate machinery.
-**Do this instead:** Ship a capability under `.gsd/capabilities/` — the loader merges it and it survives upgrades.
+**What people do:** Put coding conventions under `aidlc-rules/enterprise/`.
+**Why wrong:** Forces Java governance onto non-Java work; blows budget; wrong scope semantics.
+**Instead:** `domain/java-spring/` + explicit subscribe.
 
-### Anti-Pattern 2: Injecting full rule bodies (or the whole corpus) per request
+### Anti-Pattern 2: Examples as rules or under indexed markdown
 
-**What people do:** Concatenate all steering markdown into every prompt (AI-DLC's default "load rules file" behavior).
-**Why it's wrong:** This is the exact context-bloat failure mode the project exists to eliminate; it degrades the long-running loop.
-**Do this instead:** Inject summaries only via the index; load bodies lazily by id through the Detail Loader.
+**What people do:** `aidlc-rules/domain/java-spring/examples/*.md` with frontmatter, or huge snippet bodies in rule files.
+**Why wrong:** Index/select may inject or at least bloat authoring; violates summary-only premise if bodies grow.
+**Instead:** Top-level `examples/`; rule **details** point to paths; inject summaries only.
 
-### Anti-Pattern 3: Treating markdown as enforcement
+### Anti-Pattern 3: Coverage as advisory markdown only
 
-**What people do:** Assume the model will obey injected rules, and call that "enforcement."
-**Why it's wrong:** Advisory context is not binding; critical rules can be silently ignored.
-**Do this instead:** Route binding checks through a `blocking: true` gate whose `check` reads an enforcement adapter (CI/SAST/tests/policy/human), with `onError: "halt"`.
+**What people do:** Rule says ">70%" with Verification for the model to self-check.
+**Why wrong:** Governance theater; no machine evidence; ship lies.
+**Instead:** `classification: binding` + `enforcement: coverage:min-70` + real parser adapter + gate evidence.
 
-### Anti-Pattern 4: Holding audit/selection state only in context
+### Anti-Pattern 4: Adapter runs Maven/Gradle inside Node overlay
 
-**What people do:** Track "which rules applied" in the conversation.
-**Why it's wrong:** Context compaction erases it; the audit trail is lost and selection can't be reconstructed on resume.
-**Do this instead:** Persist to `.planning/governance/` (index, selection-state, GOVERNANCE.md).
+**What people do:** `spawn mvn test` from adapter.
+**Why wrong:** Wrong runtime, non-portable, slow, security surface; this repo is not the consumer build.
+**Instead:** Parse CI-produced reports only.
+
+### Anti-Pattern 5: Schema expansion for "examplePath" without need
+
+**What people do:** Add frontmatter fields for examples, service-tier enums, etc.
+**Why wrong:** `additionalProperties: false` — schema change ripples validators/tests; YAGNI if detail prose + keywords suffice.
+**Instead:** Existing triggers + detail pointers; revisit schema only if select must key on new axis.
+
+### Anti-Pattern 6: Empty triggers for entire coding pack
+
+**What people do:** All java-spring rules `triggers: {}` so they always fire when domain subscribed.
+**Why wrong:** Over-injection when domain enabled for any task; budget death.
+**Instead:** Phase + keyword/path triggers; reserve always-in-phase for 1–2 true baselines max.
+
+---
 
 ## Integration Points
 
-### GSD Core (the seam — grounded)
+### Existing seams (reuse)
 
-| Boundary | Mechanism | Notes |
-|----------|-----------|-------|
-| Discovery | `capability-loader.cjs` scans `<projectRoot>/.gsd/capabilities/<id>/capability.json` | Project scope requires a user consent record (`hasProjectConsent`) before activation; global scope (`$GSD_HOME/.gsd/capabilities`) is trusted |
-| Extension points | `loop-host-contract.cjs` — 12 points across discuss/plan/execute/verify/ship | `steps` (run agent/skill/command), `contributions` (inject markdown into a role prompt), `gates` (blocking/non-blocking checks) |
-| Activation | `when` = a config key resolved by `capability-activation.cjs`; keys declared in the capability's `config` block | `governance.enabled` master toggle mirrors `workflow.security_enforcement` |
-| Rendering | `loop-resolver.cjs` → `gsd-tools loop render-hooks <point>` | Returns active hooks ordered steps → contributions → gates, with rendered markdown |
-| Gate predicates | `check.predicate.kind` (e.g. `artifact-frontmatter-equals`) or `check.query` | `security` uses `artifact-frontmatter-equals` on `SECURITY.md`; we mirror on `GOVERNANCE.md` |
-| Install | `capability-source.cjs` `resolveCapabilitySource` (local/git/npm/tarball) | Copy-only, never executes capability code; full validation before staging |
+| Seam | How v4.0 uses it |
+|------|------------------|
+| `aidlc-rules/domain/<name>/` | Pack name `java-spring` |
+| `SelectionConfig.domains` | `["java-spring"]` |
+| `select()` domainName from sourceFile | No change |
+| `details/` skip in loadRules | Rule details only |
+| Frontmatter binding + enforcement string | `coverage:min-70` |
+| `GateAdapter` + `runAdapter` | coverage implementation |
+| `verifyGateHook` / `shipGateHook` | Evidence + fail-closed |
+| `.planning/governance/gates/` | Durable verify results |
+| Eval harness + ship critical-recall | Expand corpus, don't rewrite engine |
+| capability.json consent hooks | Config keys additive |
 
-### AI-DLC (data model source — grounded)
-
-| Boundary | What we mirror | Notes |
-|----------|----------------|-------|
-| Rule shape | `## Rule <PREFIX-NN>: <Title>` with **Rule** (requirement) + **Verification** (checks) sections; unique ids | From `awslabs/aidlc-workflows` `aws-aidlc-rules` / `aws-aidlc-rule-details` |
-| Two-tier detail | Core rules (`core-workflow.md`) + conditional detail files | Maps to our summary (index) vs body (lazy) split |
-| Opt-in / scope | `extensions/<cat>/<name>.opt-in.md` gates whether rules load; no opt-in = "always enforced" | Maps to our scope config (`governance.*`) + selection engine scope filter |
-| Phases | Inception (WHAT/WHY) → Construction (HOW) → Operations | Map onto GSD discuss/plan → execute/verify → ship |
-
-### Internal boundaries
+### Internal boundaries (v4.0)
 
 | Boundary | Communication | Notes |
 |----------|---------------|-------|
-| Gate hooks ↔ Selection engine | CLI subcommand invocation (`node src/cli.js governance select ...`) | Same invocation shape as `gsd-tools`; keeps the seam declarative |
-| Selection engine ↔ Rule index | In-process function call (pure) | No I/O in the pure core; index loaded by caller |
-| Audit writer ↔ Enforcement adapters | Interface contract (`adapters/contract.js`) | Stubs return structured pass/fail the gate predicate reads |
+| Domain pack ↔ select | Index records only | Bodies never in index |
+| Rules ↔ examples | Prose paths in detail files | No API coupling |
+| Coverage adapter ↔ verify | `runAdapter` only | Never bypass Ajv |
+| Coverage adapter ↔ consumer CI | Report file path | Overlay does not build Java |
+| Inject ↔ examples | **None** | Hard boundary |
+
+### External (consumer)
+
+| Consumer concern | Integration |
+|------------------|-------------|
+| Enable pack | `governance select --domains java-spring` / config |
+| Produce coverage | JaCoCo or LCOV in CI |
+| Point adapter | `governance.coverage.reportPath` or env |
+| Threshold | default 70%; config override |
+| WSO2 / classification | Follow selected summaries + detail; SAST optional later stub |
+
+---
+
+## Suggested Roadmap Phase Map (13–19)
+
+| Phase | Name | New / Mod | Core value impact |
+|-------|------|-----------|-------------------|
+| 13 | Java-spring domain pack: classification + integrations | NEW content | Select must fire on WSO2/service signals |
+| 14 | Hexagonal + CQRS + DDD rules | NEW content | Path/keyword selection |
+| 15 | Logging, API, saga rules | NEW content | Advisory corpus complete |
+| 16 | Starter examples (non-indexed) | NEW assets + guard test | **Must not** enter inject path |
+| 17 | Coverage parse + GateAdapter | NEW code + binding rule | First real binding enforcement for consumers |
+| 18 | Verify/ship wire + consumer docs | MOD hooks/docs | Evidence fail-closed |
+| 19 | Eval corpus + budget with full pack | MOD eval fixtures | Recall/precision/budget lock |
+
+Research flags:
+- Phase 17: deeper research on JaCoCo XML schema variants if fixtures fail real reports
+- Phase 18: only if multi-adapter orchestration demanded — else standard pattern
+- Phases 13–16: standard pack authoring; unlikely need new engine research
+
+---
 
 ## Sources
 
-- GSD Core installed source (read directly, HIGH confidence): `C:\Users\thien\.claude\gsd-core\bin\lib\loop-host-contract.cjs`, `capability-registry.cjs`, `capability-loader.cjs`, `capability-source.cjs`, `loop-resolver.cjs`, `artifacts.cjs`, `runtime-hooks-surface.cjs`, `bin/shared/config-schema.manifest.json`; ADR references ADR-894 (Loop Host Contract), ADR-1244 (Capability Registry overlay).
-- GSD Core repo: https://github.com/open-gsd/gsd-core (same codebase as installed copy).
-- AI-DLC Workflows: https://github.com/awslabs/aidlc-workflows — phases (Inception/Construction/Operations), `aws-aidlc-rules` / `aws-aidlc-rule-details` two-tier layout, `extensions/*.opt-in.md` opt-in model, `## Rule <PREFIX-NN>` rule structure (MEDIUM confidence — read via repo overview, not full file-by-file).
-- Project constraints: `.planning/PROJECT.md`, `.planning/config.json`.
+- Live code: `src/rules/load.ts` (details/ skip, body quarantine), `src/rules/scope.ts` (domain tier), `src/select/select.ts` (`domainName`, `inScope`, trigger axes), `src/types.ts` (Frontmatter/TaskSignal), `src/enforcement/adapters.ts` + `run-adapter.ts` + `types.ts`, `src/governance/verify-gate-hook.ts`, `ship-gate-hook.ts`, `paths.ts`, `capture-test-evidence.ts` (Node TAP — not consumer Java coverage)
+- `docs/rule-authoring.md` — frontmatter, scopes, triggers, verify-fire loop
+- `.planning/PROJECT.md` — v4.0 goals, constraints, deferred BA/frontend
+- Prior `.planning/research/ARCHITECTURE.md` (2026-07-05) — capability overlay baseline (still valid; this doc is the v4.0 integration delta)
+- Confidence: **HIGH** for integration shape; **MEDIUM** for exact JaCoCo XML field names until Phase 17 fixtures land against real reports
 
 ---
-*Architecture research for: AI-DLC governance overlay on GSD Core*
-*Researched: 2026-07-05*
+
+*Architecture research for: v4.0 Developer Coding Conventions on GSD governance overlay*
+*Researched: 2026-07-09*

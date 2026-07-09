@@ -1,318 +1,413 @@
 # Pitfalls Research
 
-**Domain:** Governance overlay on an AI coding runtime (GSD Core runtime + AI-DLC governance overlay: on-demand rule packs, gates, audit artifacts)
-**Researched:** 2026-07-05
-**Confidence:** MEDIUM (source systems skimmed from READMEs; failure modes inferred from adjacent domains — policy-as-code, RAG selection, audit-trail integrity, LLM instruction-following)
+**Domain:** Adding developer coding-convention rule packs + Java starters + consumer coverage GateAdapter onto existing AI-DLC × GSD governance overlay
+**Researched:** 2026-07-09
+**Confidence:** HIGH for integration risks grounded in shipped code (`load.ts`, `select.ts`, `adapters.ts`, `runAdapter`, frontmatter schema, `capture-test-evidence.ts`); MEDIUM for bank/Java convention authoring failure modes (inferred from project constraints + corpus-growth patterns)
+
+> **Scope note:** Prior PITFALLS (2026-07-05) covered building the overlay. This file replaces that research for **v4.0** — common mistakes when *adding* coding-convention packs, starter Java examples, and a real consumer-side coverage adapter to the *already-shipped* selection engine + gate contracts. Foundational overlay risks (under-injection, theater, lost state) still apply; they are referenced, not re-derived.
 
 ## Critical Pitfalls
 
-### Pitfall 1: Selection under-injection — a critical rule silently never fires
+### Pitfall 1: Essay rules defeat the engine (summary bloat + detail-as-summary)
 
 **What goes wrong:**
-The selection engine fails to inject a rule that governs the current task (e.g. a security-baseline rule for an auth change, or a PII-handling rule for a data-export feature). The executor proceeds without ever seeing the constraint, produces non-compliant code, and — worse — the audit artifact shows no violation because the rule was never in scope. Silent governance gap. This is the single most dangerous failure because it is invisible: nothing errors, the loop completes green.
+Authors write long Hexagonal/CQRS/DDD essays and paste them into `summary`, or treat the rule body as "the thing that must land in context." Selection engine still injects summaries only — but each summary becomes a paragraph. Token budget (default 2000, `estimateTokens = ceil(len/4)`, `PER_RULE_OVERHEAD = 6`) overflows on a handful of architecture rules. Loud overflow fires; or worse, authors lower severity / widen budget instead of rewriting. Core Value ("summaries only, little enough") dies while the engine "works."
 
 **Why it happens:**
-Trigger conditions are authored too narrowly (keyword/path match that misses a synonym or a refactor that touches auth indirectly), or the phase mapping is wrong (rule tagged `construction` only, but the risk surfaces in `plan`). This is the recall side of the classic retrieval precision/recall tradeoff — the anti-bloat pressure of this project (Core Value: "little enough to avoid context bloat") biases every design decision toward injecting *less*, which structurally pushes recall down. Optimizing for the stated core value directly worsens this pitfall.
+Architecture conventions feel like they need explanation. Schema has `summary` minLength 1 and **no maxLength** (frontmatter.schema.json: "NO maxLength — token-budget cap is… not a Phase 1 constraint"). Authoring guide says "one-line" but nothing hard-fails multi-line essays. Bank teams copy internal wiki pages into rule files.
 
 **How to avoid:**
-- Treat rule selection as a recall-first problem for high-severity rules and precision-first only for low-severity ones. Severity (already in the rule-pack schema) should gate the tradeoff: `critical`/`high` rules use broad, fail-open triggers ("when in doubt, include the summary"); `low` rules can use tight triggers.
-- Build a labeled evaluation set of (task, phase) → expected-rules *before* building the engine. Measure recall and precision against it on every change. Without a ground-truth set you cannot know you are under-injecting.
-- Add a "catch-all" scope tier: a small set of always-on rules (mirrors AI-DLC's always-loaded `core-workflow.md`) that never depend on triggers — the enterprise non-negotiables. Never let trigger logic be the only path for a critical rule.
-- Make "no rules selected" a loud event, not a silent pass. If a governed phase selects zero rules, log it and surface it for review rather than proceeding quietly.
+- Hard authoring contract: summary ≤ ~120 chars / one sentence; body = full guidance under `detailPath` (lazy via `governance rule-detail`).
+- Lint at `build-index`: reject summary over N tokens or containing newlines; fail CI.
+- One concern per rule ID (ports vs adapters vs aggregates ≠ one mega-rule).
+- Measure injected tokens on a "typical construction feature" fixture; treat budget regression as ship-blocker (existing SEL-05 path).
 
 **Warning signs:**
-- Audit artifacts where high-risk tasks show few or no applied rules.
-- Recall on the eval set drops when a trigger is "tightened" to save context.
-- Reviewers report "the model did X unsafe thing and no rule caught it."
+- Summaries with "e.g.", multi-clause "and/or", or pasted package names.
+- `governance inject` near/over budget after adding the pack alone.
+- Authors open full bodies "because summary is useless."
 
 **Phase to address:**
-Selection-engine phase (and the rule-pack-schema phase must land severity + scope tiers first, since the fail-open policy keys off them).
+Coding-convention rule-pack authoring phase (first content phase) + keep budget check in verify.
 
 ---
 
-### Pitfall 2: Selection over-injection — context bloat returns through the back door
+### Pitfall 2: Architecture rules fire on every trivial task
 
 **What goes wrong:**
-To be "safe," triggers are authored broadly, summaries grow long, or full rule bodies get pulled in "just in case." The per-request payload creeps back up until the overlay reintroduces exactly the context bloat it exists to eliminate — the anti-pattern PROJECT.md explicitly names ("Copying the full AI-DLC steering corpus into context per request"). GSD's whole design is architectural avoidance of "context rot"; a bloated overlay reintroduces the rot GSD spent its architecture avoiding.
+Hexagonal/CQRS/DDD rules use broad keywords (`service`, `api`, `domain`, `java`, `spring`) or `triggers: {}` (always-in-phase — documented escape hatch). Every bugfix/docs tweak injects the full architecture stack. Precision collapses; teams disable the domain pack; governance theater returns as "noise."
 
 **Why it happens:**
-Over-injection is the natural overcorrection to Pitfall 1 — every near-miss produces pressure to widen a trigger, and widths only ever ratchet up. Summaries drift longer over time as authors add caveats. Nobody measures the cumulative token cost per request, so the erosion is invisible until the loop degrades.
+Recall-first habit from critical security rules gets copied onto medium architecture guidance. Keyword matching is **case-insensitive substring** (`select.ts` `matchKeywords`) — `port` hits `report`, `domain` hits every sentence. Empty triggers mean always-in-phase after phase/scope pass. No task-size or "structural change" axis exists in the schema.
 
 **How to avoid:**
-- Set a hard per-request governance token budget and measure against it on every request (e.g. total injected governance tokens must stay under N% of the window). Treat budget overage as a build-breaking regression, not a warning.
-- Enforce a summary length cap at the schema level — a rule summary that cannot fit its budget is a smell that the rule is doing too much and should be split.
-- Keep detail-loading genuinely lazy: inject summaries only, load full body only on explicit demand for a specific decision (AI-DLC's two-tier `rules/` + `rule-details/` split is the reference model). Never pre-fetch bodies "to be safe."
-- Track precision on the eval set alongside recall; a precision collapse means triggers have gone too broad.
+- Never `triggers: {}` for architecture style rules. Reserve empty triggers for true non-negotiables (rare).
+- Prefer **paths** (`**/domain/**`, `**/application/**`, `**/*Command*.java`) + narrow **taskType** (`feature`, `refactor`) over vague keywords.
+- Use `exclude` for tests/docs (`**/*Test.java`, `**/docs/**`, taskType `docs`).
+- Severity `medium`/`low` + advisory for style; binding only where a gate can check something real.
+- Extend Phase 10 eval corpus with negative cases: "typo fix in README" / "log line change" must **not** select CQRS/DDD rules. Precision regressions block ship for this pack.
 
 **Warning signs:**
-- Per-request governance token count trending up release over release.
-- Rule summaries longer than a few lines.
-- Full rule bodies loaded on most requests rather than occasionally.
-- Long-run quality degradation (context rot symptoms) reappearing.
+- Same 8 architecture rules in every construction inject.
+- Eval precision drops after pack lands.
+- Devs say "rules always fire, I ignore them."
 
 **Phase to address:**
-Selection-engine phase; enforced continuously via a token-budget check wired into the verify gate.
+Architecture-pattern rules phase + selection-eval extension (same milestone wave as pack authoring).
 
 ---
 
-### Pitfall 3: Governance theater — treating markdown steering as enforcement
+### Pitfall 3: Full CQRS/DDD mandated for small/internal services
 
 **What goes wrong:**
-The overlay injects a rule ("all inputs must be validated"; "no secrets in logs") and treats the LLM having *read* it as the control being *enforced*. LLMs probabilistically ignore, forget, or partially apply instructions — especially deep in a long run or under competing objectives. The rule appears governed but is not. This is the exact failure PROJECT.md pre-emptively rejects ("Treating markdown steering as hard enforcement — deliberately rejected"), but it creeps back in subtly: a rule's "Verification" section describes checks that only the model performs, with no external gate behind it.
-
-Note the specific porting hazard: AI-DLC states "Rules are blocking by default — if verification criteria are not met, the stage cannot proceed." In AI-DLC that blocking is itself adjudicated by the agent reading markdown. Porting that phrasing into GSD without a real gate behind it imports the theater wholesale while *looking* like hard enforcement.
+Rules say every service needs commands, queries, aggregates, outbox, sagas. LLM scaffolds 12 packages for a 3-endpoint CRUD internal tool. Delivery slows; team blames "governance." Real target (bank microservices that need the complexity) drowns in cargo-cult structure.
 
 **Why it happens:**
-Markdown is cheap to write and feels authoritative. Distinguishing "advisory context that shapes behavior" from "binding control that blocks progress" requires wiring to external systems (CI/SAST/tests/policy-as-code/human approval), which is more work. Under deadline, the "Verification" prose gets written and the actual gate integration gets deferred — and never done.
+Pattern books and bank reference architectures describe the *upper* bound. Rule authors encode the happy-path large service, not the decision tree. No "when NOT to use" in summary; no service-size/risk trigger.
 
 **How to avoid:**
-- Classify every rule at the schema level as `advisory` (steering, injected as context, may influence the model) or `binding` (must be adjudicated by a real external gate). Do not allow a `binding` rule to exist without a named enforcement contract it routes to.
-- Make the enforcement boundary structural: the audit artifact must record *who* enforced each binding rule (which gate/adapter returned pass/fail), not just that the model "considered" it. A binding rule with no gate result is an incomplete audit, not a pass.
-- Provide a lint over the rule packs: any rule marked `binding` whose enforcement contract is unimplemented (still a stub) must fail loudly at governed points — surfaced as "enforcement not wired," never silently treated as satisfied.
-- Keep the language honest in the rule format: advisory rules say "guides"; binding rules say "verified by <contract>." Ban verification prose that implies enforcement without a contract.
+- Split rules: (a) **when to apply** (complexity/risk triggers), (b) **how to structure** when applied.
+- Explicit anti-requirements in rule bodies: "CRUD + single DB transaction → layered hexagonal ports OK; skip CQRS/saga."
+- Service classification (Internal vs internet-facing) gates *integration* rules, not full DDD.
+- Starter examples include a **minimal** service layout *and* a **complex** one; summaries point to the right example ID.
+- Advisory for pattern selection; binding only for enforceable boundaries (e.g. no domain→framework imports if a static check exists later).
 
 **Warning signs:**
-- Rules whose only "enforcement" is a Verification section the model self-attests to.
-- Audit artifacts that say a rule was "applied" but cite no external check result.
-- Binding rules pointing at adapter stubs that always return pass.
-- A demo passes governance with no CI/SAST/test/policy engine actually invoked.
+- Generated PRs with empty `command`/`query` packages and no behavior.
+- Rules lack "Do not apply when…".
+- Internal batch jobs forced through saga/outbox prose.
 
 **Phase to address:**
-Enforcement-adapter-contract phase (defines advisory/binding split and the contract every binding rule must name); reinforced in audit-artifact phase (must record enforcer identity).
+Architecture-pattern rules phase (content design) before mass example generation.
 
 ---
 
-### Pitfall 4: Audit artifacts that look complete but aren't trustworthy
+### Pitfall 4: Bank vendor names baked into engine or every rule
 
 **What goes wrong:**
-The audit artifact lists "rules applied," "rules skipped + reasons," "tests executed," "remaining risks" — and every field is populated, so it passes review. But the fields are hollow: "rules applied" means "injected into context," not "enforced and passed"; "skipped-rule reasons" are generic LLM-generated filler ("not applicable to this task") that were never validated; "tests executed" lists tests that were named but not actually run. The artifact is a compliance narrative, not evidence. This is compliance audit-trail integrity failure — the record exists but does not correspond to reality.
+WSO2, Tibco, SmartVista (or local bank product names) hard-coded in TypeScript selection/adapters, or copy-pasted into every rule summary. Overlay becomes one-bank fork; upgrades and other domains break. PROJECT.md already defers deep SmartVista/legacy protocols — creep reintroduces them via "just one more keyword."
 
 **Why it happens:**
-The audit generator is itself an LLM producing prose to fill a schema. If the schema asks "why was this rule skipped?", the model will always produce a plausible-sounding reason whether or not one is real — LLMs do not reliably distinguish "I have a genuine reason" from "I can generate text that reads like a reason." Populated fields are mistaken for verified fields.
+Authors write from the only environment they know. Fastest trigger is the product name. Engine "helpers" grow `if (wso2)` branches instead of data-driven rule content.
 
 **How to avoid:**
-- Make audit fields derive from machine facts, not model narration wherever possible. "Rules applied" should be populated by the selection engine's actual output plus the gate adapters' actual pass/fail returns — not by the model summarizing what it thinks happened. "Tests executed" should come from the test runner's real output, not a claim.
-- For "skipped-rule reasons," constrain to a validated enum of skip reasons (out-of-phase, out-of-scope-by-trigger, superseded-by-rule-X, explicitly-opted-out) each of which is machine-checkable against the selection state — reject free-text justifications the model invents.
-- Include provenance in the artifact: for each claim, where did it come from (engine / adapter / test runner / human approval / model assertion)? Model-asserted claims must be visibly tagged as lower-trust.
-- Make the artifact reproducible: given the same task and state, regenerating the audit should yield the same machine-derived facts. Divergence means fields are being narrated, not recorded.
+- **Engine stays vendor-neutral.** No WSO2/Tibco/SmartVista strings in `src/`. Vendor names live only in rule Markdown / domain pack content.
+- Domain pack (`aidlc-rules/domain/banking-java/` or similar) holds bank integration rules; enterprise pack stays generic (ports/adapters, coverage, logging).
+- Prefer capability language in summaries: "internet-facing outbound via approved API gateway only" — detail may name WSO2.
+- PROJECT out-of-scope still holds: deep SmartVista/DB Configuration protocol ≠ first-class rules this milestone.
 
 **Warning signs:**
-- Skip reasons that read fluent but generic across many different rules.
-- "Applied" counts that never match the number of gate results.
-- Audit fields populated even when the underlying gate/test never ran.
-- No provenance/source tag on audit claims.
+- `rg -i 'wso2|tibco|smartvista' src` hits production TS.
+- Enterprise-scope rules mention one bank's stack.
+- Other domains cannot reuse the pack without edit.
 
 **Phase to address:**
-Audit-artifact-generation phase; depends on selection-engine and enforcement-adapter phases exposing machine-readable results to draw from.
+Service-classification + integration-boundary rules phase; enforce with a CI grep on `src/` during that phase.
 
 ---
 
-### Pitfall 5: Governance state lost across compaction and subagent boundaries
+### Pitfall 5: Internal vs External (internet-facing) classification is ambiguous
 
 **What goes wrong:**
-Rule-selection decisions, applied/skipped ledger, and partial gate results live only in the main session's context. Then GSD compacts the window (or spawns a fresh-context executor subagent, or resumes in a new session) and the governance state evaporates. The loop continues but the overlay has amnesia: rules re-selected differently, the audit ledger has a hole, a binding gate result from before the boundary is gone. Governance silently discontinues mid-loop.
+Hybrid services (internal domain API that also calls out, or "internal" service exposed via gateway) mis-classified. Rule says JDBC OK; service actually egresses to partner APIs without WSO2. Or reverse: pure internal service blocked from ORM by over-broad "external" triggers. Audit shows rule "applied" while architecture violates intent.
 
 **Why it happens:**
-This is the highest-probability *integration* failure because it runs against GSD's core architecture. GSD's documented model is: **state = files on disk (STATE.md/CONTEXT.md); context = ephemeral**, and executors "start with a clean 200k-token context" in "parallel waves." The GSD README does not document a mid-run compaction-recovery flow — it relies on architectural avoidance (push work to fresh subagents). An overlay that holds governance state in context assumes a durability that GSD deliberately does not provide. Any governance state not written to disk will not survive.
+Binary labels without decision procedure. Classification lives only in prose the LLM interprets. No project-level machine signal (path, module tag, config flag) feeds `TaskSignal`.
 
 **How to avoid:**
-- Persist all governance state to disk artifacts alongside GSD's own (a governance ledger in `.planning/`, sibling to STATE.md/CONTEXT.md), and treat disk as the source of truth — context is a cache. This mirrors GSD's own persistence contract exactly rather than fighting it.
-- Make the ledger append-only and keyed by task/phase so a fresh subagent or post-compaction session reconstructs governance state by reading it, not by remembering.
-- When spawning executor subagents, inject the relevant selected-rule summaries *into the subagent's clean context explicitly* — do not assume the executor inherits the main session's governance context. The clean-200k design guarantees it does not.
-- Test explicitly across a simulated compaction / session boundary: start a governed task, force a boundary, resume, and assert the audit ledger and selected-rule set are intact.
+- Define a **written decision table** in rule detail: internet-facing = accepts traffic from outside trust zone OR initiates outbound to third parties; internal = neither. Hybrids = internet-facing for *outbound* rules.
+- Prefer path/module conventions as triggers (`**/adapter/out/http/**`, `**/infrastructure/gateway/**`) over hoping keywords like `external` appear in task text.
+- Project config may declare default classification; do not invent new selector axes in engine unless schema phase explicitly adds them — prefer conventions + paths first (lazy).
+- Binding enforcement for outbound boundary should eventually be a real gate (dependency/archunit-style or CI policy), not summary-only. This milestone can ship advisory + coverage-style adapter pattern; do not pretend markdown classifies runtime topology.
 
 **Warning signs:**
-- Governance state held in variables/memory rather than written to `.planning/`.
-- Audit ledgers with gaps that correlate with long runs or subagent handoffs.
-- Rules re-selected inconsistently for the same task after a resume.
-- Executor subagents producing ungoverned output despite main-session selection.
+- Rules use only keywords `internal`/`external` with no path convention.
+- Same service matches both rule sets.
+- No hybrid example in starters/eval cases.
 
 **Phase to address:**
-Persistence/state phase, co-designed with the GSD-gate-hook phase (hooks must read/write the on-disk ledger, not session memory).
+Service-classification rules phase; eval cases must include hybrid fixtures.
 
 ---
 
-### Pitfall 6: Tight coupling to GSD internals breaks on upstream upgrade
+### Pitfall 6: Starter examples get indexed and injected as rules
 
 **What goes wrong:**
-The overlay reaches into GSD's private structures — parsing the exact STATE.md layout, depending on undocumented `.planning/` file formats, monkeypatching the phase loop, or assuming internal function signatures. GSD ships an upgrade, the internals shift, and the overlay breaks or (worse) silently mis-reads state and governs against stale/misparsed data. This violates the project's foundational constraint: "Overlay on GSD Core, not a fork — must stay upgrade-safe."
+Java/Spring reference snippets live under `aidlc-rules/**` as `.md` (or examples folder without exclusion). `findRuleFiles` in `load.ts` recursively indexes every `*.md` **except** `details/` directories. Example frontmatter fails validation (build breaks) or passes and injects "Example: PaymentCommandHandler" as governance. LLM treats sample code as mandatory policy.
 
 **Why it happens:**
-GSD exposes a clean five-point loop (discuss/plan/execute/verify/ship) but the README does not publish stable formats for STATE.md/CONTEXT.md/`.planning/` internals (those live in docs not skimmed, and may not be a committed contract at all). Under pressure to ship, the fastest path is to parse whatever GSD writes today — creating a hidden dependency on an unversioned internal format.
+Natural place for "docs next to rules." Loader only skips directory name `details` — not `examples`, `samples`, `starters`. Any valid frontmatter `.md` becomes a rule.
 
 **How to avoid:**
-- Bind only to GSD's documented extension surface: the five workflow hook points. Treat everything else (file formats, internal state layout) as private and off-limits.
-- If the overlay must read GSD state, go through whatever public accessor GSD provides; if none exists, write the overlay's own ledger rather than parsing GSD's. Own your governance state; do not scrape GSD's.
-- Pin the GSD version the overlay is verified against and add a compatibility check that fails fast on an unrecognized GSD version, rather than mis-parsing.
-- Add an integration test that runs against the pinned GSD to catch breakage on upgrade before users do.
+- Keep starters **outside** the rule store scan roots, e.g. `examples/java-spring-hexagonal/` at repo root or under `docs/examples/`.
+- If colocated, put prose under `details/` only (not indexed) and reference via `detailPath`; never give examples standalone rule frontmatter.
+- Add build guard: fail if path matches `**/examples/**` or `**/*starter*` under rule roots.
+- Starters are **mirrors for the LLM when detail is loaded**, not selected rules. Summaries may say "see example layout X" without embedding the code.
 
 **Warning signs:**
-- Code that parses STATE.md/CONTEXT.md structure directly.
-- References to GSD functions/paths not named in its public docs.
-- Overlay behavior changes after a GSD bump with no overlay change.
+- `rule-index.json` IDs like `sample-order-service`.
+- Inject output contains package-private demo code.
+- `build-index` starts failing on half-written sample files.
 
 **Phase to address:**
-GSD-gate-hook / integration phase (define the coupling boundary first, before building on it).
+Starter-examples phase — define layout *before* writing samples; add loader/CI guard in same phase.
 
 ---
 
-### Pitfall 7: Enforcement adapter contracts too abstract to satisfy — or secretly single-tool
+### Pitfall 7: Coverage adapter is theater for *this* monorepo, not consumer Java CI
 
 **What goes wrong:**
-Two opposite failure modes on the same interface. (a) The gate contract is so abstract/generic that no real engine can actually be wired to it without heavy glue, so it stays perpetually stubbed and enforcement never lands — abstraction as a form of governance theater (see Pitfall 3). (b) The contract is shaped around one tool's model (e.g. OPA/Rego's decision format, or a specific SAST's output schema) so that despite being labeled "tool-agnostic," only that one tool fits — silent vendor lock-in, violating "no engine lock-in."
+"Coverage >70%" ships as binding rule + adapter that shells into this overlay's `node --test` / c8 path (mirrors `capture-test-evidence.ts` → `dist-test/**/*.test.js`) or always `pass` like current `noopAdapter` stubs. Demo green on the TS repo; consumer Java/Spring services never measured. Binding rule + stub pass = classic governance theater (prior Pitfall 3), now with a coverage label.
 
 **Why it happens:**
-Designing a genuinely neutral interface requires validating it against at least two dissimilar engines; teams usually design against zero (too abstract) or one (accidental lock-in). PROJECT.md scopes concrete integrations *out* ("contracts + stubs only"), which is correct for avoiding lock-in but removes the very pressure-test that would reveal an unsatisfiable or single-tool contract.
+Existing evidence path is Node-centric. Real JaCoCo/XML/LCOV parsing is more work. `STUB_NAMES` has no coverage entry; `verifyGateHook` defaults to `generic-exit-ci` noop. Pressure to show a "real" adapter without a consumer fixture.
 
 **How to avoid:**
-- Validate the contract against at least two structurally different reference adapters during design — e.g. a policy-as-code engine (pass/fail + reasons), a test runner (pass/fail + coverage), and ideally a human-approval gate (pending/approved/rejected). If the contract can express all three cleanly, it is neither too abstract nor tool-shaped. Two dissimilar adapters is the minimum honest test of neutrality.
-- Keep contracts concrete about the *result* shape (verdict, evidence, rule-ID linkage, timestamp) while staying neutral about the *engine*. The audit artifact's needs (Pitfall 4) define the minimum result contract — design backward from what the audit must record.
-- Ship at least one thin working adapter (even to a trivial engine) rather than stubs only, to prove the contract is satisfiable end to end. A contract never once satisfied is unverified.
-- Review the contract for any field that only one tool's output naturally produces — that is a lock-in tell.
+- Adapter contract: **parse consumer-produced coverage artifact** (JaCoCo XML and/or LCOV), compare to threshold (default 0.70), emit schema-valid `GateResult` via `runAdapter` (malformed = hard-fail — keep that).
+- Adapter must **not** assume this repo's layout, Node, or c8. Inputs = file path(s) from gate request / env / explicit config on the consumer project.
+- Ship with **fixture reports** (pass <70, pass ≥70, malformed XML) and unit tests; optional golden sample Java module is nice-to-have, not the only proof.
+- Binding rule `enforcement` id names the coverage adapter explicitly; CI lint: binding coverage rule must not resolve to `noopAdapter` in production wiring.
+- Document measurement boundary in the same change (Pitfall 8).
 
 **Warning signs:**
-- Every adapter is still a stub near the end of the phase.
-- The contract's fields map 1:1 onto one specific tool's output.
-- Wiring a second engine requires changing the contract, not just the adapter.
+- Adapter imports `capture-test-evidence` or runs `node --test`.
+- Always-pass with empty findings.
+- No test with a JaCoCo XML fixture below threshold → `fail`.
 
 **Phase to address:**
-Enforcement-adapter-contract phase; the contract's result shape must be co-designed with the audit-artifact phase.
+Coverage GateAdapter phase (after or parallel with coverage *rule* content; rule without adapter = advisory only).
 
 ---
 
-### Pitfall 8: Opt-in/opt-out and severity semantics that let governance be waved through
+### Pitfall 8: ">70%" without a measurement boundary
 
 **What goes wrong:**
-Rules carry opt-in/opt-out toggles (AI-DLC uses `*.opt-in.md` prompts during requirements analysis) and severity. If opt-out is too easy, or the model can decide to opt out on the user's behalf, teams (or the model) silently disable the very controls that matter, and the audit shows the task as governed. Enforcement becomes optional in practice while looking mandatory on paper.
+Rule says "unit-test coverage >70%" but does not define: unit only vs unit+integration; generated code; `*Application` main; package exclusions; line vs branch. Teams game the number (count integration tests, exclude hard packages). Gate becomes argument, not control. Cross-team audits incomparable.
 
 **Why it happens:**
-Opt-out exists for legitimate reasons (a rule genuinely doesn't apply), but the boundary between "human explicitly waived this with justification" and "model decided to skip it" is easy to blur. Under the "adaptive workflow / only run stages that add value" framing, skipping is the path of least resistance.
+JaCoCo defaults and bank CI templates differ. Authors copy a number from a slide. Adapter implements "ratio ≥ 0.7" on whatever XML it gets.
 
 **How to avoid:**
-- Only a human can opt out of a `critical`/`high` binding rule, and the opt-out must be recorded in the audit ledger with the approver's identity and reason (ties to human-approval gate). The model may never self-waive a binding rule.
-- Represent opt-out as an explicit, logged event with provenance — not an absence. A rule that is "not applied" must be distinguishable in the audit as skipped-by-trigger vs. explicitly-waived-by-human vs. never-selected (this feeds Pitfall 4's skip-reason enum).
-- Default binding rules to on; require positive action to disable, never the reverse.
+- Lock boundary in rule **and** adapter docs: **unit tests only**; report type; metric (line instruction vs branch — pick one, document); standard excludes (e.g. config/main DTOs only if listed).
+- Threshold + includes/excludes as adapter config with defaults; do not hard-code bank-specific packages in engine.
+- Audit/evidence must record: threshold, metric, files parsed, computed ratio — machine fields, not LLM prose.
+- If integration coverage desired later, separate rule/adapter mode — do not overload one number.
 
 **Warning signs:**
-- Audit artifacts showing critical rules opted out with no human approver recorded.
-- Opt-out decisions made inside the model's reasoning rather than at a human gate.
-- No distinction in the ledger between "skipped" and "waived."
+- Rule body says "coverage" with no unit/integration sentence.
+- Adapter has no exclude configuration.
+- Pass/fail flips when someone adds a smoke test suite into the same report.
 
 **Phase to address:**
-Rule-pack-schema phase (opt-in/severity semantics) + human-approval gate in the enforcement/gate-hook phase.
+Coverage GateAdapter phase (contract + docs); rule-pack text must match adapter semantics same PR.
+
+---
+
+### Pitfall 9: Mixing integration-product detail into every coding rule
+
+**What goes wrong:**
+Logging, API shape, Hexagonal naming, and saga rules each embed WSO2 endpoint patterns, Tibco payload quirks, SmartVista field maps. Pack becomes unreadable; selection injects irrelevant integration trivia on pure domain refactors; updates to middleware versions require editing dozens of rules.
+
+**Why it happens:**
+Same root as Pitfall 4, at content granularity. "Helpful" authors overload every rule with local context.
+
+**How to avoid:**
+- Layer content: (1) generic coding conventions, (2) integration-boundary rules (outbound via gateway / ACL), (3) optional deep protocol pack **out of scope** this milestone.
+- Summaries stay product-agnostic; product names only in lazy detail of integration rules.
+- Saga/outbox rules describe **when** and **pattern**, not SmartVista message IDs.
+
+**Warning signs:**
+- `rg` product names across majority of new rule files.
+- Inject noise on tasks with no integration paths.
+
+**Phase to address:**
+Rule-pack information architecture at start of coding-convention pack phase; enforce in review checklist.
+
+---
+
+### Pitfall 10: Frontend / BA scope creep into "developer conventions"
+
+**What goes wrong:**
+Milestone expands to Next.js, React forms, BA acceptance templates, PM RACI. Focus leaves Java backend; selection corpus and eval set explode; deferred items in PROJECT.md get "just a few rules."
+
+**Why it happens:**
+Stakeholders ask; markdown is cheap; no hard milestone filter in PRs.
+
+**How to avoid:**
+- PROJECT.md Out of Scope is the gate: BA/PM packs, SPA conventions, deep SmartVista — reject or park in future milestone backlog.
+- Domain pack name and triggers mention Java/Spring/backend paths only.
+- Eval corpus only construction/backend tasks this milestone.
+
+**Warning signs:**
+- PRs adding `*.tsx` path triggers or "user story" rules.
+- Roadmap phase titled "full stack conventions."
+
+**Phase to address:**
+Milestone framing / every content phase review; not a build phase — process control.
+
+---
+
+### Pitfall 11: Binding coding rules without enforceable contracts (theater reprise)
+
+**What goes wrong:**
+Hexagonal layering, "no PII in logs," API error shape marked `classification: binding` with `enforcement: semgrep:…` or free-text ids that still map to **noop** stubs. `runAdapter` validates shape, not that a real tool ran. Audit shows pass; code violates layering.
+
+**Why it happens:**
+Schema requires `enforcement` string for binding but **does not resolve it against a registry** (frontmatter description: "v1 does NOT resolve it against any registry"). Easy to satisfy schema without a working adapter. Coverage is the one place v4.0 can ship a *real* consumer parser — other conventions may still be advisory.
+
+**How to avoid:**
+- Default coding-style/architecture rules to **advisory** unless a real adapter or CI check exists.
+- Only coverage (and later real SAST) get binding this milestone if wired through non-noop adapter.
+- Ship-time or verify-time check: binding rule's `enforcement` adapter name ∈ production map and not noop for that gate (extend prior stub-detection intent).
+- Honest language: "guides structure" vs "verified by coverage-report adapter."
+
+**Warning signs:**
+- Dozens of new `classification: binding` with no new adapter code.
+- All verify evidence `evaluatedBy: generic-exit-ci` with empty findings.
+
+**Phase to address:**
+Per rule-pack PR + Coverage adapter phase for the one binding metric in scope.
+
+---
+
+### Pitfall 12: New corpus skips the selection-quality harness
+
+**What goes wrong:**
+v2.0 Phase 10 harness exists (`governance eval`, critical-recall floor) but new Java/banking rules never enter `eval-cases.json` / fixtures. Pack ships with unknown recall/precision; Pitfalls 1–2 become invisible until production noise or gaps.
+
+**Why it happens:**
+Content work feels separate from harness. Fixtures still cover old MFA-style rules only.
+
+**How to avoid:**
+- Every new rule ID appears in ≥1 positive and (for non-critical) ≥1 negative eval case before merge.
+- Critical binding rules (coverage threshold, outbound boundary if critical) must keep critical-recall === 1.0 on expanded corpus.
+- Domain pack subscription cases: select with `--domains banking-java` vs without.
+
+**Warning signs:**
+- Pack merged, eval fixtures unchanged.
+- Only happy-path cases, no "trivial task must not match."
+
+**Phase to address:**
+Final content hardening phase / each pack phase Definition of Done — wire into existing Phase 10 tooling, do not rebuild harness.
 
 ---
 
 ## Technical Debt Patterns
 
-Shortcuts that seem reasonable but create long-term problems.
-
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 |----------|-------------------|----------------|-----------------|
-| Ship binding rules with stub adapters that return pass | Fast green demo; unblocks the loop | Governance theater (Pitfall 3) — nothing is actually enforced; false audit trail | Never for `binding` rules. Fine for `advisory` rules, which have no gate by definition |
-| Populate audit fields with LLM-generated prose | Complete-looking artifact quickly | Untrustworthy audit (Pitfall 4); fails real compliance review | Only for genuinely narrative fields (e.g. free-text risk notes), never for applied/skipped/tests-run facts |
-| Hold governance state in session context | Simpler than a disk ledger | Amnesia across compaction/subagents (Pitfall 5) — GSD guarantees context is ephemeral | Never — GSD's architecture makes this a guaranteed data-loss bug |
-| Parse GSD's STATE.md/`.planning/` internals directly | Quick access to state | Breaks on GSD upgrade (Pitfall 6); violates no-fork constraint | Only via a documented/public accessor; otherwise keep your own ledger |
-| Widen a trigger to fix one missed rule | Stops the immediate under-injection | Ratchets toward context bloat (Pitfall 2); precision decays | When paired with the eval set showing precision held; otherwise split/re-scope the rule |
-| One reference adapter (the one you know) | Proves "it works" | Hidden single-tool lock-in (Pitfall 7) | Never as the only validation — need a second dissimilar adapter |
+| Multi-paragraph summaries "until we split rules" | Fast authoring | Token budget death (Pitfall 1); inject noise | Never for shipped pack — split first |
+| `triggers: {}` on architecture rules | Perfect recall | Permanent over-injection (Pitfall 2) | Only true org non-negotiables, rare |
+| Binding + noop coverage adapter | Green demo | Theater (Pitfall 7/11); false audit | Never for binding coverage |
+| Examples under `aidlc-rules/` without guard | One tree for all docs | Index pollution (Pitfall 6) | Never — separate tree or `details/` only |
+| Vendor strings in `src/` | Quick keyword helper | Overlay becomes one-bank fork (Pitfall 4) | Never in engine; content-only |
+| One mega "DDD+CQRS+Hex+Saga" rule | Fewer files | Cannot trigger/select/eval precisely; essay risk | Never — split by concern |
+| Count integration tests toward 70% | Easier pass | Incomparable metric (Pitfall 8) | Only if separate named rule/mode |
+| Skip eval cases for new rules | Faster merge | Silent under/over injection | Never for this milestone DoD |
 
 ## Integration Gotchas
 
-Common mistakes when connecting to external services.
-
 | Integration | Common Mistake | Correct Approach |
 |-------------|----------------|------------------|
-| GSD phase loop (discuss/plan/execute/verify/ship) | Monkeypatching the loop or assuming hooks share the main context | Bind only to the five documented hook points; inject governance explicitly into each hook's context |
-| GSD executor subagents (clean 200k context) | Assuming the executor inherits selected rules from the main session | Explicitly inject the selected-rule summaries into the subagent prompt; executors start blank by design |
-| GSD state persistence (STATE.md/CONTEXT.md) | Writing governance state into GSD's own files or parsing their format | Write a sibling governance ledger in `.planning/`; treat GSD's files as read-only-through-public-API |
-| AI-DLC rule corpus | Porting the always-loaded `core-workflow.md` model as "load everything" | Keep only true non-negotiables always-on; everything else trigger-selected as summaries |
-| CI / SAST / policy-as-code engines | Designing the contract against one engine's output shape | Validate the contract against 2+ dissimilar engines; keep result shape neutral |
-| Human-approval gate | Treating approval as a model-narrated step | Approval is an external event recorded with approver identity in the audit ledger |
+| Rule loader (`load.ts` / `findRuleFiles`) | Drop starter `.md` under `aidlc-rules/` | Starters outside scan roots; only `details/` skipped today — do not rely on undocumented skips |
+| Selection keywords | Broad English words as triggers | Paths + taskType + exclude; test substring false friends |
+| `runAdapter` + new coverage adapter | Return partial objects / wrong `evaluatedBy` | Always full `GateResult`; `evaluatedBy === adapter.name`; let Ajv hard-fail catch bugs in tests |
+| `verifyGateHook` default `generic-exit-ci` | Leave default noop while claiming coverage enforced | Wire coverage adapter by name for coverage binding rules; evidence must show `evaluatedBy: coverage-report` (or chosen name) |
+| `capture-test-evidence` (Node TAP) | Reuse as "coverage" for Java consumers | Keep for *this* repo's tests; coverage adapter parses **consumer** JaCoCo/LCOV only |
+| `ADAPTERS` map / `STUB_NAMES` | Replace stubs in place without clear real vs stub | Add real coverage adapter beside stubs; never silently swap noop for real under old scanner names |
+| Domain scope subscription | Put bank rules in `enterprise/` | `domain/<banking-…>/` + select `--domains`; enterprise stays generic |
+| Token budget (SEL-05) | Raise default 2000 to fit essays | Fix content; budget is product constraint |
+| Eval harness (Phase 10) | New pack without cases | Extend fixtures; ship-gate still owns critical-recall |
+| Enforcement string on binding rules | Free-text that matches nothing real | Use real adapter name; prefer advisory until adapter exists |
 
 ## Performance Traps
 
-Patterns that work at small scale but fail as usage grows.
-
 | Trap | Symptoms | Prevention | When It Breaks |
 |------|----------|------------|----------------|
-| Linear scan of the whole rule corpus per request for selection | Selection latency and token cost grow with corpus size | Pre-index rules by trigger/phase/scope; select against the index, not the raw corpus | When the enterprise rule corpus grows to hundreds of rules |
-| Summary drift — summaries lengthen over time | Per-request governance tokens creep up; context rot returns | Hard per-request token budget enforced in verify gate; schema-level summary cap | Gradually, across many rule-authoring cycles — invisible without measurement |
-| Loading full rule bodies "to be safe" | Requests carry many full bodies, not summaries | Keep detail-loading lazy and per-decision; ban pre-fetch | As soon as more than a couple of rules match a typical task |
-| Audit ledger growing unbounded in one file | Slow reads/writes; costly reconstruction after compaction | Partition ledger by phase/task; append-only with compaction of its own | On long-running milestones with many governed tasks |
+| Architecture pack always selected | Inject size ↑ every construction task | Tight triggers + eval precision | Immediately after pack enable on busy repos |
+| Unbounded summary growth across 30+ rules | Budget overflow loud fail or silent quality drop | Summary lint + per-pack token budget fixture | ~10–15 essay summaries under default 2000 |
+| Loading many `detailPath` files "to be safe" in hooks | Defeats lazy design | Hooks inject summaries only; detail CLI on demand | Any hook that prefetches bodies |
+| Parsing huge JaCoCo XML on every verify without cache | Slow verify gate | Stream/parse once; threshold check only; don't embed XML in audit | Monorepos with multi-MB reports |
 
 ## Security Mistakes
 
-Domain-specific security issues beyond general web security.
-
 | Mistake | Risk | Prevention |
 |---------|------|------------|
-| Binding security rule (e.g. secrets-in-logs, authz check) enforced only by markdown steering | LLM ignores it under load; vulnerability ships with a "governed" audit stamp | Route all security-critical rules through real gates (SAST/policy/tests); never advisory-only |
-| Rule packs themselves treated as trusted instructions when authored/edited by untrusted parties | Prompt-injection via a malicious rule body ("ignore prior rules") | Treat rule-pack content as data; validate/sign rule packs; constrain what injected rule text can instruct |
-| Audit ledger writable/editable without integrity control | Tampered compliance record; non-repudiation lost | Append-only ledger with integrity checks; record provenance; ideally hash-chain entries |
-| Opt-out of security rules by the model without human sign-off | Silent disabling of the exact controls that matter (Pitfall 8) | Critical/high binding rules require human-approver-recorded opt-out only |
-| Secrets surfaced when loading rule detail or generating audit evidence | Credential leakage into context or audit files | Reference secret-bearing checks by result, not content; keep evidence free of raw secret values |
+| Log-convention rules advisory-only while claiming PII protection | PII in logs ships "governed" | Real log scanning later; this milestone: clear advisory + examples; don't mark binding without tool |
+| Coverage/report paths from untrusted input without validation | Path traversal when reading XML/LCOV | Resolve under project root; reject `..`; same discipline as `detail-path` guards |
+| Embedding secrets/tokens in Java starter examples | Credential leak via repo + inject if mis-indexed | Fake values only; secret-scan starters in CI |
+| Vendor ACL exceptions as model-waivable | Silent outbound to third parties | Outbound boundary: human waive only for critical; prefer gate |
 
 ## UX Pitfalls
 
-Common user experience mistakes in this domain.
-
 | Pitfall | User Impact | Better Approach |
 |---------|-------------|-----------------|
-| Governance is invisible until it blocks at ship | User surprised late; rework is expensive | Surface which rules are in scope early (discuss/plan gates), not just at verify/ship |
-| Skipped-rule reasons are opaque generic filler | Reviewer cannot trust the audit; loses confidence | Constrained skip-reason enum with machine-checkable justification |
-| Every rule injected as a wall of text | Cognitive overload; user tunes out governance entirely | Summaries-only by default; detail on demand — the same discipline that saves tokens saves attention |
-| No feedback when a critical rule was near-miss-excluded | User never learns a trigger is too narrow | Log near-misses / zero-rule-selected events for review |
+| 15 architecture summaries on a one-line fix | Devs ignore all governance | Precision triggers + severity ordering already in inject; fix triggers |
+| ">70%" fail with no file/metric in message | Cannot fix | Findings include ratio, threshold, report path |
+| Examples only for complex saga service | LLM over-builds | Ship minimal + complex starters |
+| Classification jargon without decision table | Wrong Internal/External choice | Decision table in detail + path conventions |
+| Rule IDs opaque (`conv-07`) | Hard to discuss in review | Stable kebab ids: `java-hexagonal-ports`, `coverage-unit-70` |
 
 ## "Looks Done But Isn't" Checklist
 
-Things that appear complete but are missing critical pieces.
-
-- [ ] **Rule selection:** Often missing a labeled eval set — verify recall/precision are measured against ground truth, not eyeballed
-- [ ] **Binding rules:** Often missing a real gate behind them — verify each `binding` rule names a satisfiable enforcement contract, not a pass-stub
-- [ ] **Audit artifact:** Often looks complete but fields are model-narrated — verify applied/skipped/tests-run derive from machine facts with provenance tags
-- [ ] **Skip reasons:** Often free-text filler — verify they come from a validated enum checkable against selection state
-- [ ] **Compaction survival:** Often untested — verify governance ledger and selected-rule set survive a forced session/subagent boundary
-- [ ] **Subagent governance:** Often assumed inherited — verify executor subagents actually receive injected rule summaries in their clean context
-- [ ] **GSD coupling:** Often reaches into internals — verify the overlay binds only to documented hook points and its own ledger
-- [ ] **Adapter contract:** Often validated against one tool — verify at least two dissimilar reference adapters satisfy it, plus one thin working adapter exists
-- [ ] **Token budget:** Often unmeasured — verify a per-request governance token budget is enforced in the verify gate
+- [ ] **Summaries:** Still one line / under token lint — not wiki paste
+- [ ] **Triggers:** Architecture rules have paths/taskType/exclude — not `{}` or bare `service`
+- [ ] **When-not-to-apply:** CQRS/DDD/saga rules document skip conditions
+- [ ] **Vendor neutrality:** `src/` free of bank product names; vendors only in domain rule content
+- [ ] **Classification:** Internal/External/hybrid decision table + eval fixtures
+- [ ] **Starters:** Outside rule index roots; not present in `rule-index.json`
+- [ ] **Coverage adapter:** Parses JaCoCo and/or LCOV fixtures; fails <70%; not Node TAP of this repo
+- [ ] **Measurement boundary:** Unit-only (or documented), metric named, excludes documented, evidence records ratio
+- [ ] **Binding set:** Only rules with non-noop enforcement; rest advisory
+- [ ] **Eval corpus:** Positive + negative cases for every new rule; critical-recall still 1.0
+- [ ] **Scope:** No FE/BA packs; PROJECT.md out-of-scope honored
+- [ ] **Budget:** Typical-task inject still under governance token budget after pack enable
 
 ## Recovery Strategies
 
-When pitfalls occur despite prevention, how to recover.
-
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| Under-injection (missed critical rule) | HIGH | Audit the eval set for the gap; add rule to always-on scope or broaden trigger with precision re-measured; re-run affected governed tasks; assess shipped non-compliant output |
-| Over-injection (bloat returned) | MEDIUM | Measure per-request tokens; tighten widest triggers against eval-set precision; enforce summary caps; restore lazy detail-loading |
-| Governance theater | HIGH | Reclassify rules advisory/binding; wire real gates for binding; treat prior "governed" audits as suspect and re-verify |
-| Untrustworthy audit | HIGH | Rebuild audit generator to derive facts from engine/adapter/runner outputs; add provenance; re-audit critical shipped work |
-| Lost governance state | MEDIUM | Move state to on-disk append-only ledger; reconstruct from GSD artifacts where possible; add boundary-crossing tests |
-| GSD coupling breakage | MEDIUM | Remove internal parsing; move to documented hooks + own ledger; pin GSD version with compatibility check |
-| Unsatisfiable / locked-in contract | MEDIUM | Redesign result shape backward from audit needs; validate against 2+ dissimilar adapters; ship one thin working adapter |
+| Essay / over-injection | MEDIUM | Cap summaries; split rules; retune triggers; re-run eval precision; restore budget |
+| Under-injection of coverage/outbound | HIGH | Broaden with measured precision; add always-on only if critical; re-verify affected services |
+| Examples in index | LOW–MEDIUM | Move files; rebuild index; add loader guard; purge bad IDs from state |
+| Coverage theater | HIGH | Replace noop path with report parser; invalidate prior "pass" evidence; re-run consumer CI |
+| Ambiguous classification | MEDIUM | Publish decision table; fix triggers; re-audit hybrid services |
+| Vendor lock in engine | MEDIUM | Extract strings to domain rules; delete TS branches; add CI grep |
+| Scope creep FE/BA | LOW | Revert files; backlog future milestone; no engine change |
 
 ## Pitfall-to-Phase Mapping
 
-How roadmap phases should address these pitfalls.
+Suggested v4.0 phase placement (names illustrative until roadmap locks). Use for risk placement in roadmap.
 
 | Pitfall | Prevention Phase | Verification |
 |---------|------------------|--------------|
-| 1. Under-injection | Rule-pack schema (severity/scope) → Selection engine | Recall on labeled eval set meets threshold for critical rules; zero-rule events logged |
-| 2. Over-injection | Selection engine | Per-request governance token budget enforced in verify gate; precision on eval set held |
-| 3. Governance theater | Enforcement-adapter contracts | Every `binding` rule maps to a real gate; audit records enforcer identity; stub-detection lint fails build |
-| 4. Untrustworthy audit | Audit-artifact generation | Applied/skipped/tests-run fields are machine-derived with provenance; audit is reproducible |
-| 5. Lost governance state | Persistence/state (with gate-hook phase) | Forced compaction/subagent-boundary test preserves ledger and selection |
-| 6. GSD coupling | GSD gate-hook / integration | Overlay binds only to documented hooks; integration test against pinned GSD passes |
-| 7. Unsatisfiable/locked-in contract | Enforcement-adapter contracts | Contract satisfied by 2+ dissimilar reference adapters + 1 thin working adapter |
-| 8. Waved-through governance | Rule-pack schema + human-approval gate | Critical opt-outs require recorded human approver; skip vs. waive distinguished in ledger |
+| 1. Essay summaries / budget death | Coding-convention rule-pack authoring | Summary lint in `build-index`; inject fixture under budget |
+| 2. Architecture always-on triggers | Architecture-pattern rules + eval extension | Negative eval cases; precision report |
+| 3. CQRS/DDD cargo-cult | Architecture-pattern rules (content) | "When not to apply" present; minimal starter exists |
+| 4. Vendor names in engine | Service-classification / integration rules | CI: no vendor strings under `src/` |
+| 5. Internal vs External ambiguity | Service-classification rules | Decision table + hybrid eval fixtures |
+| 6. Starters indexed as rules | Starter-examples phase | Starters absent from `rule-index.json`; loader/CI guard |
+| 7. Coverage adapter theater | Coverage GateAdapter phase | JaCoCo/LCOV fixtures fail/pass; not Node TAP |
+| 8. Fuzzy >70% boundary | Coverage GateAdapter + rule text | Metric/excludes documented; evidence has ratio |
+| 9. Integration detail in every rule | Pack IA at coding-convention start | Review checklist; limited product-name blast radius |
+| 10. FE/BA scope creep | Milestone governance (all phases) | Out-of-scope review on each PR |
+| 11. Binding without real gate | Each pack PR + coverage phase | Binding count matches non-noop adapters |
+| 12. Eval harness not extended | Pack DoD / hardening phase | New rule IDs in eval cases; critical-recall 1.0 |
+
+**Phase ordering rationale (pitfall-driven):**
+1. **Authoring standards + pack IA** first — prevents essay/vendor/scope rot before volume lands.
+2. **Architecture + classification rules** next — content with triggers/eval, not dumps.
+3. **Coverage adapter** before marking coverage binding — avoids theater.
+4. **Starters last or parallel but isolated** — after loader guard exists so samples cannot enter the index.
+5. **Eval extension continuous** — every content phase exits through harness.
 
 ## Sources
 
-- GSD Core README (https://github.com/open-gsd/gsd-core) — context management model, STATE.md/CONTEXT.md on-disk persistence, clean-200k subagent isolation, five-phase loop, "context rot" framing, architectural-avoidance (no documented compaction-recovery flow). OBSERVED from README; internal file formats NOT verified (live in linked docs).
-- AI-DLC Workflows README (https://github.com/awslabs/aidlc-workflows) — two-tier rule delivery (always-loaded core + lazy detail), `## Rule PREFIX-NN` IDs with Rule + Verification sections, "blocking by default" semantics, `*.opt-in.md` toggles, `aidlc-docs/` audit outputs, agent-agnostic mount points. OBSERVED from README.
-- PROJECT.md Out-of-Scope and Constraints sections — anti-patterns explicitly named by the project (no fork, summaries-only, markdown-not-enforcement, no vendor lock-in, audit completeness). OBSERVED.
-- Adjacent-domain failure modes (INFERRED, applied to this domain): RAG/retrieval precision-recall tradeoff → under/over-injection; policy-as-code rollout patterns → advisory/binding split, opt-out governance; compliance audit-trail integrity → provenance, append-only, reproducibility; LLM instruction-following reliability → governance theater, model-narrated audit fields.
+- **Shipped code (HIGH):** `src/rules/load.ts` (indexes all `*.md`, skips only `details/`); `src/select/select.ts` + `tokens.ts` (substring keywords, default budget 2000, char/4); `src/inject/inject.ts` (summaries only); `src/enforcement/adapters.ts` / `run-adapter.ts` (7 stubs, Ajv hard-fail); `src/governance/verify-gate-hook.ts` (default `generic-exit-ci`); `src/governance/capture-test-evidence.ts` (Node TAP only); `src/schema/frontmatter.schema.json` (no summary maxLength; binding requires `enforcement` string, no registry resolve).
+- **Project constraints (HIGH):** `.planning/PROJECT.md` v4.0 goals, deferred FE/BA/SmartVista, context budget, markdown advisory, overlay-not-fork, deterministic selection.
+- **Prior research (MEDIUM, foundational):** `.planning/research/PITFALLS.md` 2026-07-05 under-injection / over-injection / theater / audit trust — still valid underneath content expansion.
+- **Docs (HIGH):** `docs/rule-authoring.md` — empty triggers = always-in-phase; scope layout; summary intent.
 
 ---
-*Pitfalls research for: governance overlay on an AI coding runtime (GSD Core + AI-DLC overlay)*
-*Researched: 2026-07-05*
+*Pitfalls research for: v4.0 developer coding-convention packs + Java starters + consumer coverage GateAdapter on existing GSD governance overlay*
+*Researched: 2026-07-09*
