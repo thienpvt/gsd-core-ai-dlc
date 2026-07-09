@@ -10,13 +10,21 @@ Install, consent-activate, and first-run the GSD Governance Overlay. The overlay
 
 ## Installation
 
-### 1. Install the published overlay
+Private/self-hosted install. Source of truth is your org git repo (or a local checkout), not the public npm registry.
+
+> **Package name note:** in-repo name is `@opengsd/gsd-aidlc-overlay`. It is **not** published to the public npm registry under `@opengsd` (that scope is owned by open-gsd maintainers). Private git / local install does not require public npm ownership.
+
+### 1. Get the overlay from private git or local checkout
 
 ```bash
-npm install @opengsd/gsd-aidlc-overlay
+# org-hosted private git
+git clone <org-host>/<team>/gsd-core-ai-dlc.git
+cd gsd-core-ai-dlc
 ```
 
-### 2. Build in-repo during development
+Or use an existing local checkout of this repo.
+
+### 2. Install deps and build
 
 ```bash
 npm install
@@ -24,6 +32,18 @@ npm run build
 ```
 
 `npm run build` compiles TypeScript to `dist/` with `tsc -p tsconfig.build.json`.
+
+Optional consumer-project install (after the overlay is built):
+
+```bash
+# local path
+npm install /path/to/gsd-core-ai-dlc
+# or
+npm install file:../gsd-core-ai-dlc
+
+# private git (placeholder host — use your org remote)
+npm install git+ssh://git@<org-host>/<team>/gsd-core-ai-dlc.git
+```
 
 ### 3. Let GSD register capability and skills
 

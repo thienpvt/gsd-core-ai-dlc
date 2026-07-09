@@ -8,18 +8,33 @@ GSD Core stays the runtime brain: `.planning/`, roadmap, state, phase execution,
 
 ## Installation
 
-Requirements: Node.js `>=22.0.0` and npm `>=10.0.0`.
+Requirements: Node.js `>=22.0.0`, npm `>=10.0.0`, and GSD Core (`@opengsd/gsd-core` / `gsd-tools`) already installed.
+
+This overlay is private/self-hosted. Obtain it from your org git host or a local checkout — not the public npm registry.
 
 ```bash
-npm install @opengsd/gsd-aidlc-overlay
-```
+# 1. Clone (org-hosted private git) or use a local checkout
+git clone <org-host>/<team>/gsd-core-ai-dlc.git
+cd gsd-core-ai-dlc
 
-For in-repo development:
-
-```bash
+# 2. Install deps and build
 npm install
 npm run build
 ```
+
+Optional: install into a consumer project via local path or private git URL:
+
+```bash
+# local path
+npm install /path/to/gsd-core-ai-dlc
+# or
+npm install file:../gsd-core-ai-dlc
+
+# private git (placeholder host — use your org remote)
+npm install git+ssh://git@<org-host>/<team>/gsd-core-ai-dlc.git
+```
+
+> **Package name note:** in-repo name is `@opengsd/gsd-aidlc-overlay`. It is **not** published to the public npm registry under `@opengsd` (that scope is owned by open-gsd maintainers). Private git / local install does not require public npm ownership.
 
 Full setup, consent, and first-run smoke checks: [Onboarding Guide](docs/onboarding.md).
 
