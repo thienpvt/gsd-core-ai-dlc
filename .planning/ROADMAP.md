@@ -95,7 +95,7 @@ Plans:
   2. Tasks involving aggregates/entities/domain events inject tactical DDD: aggregate root per consistency boundary; immutable VOs; past-tense domain event names
   3. Unrelated tasks (e.g. README typo, non-Java paths) do not select HEX/DDD rules (path/taskType triggers, no empty always-on triggers)
 
-**Plans**: 1/2 plans complete
+**Plans**: 2/2 plans complete
 
 Plans:
 
@@ -171,7 +171,7 @@ Plans:
 | 11. SUMMARY Frontmatter Hygiene | v3.0 | 1/1 | Complete | 2026-07-08 |
 | 12. Onboarding & Rule-Authoring Docs | v3.0 | 2/2 | Complete | 2026-07-09 |
 | 13. Domain Pack + Service Classification + Integrations | v4.0 | 2/2 | Complete    | 2026-07-09 |
-| 14. Hexagonal + Tactical DDD Rules | v4.0 | 2/2 | Complete    | 2026-07-09 |
+| 14. Hexagonal + Tactical DDD Rules | v4.0 | 2/2 | Complete   | 2026-07-09 |
 | 15. Logging, API Contract & Saga Decision Rules | v4.0 | 0/? | Not started | - |
 | 16. Starter Examples Outside Index | v4.0 | 0/? | Not started | - |
 | 17. Coverage Parser + Binding GateAdapter | v4.0 | 0/? | Not started | - |
