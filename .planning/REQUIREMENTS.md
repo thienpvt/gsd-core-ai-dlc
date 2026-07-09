@@ -26,9 +26,9 @@
 
 ### Logging, API, Events
 
-- [ ] **JAVA-LOG-01**: Logging rules inject correlation/trace id propagation, no-PII/secrets in logs, and audit events for state-changing operations
-- [ ] **JAVA-API-01**: API contract rules inject OpenAPI as source-of-truth or generated-and-checked, one org versioning policy, and uniform error envelope (`code`, `message`, `correlationId`)
-- [ ] **JAVA-EVT-01**: Saga/outbox/domain-event decision rules inject when to use saga vs outbox vs plain call, including explicit when-NOT-to-use guidance (no saga cargo-cult)
+- [x] **JAVA-LOG-01**: Logging rules inject correlation/trace id propagation, no-PII/secrets in logs, and audit events for state-changing operations
+- [x] **JAVA-API-01**: API contract rules inject OpenAPI as source-of-truth or generated-and-checked, one org versioning policy, and uniform error envelope (`code`, `message`, `correlationId`)
+- [x] **JAVA-EVT-01**: Saga/outbox/domain-event decision rules inject when to use saga vs outbox vs plain call, including explicit when-NOT-to-use guidance (no saga cargo-cult)
 
 ### Coverage Enforcement
 
@@ -96,9 +96,9 @@ Which phases cover which requirements. Filled during roadmap creation.
 | JAVA-SVC-03 | Phase 13 | Complete |
 | JAVA-IN-01 | Phase 13 | Complete |
 | JAVA-IN-02 | Phase 13 | Complete |
-| JAVA-LOG-01 | Phase 15 | Pending |
-| JAVA-API-01 | Phase 15 | Pending |
-| JAVA-EVT-01 | Phase 15 | Pending |
+| JAVA-LOG-01 | Phase 15 | Complete |
+| JAVA-API-01 | Phase 15 | Complete |
+| JAVA-EVT-01 | Phase 15 | Complete |
 | JAVA-COV-01 | Phase 17 | Pending |
 | JAVA-COV-02 | Phase 17 | Pending |
 | JAVA-COV-03 | Phase 17 | Pending |
