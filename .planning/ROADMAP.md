@@ -113,7 +113,11 @@ Plans:
   2. API work injects OpenAPI source-of-truth or generated-and-checked, one versioning policy, and uniform error envelope (`code`, `message`, `correlationId`)
   3. Distributed-workflow tasks inject saga/outbox/domain-event decision rules including explicit when-NOT-to-use (no saga cargo-cult on single-service ACID)
 
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 15-01-PLAN.md — TDD RED log-api-evt suite (path matrices, bare-needle negatives, inject quarantine)
+- [ ] 15-02-PLAN.md — Author LOG/API/EVT rules + details, rebuild rule-index.json, inventory 7→10, GREEN suite
 
 ### Phase 16: Starter Examples Outside Index
 
