@@ -119,13 +119,15 @@ test("buildIndex fails loudly when a rule's scope does not match its directory t
 
 test("the real corpus emits non-colliding winners with no superseded key (backward compatible with 01-01)", () => {
   const index = buildIndex(REAL_CORPUS);
-  // Inventory lock: enterprise require-mfa + four Phase 13 java-spring domain rules.
+  // Inventory lock: enterprise require-mfa + six java-spring domain rules (Phase 13 + Phase 14 HEX/DDD).
   const expectedIds = [
     "require-mfa",
     "java-spring-svc-internal-outbound",
     "java-spring-svc-internet-outbound",
     "java-spring-inbound-rest",
     "java-spring-inbound-kafka",
+    "java-spring-hex-layering",
+    "java-spring-ddd-tactical",
   ].sort();
   assert.equal(
     index.rules.length,
