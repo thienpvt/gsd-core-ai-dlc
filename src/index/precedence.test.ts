@@ -117,14 +117,20 @@ test("buildIndex fails loudly when a rule's scope does not match its directory t
   assert.throws(() => buildIndex(MISMATCH_STORE), /does not match directory tier/);
 });
 
-test("the real corpus still emits exactly one record with no superseded key (backward compatible with 01-01)", () => {
+test("the real corpus emits non-colliding winners with no superseded key (backward compatible with 01-01)", () => {
   const index = buildIndex(REAL_CORPUS);
-  assert.equal(index.rules.length, 1, "the real corpus holds only require-mfa");
-  const [record] = index.rules;
-  assert.equal(record.id, "require-mfa");
-  assert.equal(
-    "superseded" in record,
-    false,
-    "a non-colliding rule must NOT carry a superseded key (shape unchanged from 01-01)",
+  // Phase 13 pack adds four java-spring domain rules alongside require-mfa.
+  assert.ok(
+    index.rules.length >= 1,
+    "the real corpus must index at least require-mfa",
   );
+  const mfa = index.rules.find((r) => r.id === "require-mfa");
+  assert.ok(mfa, "require-mfa must remain a real-corpus winner");
+  for (const record of index.rules) {
+    assert.equal(
+      "superseded" in record,
+      false,
+      `non-colliding rule ${record.id} must NOT carry a superseded key (shape unchanged from 01-01)`,
+    );
+  }
 });
