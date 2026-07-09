@@ -57,7 +57,7 @@ Full phase details (goals, success criteria, plans, waves) archived at
 Content + one real adapter. Engine from v1–v3 stays frozen. Ship selectable `java-spring` domain pack, non-indexed starters, and a real consumer-side coverage GateAdapter.
 
 - [x] **Phase 13: Domain Pack + Service Classification + Integrations** - Subscribe-able java-spring pack with summary discipline, Internal vs internet-facing outbound rules, REST/Kafka inbound (completed 2026-07-09)
-- [ ] **Phase 14: Hexagonal + Tactical DDD Rules** - Path-triggered layering and aggregate/VO/event naming rules (advisory)
+- [x] **Phase 14: Hexagonal + Tactical DDD Rules** - Path-triggered layering and aggregate/VO/event naming rules (advisory) (completed 2026-07-09)
 - [ ] **Phase 15: Logging, API Contract & Saga Decision Rules** - Correlation/no-PII logging, OpenAPI/error envelope, saga/outbox when-not-to-use
 - [ ] **Phase 16: Starter Examples Outside Index** - Thin examples/java-spring/ tree never enters rule-index
 - [ ] **Phase 17: Coverage Parser + Binding GateAdapter** - JaCoCo/LCOV stdlib parse, binding ≥70% rule, fail-closed on missing/low coverage
@@ -100,7 +100,7 @@ Plans:
 Plans:
 
 - [x] 14-01-PLAN.md — TDD RED hex-ddd suite (path matrices, CR negatives, inject quarantine)
-- [ ] 14-02-PLAN.md — Author HEX/DDD rules + details, rebuild rule-index.json, GREEN suite
+- [x] 14-02-PLAN.md — Author HEX/DDD rules + details, rebuild rule-index.json, GREEN suite
 
 ### Phase 15: Logging, API Contract & Saga Decision Rules
 
@@ -171,7 +171,7 @@ Plans:
 | 11. SUMMARY Frontmatter Hygiene | v3.0 | 1/1 | Complete | 2026-07-08 |
 | 12. Onboarding & Rule-Authoring Docs | v3.0 | 2/2 | Complete | 2026-07-09 |
 | 13. Domain Pack + Service Classification + Integrations | v4.0 | 2/2 | Complete    | 2026-07-09 |
-| 14. Hexagonal + Tactical DDD Rules | v4.0 | 1/2 | In Progress|  |
+| 14. Hexagonal + Tactical DDD Rules | v4.0 | 2/2 | Complete    | 2026-07-09 |
 | 15. Logging, API Contract & Saga Decision Rules | v4.0 | 0/? | Not started | - |
 | 16. Starter Examples Outside Index | v4.0 | 0/? | Not started | - |
 | 17. Coverage Parser + Binding GateAdapter | v4.0 | 0/? | Not started | - |

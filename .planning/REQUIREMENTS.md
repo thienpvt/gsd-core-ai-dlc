@@ -13,8 +13,8 @@
 
 ### Architecture (Hexagonal + DDD)
 
-- [ ] **JAVA-HEX-01**: On construction tasks touching domain/application/adapter paths, inject Hexagonal layering rule: dependencies point inward; domain has no Spring/JPA/WSO2/framework types
-- [ ] **JAVA-DDD-01**: On tasks involving aggregates/entities/domain events, inject tactical DDD rules: aggregate root per consistency boundary; immutable VOs; past-tense domain event names
+- [x] **JAVA-HEX-01**: On construction tasks touching domain/application/adapter paths, inject Hexagonal layering rule: dependencies point inward; domain has no Spring/JPA/WSO2/framework types
+- [x] **JAVA-DDD-01**: On tasks involving aggregates/entities/domain events, inject tactical DDD rules: aggregate root per consistency boundary; immutable VOs; past-tense domain event names
 
 ### Service Classification & Integration
 
