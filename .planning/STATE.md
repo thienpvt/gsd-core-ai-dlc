@@ -6,8 +6,8 @@ current_phase: 0
 status: Awaiting next milestone
 stopped_at: Completed 12-02-PLAN.md
 last_updated: "2026-07-08T23:41:02.886Z"
-last_activity: 2026-07-08
-last_activity_desc: Milestone v3.0 completed and archived
+last_activity: 2026-07-09
+last_activity_desc: "Completed quick task 260709-ucq: private-org install assessment + docs fix"
 progress:
   total_phases: 2
   completed_phases: 2
@@ -31,7 +31,7 @@ See: .planning/PROJECT.md (updated 2026-07-07)
 Phase: Milestone v3.0 complete
 Plan: —
 Status: Awaiting next milestone
-Last activity: 2026-07-08 — Milestone v3.0 completed and archived
+Last activity: 2026-07-09 - Completed quick task 260709-ucq: Assess private/self-hosted org install fit; fix install docs off public npm claim
 
 ## Performance Metrics
 
@@ -116,6 +116,12 @@ None yet.
 [Issues that affect future work]
 
 - None — v3.0 is docs + hygiene; no new code, gates, or enforcement surface.
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260709-ucq | Assess private/self-hosted org install fit; fix install docs off public npm claim | 2026-07-09 | 102e6d0 | [260709-ucq-assess-private-org-install](./quick/260709-ucq-assess-private-org-install/) |
 
 ## Deferred Items
 
