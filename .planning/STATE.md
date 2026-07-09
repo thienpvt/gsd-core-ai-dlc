@@ -7,7 +7,7 @@ status: Awaiting next milestone
 stopped_at: Completed 12-02-PLAN.md
 last_updated: "2026-07-08T23:41:02.886Z"
 last_activity: 2026-07-09
-last_activity_desc: "Completed quick task 260709-ucq: private-org install assessment + docs fix"
+last_activity_desc: "Completed quick task 260709-uk6: private npm registry install/publish path"
 progress:
   total_phases: 2
   completed_phases: 2
@@ -31,7 +31,7 @@ See: .planning/PROJECT.md (updated 2026-07-07)
 Phase: Milestone v3.0 complete
 Plan: —
 Status: Awaiting next milestone
-Last activity: 2026-07-09 - Completed quick task 260709-ucq: Assess private/self-hosted org install fit; fix install docs off public npm claim
+Last activity: 2026-07-09 - Completed quick task 260709-uk6: private npm registry install/publish (publishConfig + .npmrc.example + docs)
 
 ## Performance Metrics
 
@@ -104,6 +104,8 @@ Recent decisions affecting current work:
 - [Phase 12]: [12-02] Used require-mfa only as the 6-base-field plus classification example; billing-review demonstrates all fields including detailPath.
 - [Phase 12]: [12-02] Placed detail examples under details/ because the loader skips details/ subtrees during indexing.
 - [Phase 12]: [12-02] Negative selector docs parse JSON and inspect selected[].id because skipped[] intentionally keeps non-matching rule ids.
+- [Quick 260709-uk6]: Kept package name @opengsd/gsd-aidlc-overlay; private registry owns @opengsd scope locally via publishConfig + .npmrc.example placeholders.
+- [Quick 260709-uk6]: Docs lead with org private-registry install; git/file/git+ssh demoted to Fallback; never claim public npmjs.com ownership.
 
 ### Pending Todos
 
@@ -122,6 +124,7 @@ None yet.
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260709-ucq | Assess private/self-hosted org install fit; fix install docs off public npm claim | 2026-07-09 | 102e6d0 | [260709-ucq-assess-private-org-install](./quick/260709-ucq-assess-private-org-install/) |
+| 260709-uk6 | Add private npm registry install/publish path (publishConfig, .npmrc.example, docs) | 2026-07-09 | a03880d | [260709-uk6-add-private-npm-registry-install-publish](./quick/260709-uk6-add-private-npm-registry-install-publish/) |
 
 ## Deferred Items
 
