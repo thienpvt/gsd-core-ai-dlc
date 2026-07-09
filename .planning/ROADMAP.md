@@ -5,6 +5,7 @@
 - ✅ **v1.0 Core** Phases 1-5 (shipped 2026-07-06) proves anti-bloat premise end-to-end
 - ✅ **v2.0 Govern** Phases 6-10 (shipped 2026-07-08) — remaining gates, full audit record, approval schema, enforcement contracts, selection-quality harness
 - ✅ **v3.0 Adoption & Hygiene** Phases 11-12 (shipped 2026-07-09) — SUMMARY frontmatter backfill + onboarding/rule-authoring docs
+- 🚧 **v4.0 Developer Coding Conventions** Phases 13-18 — Java/Spring domain pack + starter examples + real coverage GateAdapter
 
 ## Phases
 
@@ -51,41 +52,85 @@ Full phase details (goals, success criteria, plans, waves) archived at
 
 </details>
 
+### v4.0 Developer Coding Conventions (Phases 13-18)
+
+Content + one real adapter. Engine from v1–v3 stays frozen. Ship selectable `java-spring` domain pack, non-indexed starters, and a real consumer-side coverage GateAdapter.
+
+- [ ] **Phase 13: Domain Pack + Service Classification + Integrations** - Subscribe-able java-spring pack with summary discipline, Internal vs internet-facing outbound rules, REST/Kafka inbound
+- [ ] **Phase 14: Hexagonal + Tactical DDD Rules** - Path-triggered layering and aggregate/VO/event naming rules (advisory)
+- [ ] **Phase 15: Logging, API Contract & Saga Decision Rules** - Correlation/no-PII logging, OpenAPI/error envelope, saga/outbox when-not-to-use
+- [ ] **Phase 16: Starter Examples Outside Index** - Thin examples/java-spring/ tree never enters rule-index
+- [ ] **Phase 17: Coverage Parser + Binding GateAdapter** - JaCoCo/LCOV stdlib parse, binding ≥70% rule, fail-closed on missing/low coverage
+- [ ] **Phase 18: Verify/Ship Wire + Consumer Docs** - Coverage evidence path wired; docs for domain subscribe + report path
+
 ## Phase Details
 
-### Phase 11: SUMMARY Frontmatter Hygiene
+### Phase 13: Domain Pack + Service Classification + Integrations
 
-**Goal**: Archived v2.0 SUMMARYs carry verified `requirements-completed` frontmatter, so the 3-source milestone-audit cross-reference (VERIFICATION + SUMMARY frontmatter + traceability) no longer reports "partial (verify manually)" for any v2.0 requirement
-**Depends on**: Nothing — edits archived v2.0 SUMMARY files in place under `.planning/milestones/v2.0-phases/` (the live `.planning/phases/` dir is now empty after `/gsd-cleanup`)
-**Requirements**: TD-10
+**Goal**: Team can opt into a `java-spring` domain pack whose rules inject one-sentence summaries only, and bank service/integration boundaries (Internal vs internet-facing outbound, REST/Kafka inbound) select correctly
+**Depends on**: Nothing (first v4.0 phase; uses shipped pack/select/inject engine)
+**Requirements**: JAVA-PACK-01, JAVA-PACK-02, JAVA-SVC-01, JAVA-SVC-02, JAVA-SVC-03, JAVA-IN-01, JAVA-IN-02
 **Success Criteria** (what must be TRUE):
+  1. Project can subscribe `domains: ["java-spring"]` and only then receive rules from `aidlc-rules/domain/java-spring/` in select/inject output
+  2. Every pack rule summary is one sentence suitable for injection; full prose loads only via `detailPath` / `governance rule-detail`
+  3. Selector classifies Internal vs internet-facing context and injects the matching outbound rule (Internal: JDBC/ORM OK; internet-facing: outbound via gateway/WSO2 capability language — vendor names only in rule content, not engine `src/`)
+  4. Construction tasks on controller/API paths inject thin-controller REST conventions; listener/consumer paths inject idempotent Kafka conventions with no client types in domain
+**Plans**: TBD
 
-  1. All 6 target SUMMARY files (06-02, 06-03, 07-01, 07-02, 10-01, 10-02) carry a `requirements-completed` frontmatter field populated with verified REQ-IDs drawn from their corresponding VERIFICATION.md / PLAN.md
-  2. A re-run of the 3-source milestone-audit cross-reference (VERIFICATION + SUMMARY frontmatter + REQUIREMENTS.md traceability) reports every v2.0 requirement as "satisfied", not "partial (verify manually)"
-  3. No other SUMMARY frontmatter fields are altered — the backfill is purely additive (`requirements-completed` inserted, existing fields untouched)
+### Phase 14: Hexagonal + Tactical DDD Rules
 
-**Plans:** 1/1 plans complete
-
-- [x] 11-01-PLAN.md — Backfill `requirements-completed` on 6 v2.0 SUMMARYs + verify 3-source cross-reference
-
-### Phase 12: Onboarding & Rule-Authoring Docs
-
-**Goal**: An end user can install, activate, and first-run the governance overlay, operate the core governance CLI workflow, and a rule author can write, integrate, and verify a new governance rule — all by following documentation alone
-**Depends on**: Nothing — greenfield docs. MAY reference Phase 11's verified requirement mapping (via the existing v2.0 VERIFICATION.md) at implementer's discretion; no hard dependency
-**Requirements**: DOC-01, DOC-02, DOC-03
+**Goal**: Construction tasks touching domain/application/adapter or aggregate/entity/event paths receive advisory Hexagonal layering and tactical DDD rules without always-on architecture essays
+**Depends on**: Phase 13 (pack root + summary contract)
+**Requirements**: JAVA-HEX-01, JAVA-DDD-01
 **Success Criteria** (what must be TRUE):
+  1. Tasks touching domain/application/adapter paths inject Hexagonal layering: dependencies point inward; domain has no Spring/JPA/framework/gateway types
+  2. Tasks involving aggregates/entities/domain events inject tactical DDD: aggregate root per consistency boundary; immutable VOs; past-tense domain event names
+  3. Unrelated tasks (e.g. README typo, non-Java paths) do not select HEX/DDD rules (path/taskType triggers, no empty always-on triggers)
+**Plans**: TBD
 
-  1. A new end user following the onboarding doc can install the overlay, complete the CB-3 consent flow, and run a first-run smoke check that confirms governance is active — without reading source code
-  2. An end user can operate the core governance workflow end-to-end (`governance build-index`, `governance select`, `governance inject`, `governance rule-detail`, `governance eval`, and the audit/ship gate chain) using documented usage examples as the sole reference
-  3. A rule author following the authoring guide can write a new Markdown+frontmatter rule (`id`, `scope`, `triggers`, `phases`, `severity`, `summary`, `detailPath`), integrate it at the correct enterprise/domain/project scope, declare binding-vs-advisory via `x-binding`, and verify via `build-index` + `select`/`eval` that the rule fires for its intended task/phase
-  4. The three doc deliverables (onboarding, workflow usage, rule-authoring guide) are discoverable from the repo root and cross-reference each other so a reader can navigate between install → operate → author without leaving the docs
+### Phase 15: Logging, API Contract & Saga Decision Rules
 
-**Plans**: 2/2 plans complete
+**Goal**: Cross-cutting advisory conventions for logging, API contracts, and saga/outbox decisions complete the coding-convention corpus with explicit when-not-to-use guidance
+**Depends on**: Phase 13 (pack IA); Phase 14 recommended for id/prefix consistency
+**Requirements**: JAVA-LOG-01, JAVA-API-01, JAVA-EVT-01
+**Success Criteria** (what must be TRUE):
+  1. Relevant tasks inject logging rules: correlation/trace id propagation, no PII/secrets in logs, audit events for state-changing operations
+  2. API work injects OpenAPI source-of-truth or generated-and-checked, one versioning policy, and uniform error envelope (`code`, `message`, `correlationId`)
+  3. Distributed-workflow tasks inject saga/outbox/domain-event decision rules including explicit when-NOT-to-use (no saga cargo-cult on single-service ACID)
+**Plans**: TBD
 
-Plans:
+### Phase 16: Starter Examples Outside Index
 
-- [x] 12-01-PLAN.md — onboarding guide (DOC-01) + governance workflow usage doc (DOC-02)
-- [x] 12-02-PLAN.md — rule-authoring guide (DOC-03) + README.md Documentation section
+**Goal**: LLM can mirror a thin Java/Spring starter layout and snippets without those files ever becoming selectable governance rules
+**Depends on**: Phases 13–15 (rules that detail may point at examples exist first)
+**Requirements**: JAVA-EX-01, JAVA-EX-02
+**Success Criteria** (what must be TRUE):
+  1. `examples/java-spring/` ships folder layout plus thin snippets (ports, adapters, handlers, REST, Kafka) outside rule-index scan roots
+  2. `build-index` / load path never treats starter content under `examples/` as selectable rules (layout proof and/or explicit guard)
+**Plans**: TBD
+
+### Phase 17: Coverage Parser + Binding GateAdapter
+
+**Goal**: Binding unit-test line coverage ≥70% is enforced by a real consumer-report parser adapter (not markdown theater), fail-closed on missing or low coverage
+**Depends on**: Phase 13 (domain pack root for binding rule placement); uses shipped GateAdapter/runAdapter
+**Requirements**: JAVA-COV-01, JAVA-COV-02, JAVA-COV-03
+**Success Criteria** (what must be TRUE):
+  1. Pack carries a binding coverage rule (`classification: binding`, named `enforcement` contract) requiring unit line coverage ≥ 70% for consumer Java work
+  2. Real `coverage-report` GateAdapter parses consumer JaCoCo XML (primary) and LCOV (secondary) via Node stdlib only and emits schema-valid `GateResult` through `runAdapter`
+  3. Missing coverage report or line coverage &lt; 70% fails closed at verify and blocks ship when coverage evidence is required
+  4. Fixture tests prove pass-at-threshold, fail-under, missing report, and malformed report — zero new npm deps; no Maven/JDK shell-out; vendor-neutral `src/`
+**Plans**: TBD
+
+### Phase 18: Verify/Ship Wire + Consumer Docs
+
+**Goal**: Consumer can subscribe the Java domain pack and point the coverage gate at a real report path using docs alone; verify/ship path uses the coverage adapter when binding coverage applies
+**Depends on**: Phase 17 (adapter + binding rule); Phase 13 (domain subscribe)
+**Requirements**: JAVA-DOC-01
+**Success Criteria** (what must be TRUE):
+  1. Consumer docs explain how to subscribe `domains: ["java-spring"]` and how to produce/configure JaCoCo or LCOV report path for the coverage gate
+  2. Verify/ship path is configured so binding coverage uses `coverage-report` evidence (not left on always-pass generic-exit-ci while claiming coverage enforced)
+  3. Docs are discoverable from existing onboarding/docs entrypoints without reading engine source
+**Plans**: TBD
 
 ## Progress
 
@@ -101,10 +146,16 @@ Plans:
 | 8. Remaining Gate Hooks | v2.0 | 5/5 | Complete | 2026-07-07 |
 | 9. Complete Audit Record & Approval | v2.0 | 5/5 | Complete | 2026-07-07 |
 | 10. Selection-Quality Harness | v2.0 | 2/2 | Complete | 2026-07-08 |
-| 11. SUMMARY Frontmatter Hygiene | v3.0 | 1/1 | Complete    | 2026-07-08 |
-| 12. Onboarding & Rule-Authoring Docs | v3.0 | 2/2 | Complete    | 2026-07-08 |
+| 11. SUMMARY Frontmatter Hygiene | v3.0 | 1/1 | Complete | 2026-07-08 |
+| 12. Onboarding & Rule-Authoring Docs | v3.0 | 2/2 | Complete | 2026-07-09 |
+| 13. Domain Pack + Service Classification + Integrations | v4.0 | 0/? | Not started | - |
+| 14. Hexagonal + Tactical DDD Rules | v4.0 | 0/? | Not started | - |
+| 15. Logging, API Contract & Saga Decision Rules | v4.0 | 0/? | Not started | - |
+| 16. Starter Examples Outside Index | v4.0 | 0/? | Not started | - |
+| 17. Coverage Parser + Binding GateAdapter | v4.0 | 0/? | Not started | - |
+| 18. Verify/Ship Wire + Consumer Docs | v4.0 | 0/? | Not started | - |
 
 ---
-*See `.planning/MILESTONES.md` for shipped-milestone summaries, `.planning/milestones/v1.0-ROADMAP.md` for full v1.0 phase detail, and `.planning/milestones/v2.0-ROADMAP.md` for v2.0 phase detail.*
+*See `.planning/MILESTONES.md` for shipped-milestone summaries, `.planning/milestones/v1.0-ROADMAP.md` for full v1.0 phase detail, `.planning/milestones/v2.0-ROADMAP.md` for v2.0, and `.planning/milestones/v3.0-ROADMAP.md` for v3.0.*
 
-<!-- gsd:roadmap v3.0 2026-07-08 -->
+<!-- gsd:roadmap v4.0 2026-07-09 -->

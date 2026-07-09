@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Developer Coding Conventions
 status: planning
-last_updated: "2026-07-09T16:05:25.129Z"
+last_updated: "2026-07-09T18:00:00.000Z"
 last_activity: 2026-07-09
 progress:
-  total_phases: 0
+  total_phases: 6
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,17 +17,19 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-07-07)
+See: .planning/PROJECT.md (updated 2026-07-09)
 
 **Core value:** The rule selection engine injects only the relevant AI-DLC rule summaries for the current task and phase — enough governance to be safe, little enough to avoid context bloat.
-**Current focus:** Phase 12 — Onboarding & Rule-Authoring Docs
+**Current focus:** Phase 13 — Domain Pack + Service Classification + Integrations
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 13 of 18 (v4.0 phases 13-18)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-07-09 — Milestone v4.0 started
+Status: Ready to plan
+Last activity: 2026-07-09 — v4.0 roadmap created (6 phases, 18/18 requirements mapped)
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
@@ -68,8 +70,19 @@ Last activity: 2026-07-09 — Milestone v4.0 started
 
 | Phase | Plans | Status |
 |-------|-------|--------|
-| 11. SUMMARY Frontmatter Hygiene | 1/1 | Complete — ready for verification |
-| 12. Onboarding & Rule-Authoring Docs | 0/? | Not started — next to plan |
+| 11. SUMMARY Frontmatter Hygiene | 1/1 | Complete |
+| 12. Onboarding & Rule-Authoring Docs | 2/2 | Complete |
+
+**v4.0 Phases:**
+
+| Phase | Plans | Status |
+|-------|-------|--------|
+| 13. Domain Pack + Service Classification + Integrations | 0/? | Not started — next to plan |
+| 14. Hexagonal + Tactical DDD Rules | 0/? | Not started |
+| 15. Logging, API Contract & Saga Decision Rules | 0/? | Not started |
+| 16. Starter Examples Outside Index | 0/? | Not started |
+| 17. Coverage Parser + Binding GateAdapter | 0/? | Not started |
+| 18. Verify/Ship Wire + Consumer Docs | 0/? | Not started |
 
 **Recent Trend:**
 
@@ -88,6 +101,10 @@ Last activity: 2026-07-09 — Milestone v4.0 started
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
+- [Roadmap v4.0]: 6-phase structure (13-18) from research content chain; COV kept as own phase (real adapter riskiest); CQRS/EVAL deferred (not in v4.0 reqs).
+- [Roadmap v4.0]: Content first (pack → hex/ddd → log/api/evt → examples), then binding coverage adapter, then verify/ship wire + docs.
+- [Roadmap v4.0]: Zero new npm deps for coverage parse; examples outside aidlc-rules/; vendor names only in rule content not src/.
+- [Roadmap v4.0]: Summaries one sentence; no always-on architecture essays; no empty triggers on style rules.
 - [Roadmap v3.0]: 2-phase structure derived from milestone-summary gate — Phase 11 (TD-10 frontmatter backfill) cleanly separable from Phase 12 (DOC-01/02/03 docs). No extra phases invented.
 - [Roadmap v3.0]: Phase 11 edits archived SUMMARY files in `.planning/milestones/v2.0-phases/` — live `.planning/phases/` is empty after `/gsd-cleanup`.
 - [Roadmap v3.0]: Phase 11 is additive-only — `requirements-completed` inserted, existing SUMMARY fields untouched.
@@ -113,7 +130,9 @@ None yet.
 
 [Issues that affect future work]
 
-- None — v3.0 is docs + hygiene; no new code, gates, or enforcement surface.
+- RUN-01 upstream gsd-core capability-manifest `consumes` constraint still open (deferred from v2/v3) — DOC-01 consent-activate path blocked until upstream fix.
+- Phase 13 discuss must lock Internal vs internet-facing machine signal (path/module/config).
+- Phase 17 must freeze single adapter name (`coverage-report`) + measurement boundary (unit line ≥70%, excludes) in same PR as parser.
 
 ### Quick Tasks Completed
 
@@ -133,13 +152,15 @@ Items acknowledged and carried forward from previous milestone close:
 | v3.0 | ENF-05 real scanner/policy first-class integrations | Out of v3.0 scope (docs + hygiene only) | 2026-07-08 |
 | v3.0 | ENF-06 dynamic adapter loading | Out of v3.0 scope (static registry sufficient) | 2026-07-08 |
 | v3.0 | RUN-01 capability manifest `consumes` upstream fix | Out of v3.0 scope (upstream gsd-core constraint) | 2026-07-08 |
+| v4.0 | JAVA-CQRS-01 CQRS command/query split rules | Deferred by scope choice | 2026-07-09 |
+| v4.0 | JAVA-EVAL-01 dedicated java-spring eval corpus | Deferred; SEL-06 remains | 2026-07-09 |
 
 ## Session Continuity
 
-Last session: 2026-07-08T19:35:59.773Z
-Stopped at: Completed 12-02-PLAN.md
+Last session: 2026-07-09
+Stopped at: v4.0 ROADMAP.md written — ready for `/gsd-plan-phase 13`
 Resume file: None
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Plan Phase 13: `/gsd-plan-phase 13` (or discuss first if Internal vs internet-facing signal unresolved)

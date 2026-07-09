@@ -87,30 +87,30 @@ Which phases cover which requirements. Filled during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| JAVA-PACK-01 | — | Pending |
-| JAVA-PACK-02 | — | Pending |
-| JAVA-HEX-01 | — | Pending |
-| JAVA-DDD-01 | — | Pending |
-| JAVA-SVC-01 | — | Pending |
-| JAVA-SVC-02 | — | Pending |
-| JAVA-SVC-03 | — | Pending |
-| JAVA-IN-01 | — | Pending |
-| JAVA-IN-02 | — | Pending |
-| JAVA-LOG-01 | — | Pending |
-| JAVA-API-01 | — | Pending |
-| JAVA-EVT-01 | — | Pending |
-| JAVA-COV-01 | — | Pending |
-| JAVA-COV-02 | — | Pending |
-| JAVA-COV-03 | — | Pending |
-| JAVA-EX-01 | — | Pending |
-| JAVA-EX-02 | — | Pending |
-| JAVA-DOC-01 | — | Pending |
+| JAVA-PACK-01 | Phase 13 | Pending |
+| JAVA-PACK-02 | Phase 13 | Pending |
+| JAVA-HEX-01 | Phase 14 | Pending |
+| JAVA-DDD-01 | Phase 14 | Pending |
+| JAVA-SVC-01 | Phase 13 | Pending |
+| JAVA-SVC-02 | Phase 13 | Pending |
+| JAVA-SVC-03 | Phase 13 | Pending |
+| JAVA-IN-01 | Phase 13 | Pending |
+| JAVA-IN-02 | Phase 13 | Pending |
+| JAVA-LOG-01 | Phase 15 | Pending |
+| JAVA-API-01 | Phase 15 | Pending |
+| JAVA-EVT-01 | Phase 15 | Pending |
+| JAVA-COV-01 | Phase 17 | Pending |
+| JAVA-COV-02 | Phase 17 | Pending |
+| JAVA-COV-03 | Phase 17 | Pending |
+| JAVA-EX-01 | Phase 16 | Pending |
+| JAVA-EX-02 | Phase 16 | Pending |
+| JAVA-DOC-01 | Phase 18 | Pending |
 
 **Coverage:**
 - v4.0 requirements: 18 total
-- Mapped to phases: 0 (roadmap pending)
-- Unmapped: 18
+- Mapped to phases: 18/18 ✓
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-07-09*
-*Last updated: 2026-07-09 after v4.0 scoping*
+*Last updated: 2026-07-09 after v4.0 roadmap*
