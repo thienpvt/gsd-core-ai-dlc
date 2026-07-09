@@ -4,17 +4,17 @@ milestone: v4.0
 milestone_name: Developer Coding Conventions
 current_phase: 15
 current_phase_name: Logging, API Contract & Saga Decision Rules
-status: executing
+status: verifying
 stopped_at: Completed 15-01-PLAN.md
-last_updated: "2026-07-09T17:47:32.278Z"
+last_updated: "2026-07-09T17:55:05.254Z"
 last_activity: 2026-07-09
 last_activity_desc: Phase 15 execution started
 progress:
   total_phases: 6
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 6
-  completed_plans: 5
-  percent: 33
+  completed_plans: 6
+  percent: 50
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-07-09)
 
 Phase: 15 (Logging, API Contract & Saga Decision Rules) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-07-09 — Phase 15 execution started
 
 Progress: [███░░░░░░░] 33%
@@ -104,6 +104,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 14 P01 | 12min | 2 tasks | 1 files |
 | Phase 14 P02 | 15min | 3 tasks | 5 files |
 | Phase 15 P01 | 12min | 2 tasks | 1 files |
+| Phase 15 P02 | 12min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -144,6 +145,9 @@ Recent decisions affecting current work:
 - [Phase 15]: Sibling suite java-spring-log-api-evt.test.ts (does not extend Phase 13/14 inventories)
 - [Phase 15]: Filter path positive not required in RED matrix — plan 02 may add tight Correlation/Mdc filter globs only
 - [Phase 15]: Engine frozen; zero production src edits; zero new npm deps
+- [Phase ?]: [15-02]: Optional tight Correlation/Mdc filter globs; no bare filter/**
+- [Phase ?]: [15-02]: URI path versioning (/api/v1/...) is the documented org default for JS-API-01
+- [Phase ?]: [15-02]: Engine frozen — zero production src edits outside inventory test; zero new npm deps
 
 ### Pending Todos
 
@@ -181,8 +185,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-09T17:47:32.272Z
+Last session: 2026-07-09T17:54:43.462Z
 Stopped at: Completed 15-01-PLAN.md
 Resume file: 
 
-- Plan Phase 15: `/gsd-plan-phase 15` (logging, API contract, saga/outbox decision rules)
+None
