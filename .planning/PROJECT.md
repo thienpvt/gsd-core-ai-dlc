@@ -50,12 +50,11 @@ The rule selection engine correctly injects only the relevant AI-DLC rule summar
 - [x] SUMMARY frontmatter hygiene (backfill `requirements-completed` on 6 v2.0 plans) — **Validated in Phase 11: SUMMARY Frontmatter Hygiene** (TD-10: 6 archived v2.0 SUMMARYs 06-02/06-03/07-01/07-02/10-01/10-02 backfilled with verified REQ-IDs from each phase's VERIFICATION.md Source Plan column; 21/21 v2.0 REQ-IDs now discoverable from per-plan SUMMARY metadata; purely additive +1/-0 per file)
 - [x] End-user onboarding documentation (what the overlay does, install/use guide) — **Validated in Phase 12: Onboarding & Rule-Authoring Docs** (DOC-01: `docs/onboarding.md` — prerequisites Node>=22/npm>=10, install+build, CB-3 `gsd-tools capability install` consent grant, `governance.enabled` toggle, first-run smoke check `build-index` → `select --phase inception`)
 - [x] Governance-rule authoring guide (how end users develop their own governance rules) — **Validated in Phase 12: Onboarding & Rule-Authoring Docs** (DOC-02+DOC-03: `docs/governance-workflow.md` all 5 CLI commands + E2E worked example; `docs/rule-authoring.md` 7 frontmatter fields + classification, 3 scopes, 3 trigger axes, runnable verify-the-rule-fires loop with temp triggered rule)
+- [x] Subscribe-able `java-spring` domain pack with one-sentence summaries + Internal vs internet-facing outbound + inbound REST/Kafka conventions — **Validated in Phase 13: Domain Pack + Service Classification + Integrations** (JAVA-PACK-01/02, JAVA-SVC-01/02/03, JAVA-IN-01/02; 4 advisory rules under `aidlc-rules/domain/java-spring/`; 23/23 pack suite green; verify 4/4)
 
 ### Active
 
-- [ ] Developer coding-convention rule pack for Java + Spring Boot (Hexagonal + CQRS + DDD)
-- [ ] Service classification rules: Internal (JDBC/ORM OK) vs internet-facing (outbound via WSO2 only)
-- [ ] Inbound REST + Kafka integration conventions
+- [ ] Hexagonal + tactical DDD coding-convention rules (path-triggered, advisory)
 - [ ] Unit-test coverage >70% rule with consumer-side real CI check (coverage report parser adapter)
 - [ ] Error/audit logging, API contract, and saga/event pattern rules
 - [ ] Starter examples: project structure + thin Java/Spring reference snippets
@@ -124,4 +123,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-09 after starting v4.0 Developer Coding Conventions milestone*
+*Last updated: 2026-07-09 after Phase 13*

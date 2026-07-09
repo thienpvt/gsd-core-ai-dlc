@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Developer Coding Conventions
-current_phase: 13
-current_phase_name: v4.0 phases 13-18
-status: verifying
-stopped_at: Completed 13-01-PLAN.md
-last_updated: "2026-07-09T16:54:46.881Z"
+current_phase: 14
+current_phase_name: Hexagonal + Tactical DDD Rules
+status: ready
+stopped_at: Phase 13 verified and transitioned
+last_updated: "2026-07-09T17:05:00.000Z"
 last_activity: 2026-07-09
-last_activity_desc: v4.0 roadmap created (6 phases, 18/18 requirements mapped)
+last_activity_desc: Phase 13 complete (verify 4/4), transitioned to Phase 14
 progress:
   total_phases: 6
   completed_phases: 1
@@ -24,22 +24,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-09)
 
 **Core value:** The rule selection engine injects only the relevant AI-DLC rule summaries for the current task and phase — enough governance to be safe, little enough to avoid context bloat.
-**Current focus:** Phase 13 — Domain Pack + Service Classification + Integrations
+**Current focus:** Phase 14 — Hexagonal + Tactical DDD Rules
 
 ## Current Position
 
-Phase: 13 of 18 (v4.0 phases 13-18)
-Plan: 2 of 2
-Status: Phase complete — ready for verification
-Last activity: 2026-07-09 — v4.0 roadmap created (6 phases, 18/18 requirements mapped)
+Phase: 14 of 18 (Hexagonal + Tactical DDD Rules)
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-07-09 — Phase 13 complete (verify 4/4), transitioned to Phase 14
 
-Progress: [█████░░░░░] 50%
+Progress: [███░░░░░░░] 17%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 36 (all milestones)
+- Total plans completed: 38 (all milestones)
 - Average duration: — min
 - Total execution time: 0.0 hours
 
@@ -59,6 +59,7 @@ Progress: [█████░░░░░] 50%
 | 10 | 2 | - | - |
 | 11 | 1 | - | - |
 | 12 | 2 | - | - |
+| 13 | 2 | - | - |
 
 **v2.0 Phases:**
 
@@ -81,8 +82,8 @@ Progress: [█████░░░░░] 50%
 
 | Phase | Plans | Status |
 |-------|-------|--------|
-| 13. Domain Pack + Service Classification + Integrations | 0/? | Not started — next to plan |
-| 14. Hexagonal + Tactical DDD Rules | 0/? | Not started |
+| 13. Domain Pack + Service Classification + Integrations | 2/2 | Complete (verified 4/4) |
+| 14. Hexagonal + Tactical DDD Rules | 0/? | Not started — next to plan |
 | 15. Logging, API Contract & Saga Decision Rules | 0/? | Not started |
 | 16. Starter Examples Outside Index | 0/? | Not started |
 | 17. Coverage Parser + Binding GateAdapter | 0/? | Not started |
@@ -125,13 +126,13 @@ Recent decisions affecting current work:
 - [Phase 12]: [12-02] Negative selector docs parse JSON and inspect selected[].id because skipped[] intentionally keeps non-matching rule ids.
 - [Quick 260709-uk6]: Kept package name @opengsd/gsd-aidlc-overlay; private registry owns @opengsd scope locally via publishConfig + .npmrc.example placeholders.
 - [Quick 260709-uk6]: Docs lead with org private-registry install; git/file/git+ssh demoted to Fallback; never claim public npmjs.com ownership.
-- [Phase ?]: test
 - [Phase 13]: Primary RED suite targets real aidlc-rules via buildIndex (missing pack = expected RED)
 - [Phase 13]: Body canaries BODY_CANARY java-spring-<id> documented for plan 02 parity
 - [Phase 13]: Engine frozen; zero production src edits outside test file
-- [Phase ?]: [Phase 13]: [13-02] Omitted bare jdbc/jpa/orm positives on internal outbound — class markers + paths only for fail-open XOR
-- [Phase ?]: [Phase 13]: [13-02] rule-index.json stays gitignored; rebuild via governance build-index is durable path
-- [Phase ?]: [Phase 13]: [13-02] WSO2 only in internet detail/triggers Markdown; never production src/
+- [Phase 13]: [13-02] Omitted bare jdbc/jpa/orm positives on internal outbound — class markers + paths only for fail-open XOR
+- [Phase 13]: [13-02] rule-index.json stays gitignored; rebuild via governance build-index is durable path
+- [Phase 13]: [13-02] WSO2 only in internet detail/triggers Markdown; never production src/
+- [Phase 13]: Internal vs internet-facing classified via keyword+path hybrid on TaskSignal (no new SelectionConfig field)
 
 ### Pending Todos
 
@@ -144,7 +145,6 @@ None yet.
 [Issues that affect future work]
 
 - RUN-01 upstream gsd-core capability-manifest `consumes` constraint still open (deferred from v2/v3) — DOC-01 consent-activate path blocked until upstream fix.
-- Phase 13 discuss must lock Internal vs internet-facing machine signal (path/module/config).
 - Phase 17 must freeze single adapter name (`coverage-report`) + measurement boundary (unit line ≥70%, excludes) in same PR as parser.
 
 ### Quick Tasks Completed
@@ -170,8 +170,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-09T16:54:34.917Z
-Stopped at: Completed 13-01-PLAN.md
+Last session: 2026-07-09
+Stopped at: Phase 13 complete → Phase 14 ready to plan
 Resume file: None
 
 ## Operator Next Steps
