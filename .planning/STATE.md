@@ -1,20 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Adoption & Hygiene
-current_phase: 0
-status: Awaiting next milestone
-stopped_at: Completed 12-02-PLAN.md
-last_updated: "2026-07-08T23:41:02.886Z"
+milestone: v4.0
+milestone_name: Developer Coding Conventions
+status: planning
+last_updated: "2026-07-09T16:05:25.129Z"
 last_activity: 2026-07-09
-last_activity_desc: "Completed quick task 260709-uk6: private npm registry install/publish path"
 progress:
-  total_phases: 2
-  completed_phases: 2
-  total_plans: 3
-  completed_plans: 3
-  percent: 100
-current_phase_name: Onboarding & Rule-Authoring Docs
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -28,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-07-07)
 
 ## Current Position
 
-Phase: Milestone v3.0 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-07-09 - Completed quick task 260709-uk6: private npm registry install/publish (publishConfig + .npmrc.example + docs)
+Status: Defining requirements
+Last activity: 2026-07-09 — Milestone v4.0 started
 
 ## Performance Metrics
 

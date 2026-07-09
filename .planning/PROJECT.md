@@ -8,9 +8,22 @@ A working extension to GSD Core that layers AI-DLC-style enterprise SDLC governa
 
 The rule selection engine correctly injects only the relevant AI-DLC rule summaries for the current task and phase — enough governance to be safe, little enough to avoid context bloat. If this fails, the entire premise fails.
 
-## Current Milestone: Planning next milestone
+## Current Milestone: v4.0 Developer Coding Conventions
 
-v3.0 shipped 2026-07-09. Run `/gsd-new-milestone` to define the next milestone.
+**Goal:** Ship a selectable developer-facing governance rule pack plus Java/Spring Boot starter examples so LLM-assisted backend work follows Hexagonal Architecture + CQRS + DDD, bank integration boundaries, unit-test coverage >70%, logging/API/saga conventions — without context bloat.
+
+**Target features:**
+- Java + Spring Boot coding-convention rule pack (selectable summaries, lazy detail)
+- Hexagonal (ports/adapters) + CQRS + DDD structure, layering, and naming rules
+- Service classification: Internal services may use JDBC/ORM directly; internet-facing services must route outbound calls through WSO2 APIs
+- Inbound integration conventions: REST and Kafka
+- Unit-test coverage >70% as a real consumer-side CI check (JaCoCo/XML/LCOV parser adapter for consumer Java projects)
+- Error/audit logging conventions (correlation IDs, no PII in logs, audit hooks)
+- API contract conventions (OpenAPI, versioning, error response shape)
+- Saga / domain-event / outbox patterns (when to use vs simple call)
+- Starter examples: folder layout + thin Java/Spring reference snippets the LLM can mirror
+
+**Deferred this milestone:** BA/PM/other role rules; Next.js/SPA frontend conventions; deep SmartVista/legacy protocol rules (outbound still via WSO2 or ACL adapters, not domain-coupled SDKs)
 
 ## Previous Milestone: v3.0 Adoption & Hygiene (SHIPPED 2026-07-09)
 
@@ -40,7 +53,12 @@ v3.0 shipped 2026-07-09. Run `/gsd-new-milestone` to define the next milestone.
 
 ### Active
 
-(None — v3.0 shipped. Run `/gsd-new-milestone` to define the next milestone.)
+- [ ] Developer coding-convention rule pack for Java + Spring Boot (Hexagonal + CQRS + DDD)
+- [ ] Service classification rules: Internal (JDBC/ORM OK) vs internet-facing (outbound via WSO2 only)
+- [ ] Inbound REST + Kafka integration conventions
+- [ ] Unit-test coverage >70% rule with consumer-side real CI check (coverage report parser adapter)
+- [ ] Error/audit logging, API contract, and saga/event pattern rules
+- [ ] Starter examples: project structure + thin Java/Spring reference snippets
 
 ### Out of Scope
 
@@ -48,6 +66,9 @@ v3.0 shipped 2026-07-09. Run `/gsd-new-milestone` to define the next milestone.
 - Shipping concrete enforcement integrations (OPA/Rego, specific SAST tools, GitHub Actions) as first-class — contracts + stubs only, so no vendor lock-in
 - Treating markdown steering as hard enforcement — deliberately rejected; enforcement lives in real gates
 - Copying the full AI-DLC steering corpus into context per request — the exact anti-pattern this project exists to eliminate
+- BA / PM / non-developer role rule packs — deferred to a future milestone
+- Next.js / React / Vue SPA coding conventions — deferred; this milestone is Java backend only
+- Deep SmartVista / DB Configuration protocol integrations as first-class rules — outbound boundary is WSO2 (internet-facing) or ACL adapters; not raw legacy SDKs in domain
 
 ## Context
 
@@ -103,4 +124,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-09 after v3.0 Adoption & Hygiene milestone (4/4 requirements validated, 2 phases, 3 plans; v2.0 shipped: 21/21 requirements validated, 5 phases)*
+*Last updated: 2026-07-09 after starting v4.0 Developer Coding Conventions milestone*
