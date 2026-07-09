@@ -703,18 +703,16 @@ test("JAVA-SVC-01: internal XOR internet outbound under domains java-spring", ()
 
 **If wrong:** Planner/discuss can flip A1 phases or force WSO2 into internet summary if product insists (still Markdown-only).
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should bare `jdbc`/`jpa` select internal outbound without an explicit class marker?**
-   - What we know: fail-open on ambiguity is locked; `jdbc` is strongly internal-leaning.
-   - What's unclear: bank monorepos may say “add repository” without “internal-service”.
-   - Recommendation: ship with class markers + internal paths primary; add `jdbc`/`jpa` only if under-injection appears in manual dry-runs; never add `outbound` alone to both rules.
+   - RESOLVED: class markers + internal paths primary; do not fire on bare `jdbc`/`jpa` alone in v4.0 Phase 13. Revisit only if under-injection appears in dry-runs; never add `outbound` alone to both rules.
 
 2. **Inception phase for outbound rules?**
-   - Recommendation: construction-only for v4.0 Phase 13; revisit if discuss/plan tasks need early classification.
+   - RESOLVED: construction-only for v4.0 Phase 13; revisit if discuss/plan tasks need early classification.
 
 3. **Extend SEL-06 eval corpus now?**
-   - JAVA-EVAL-01 deferred; fixture unit tests suffice for Phase 13. Do not block on eval harness expansion.
+   - RESOLVED: no — JAVA-EVAL-01 deferred; fixture unit tests suffice for Phase 13.
 
 ## Environment Availability
 

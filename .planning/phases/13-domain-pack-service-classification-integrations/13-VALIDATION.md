@@ -40,11 +40,12 @@ created: 2026-07-09
 |---------|------|------|-------------|---------|-----------------|-----------|-------------------|-------------|--------|
 | 13-01-01 | 01 | 1 | JAVA-PACK-01 | T-13-04 | Unsubscribed domains never inject pack rules | unit | `npm test` | ❌ W0 | ⬜ pending |
 | 13-01-02 | 01 | 1 | JAVA-PACK-02 | T-13-03 | Summaries only in inject; body canaries absent | unit | `npm test` | ❌ W0 | ⬜ pending |
-| 13-02-01 | 02 | 2 | JAVA-SVC-01 | T-13-01 | Internal XOR internet; ambiguous → neither | unit | `npm test` | ❌ W0 | ⬜ pending |
-| 13-02-02 | 02 | 2 | JAVA-SVC-02 | — | Internal summary encodes JDBC/ORM OK | unit | `npm test` | ❌ W0 | ⬜ pending |
-| 13-02-03 | 02 | 2 | JAVA-SVC-03 | T-13-02 | Internet gateway language; WSO2 only in Markdown | unit + grep | `npm test` | ❌ W0 | ⬜ pending |
-| 13-03-01 | 03 | 2 | JAVA-IN-01 | — | Controller/API paths select REST; construction only | unit | `npm test` | ❌ W0 | ⬜ pending |
-| 13-03-02 | 03 | 2 | JAVA-IN-02 | — | Listener/Kafka paths select Kafka; construction only | unit | `npm test` | ❌ W0 | ⬜ pending |
+| 13-01-03 | 01 | 1 | JAVA-SVC-01 | T-13-01 | Internal XOR internet; ambiguous → neither | unit | `npm test` | ❌ W0 | ⬜ pending |
+| 13-01-04 | 01 | 1 | JAVA-SVC-02 | — | Internal summary encodes JDBC/ORM OK | unit | `npm test` | ❌ W0 | ⬜ pending |
+| 13-01-05 | 01 | 1 | JAVA-SVC-03 | T-13-02 | Internet gateway language; WSO2 only in Markdown | unit + grep | `npm test` | ❌ W0 | ⬜ pending |
+| 13-01-06 | 01 | 1 | JAVA-IN-01 | — | Controller/API paths select REST; construction only | unit | `npm test` | ❌ W0 | ⬜ pending |
+| 13-01-07 | 01 | 1 | JAVA-IN-02 | — | Listener/Kafka paths select Kafka; construction only | unit | `npm test` | ❌ W0 | ⬜ pending |
+| 13-02-01 | 02 | 2 | JAVA-PACK-01..IN-02 | T-13-01..04 | Content + index make pack suite GREEN | unit | `npm test` | ❌ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
