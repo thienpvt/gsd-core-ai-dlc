@@ -289,7 +289,7 @@ test("JAVA-PACK-01 positive: domains=['java-spring'] can select matching pack id
   );
   assert.ok(
     isSelected(kafka, "java-spring-inbound-kafka"),
-    "subscribed + *Listener* path must select java-spring-inbound-kafka",
+    "subscribed + messaging/*Listener path must select java-spring-inbound-kafka",
   );
 });
 
@@ -580,7 +580,7 @@ test("JAVA-SVC-03: production src/ (excluding tests) has no vendor product token
   );
 });
 
-test("JAVA-SVC-03: internet detail file MAY contain bank gateway product name (wso2)", () => {
+test("JAVA-SVC-03: internet detail file MUST contain bank gateway product name (wso2) and canary", () => {
   const index = packIndex();
   const rec = recordById(index, "java-spring-svc-internet-outbound");
   assert.ok(rec.detailPath, "internet-outbound must have detailPath");
@@ -607,18 +607,18 @@ test("JAVA-SVC-03: internet detail file MAY contain bank gateway product name (w
   );
 
   const detailBody = readFileSync(detailAbs, "utf8");
-  // Capability proof: detail is allowed to name the gateway product (WSO2).
-  // Soft-assert presence is optional in prose ("MAY"); we only require the file
-  // is readable and non-empty here, and that the canary lives in detail/body.
   assert.ok(
     detailBody.trim().length > 0,
     "internet-outbound detail must be non-empty",
   );
+  // Hard-lock: product name stays in Markdown detail (capability language), never src/
   assert.ok(
-    detailBody.includes(BODY_CANARIES["java-spring-svc-internet-outbound"]) ||
-      detailBody.toLowerCase().includes("wso2") ||
-      detailBody.toLowerCase().includes("gateway"),
-    "internet detail should carry canary and/or gateway product guidance",
+    detailBody.toLowerCase().includes("wso2"),
+    "internet detail MUST name WSO2 (vendor only in rule content)",
+  );
+  assert.ok(
+    detailBody.includes(BODY_CANARIES["java-spring-svc-internet-outbound"]),
+    "internet detail MUST carry BODY_CANARY java-spring-svc-internet-outbound",
   );
 });
 
@@ -701,7 +701,7 @@ test("JAVA-IN-01: taskType docs excluded when exclude configured", () => {
 // JAVA-IN-02 — Inbound Kafka path-primary, construction-only
 // ---------------------------------------------------------------------------
 
-test("JAVA-IN-02: construction + OrderListener path selects inbound-kafka", () => {
+test("JAVA-IN-02: construction + messaging OrderListener path selects inbound-kafka", () => {
   const index = packIndex();
   const result = select(
     index,
@@ -714,7 +714,7 @@ test("JAVA-IN-02: construction + OrderListener path selects inbound-kafka", () =
   );
   assert.ok(
     isSelected(result, "java-spring-inbound-kafka"),
-    "OrderListener.java under construction must select java-spring-inbound-kafka",
+    "messaging/*Listener path under construction must select java-spring-inbound-kafka",
   );
 });
 
@@ -770,4 +770,81 @@ test("JAVA-IN-02: inception phase does not select inbound-kafka", () => {
   const skip = result.skipped.find((s) => s.id === "java-spring-inbound-kafka");
   assert.ok(skip, "inbound-kafka must be skipped in inception");
   assert.equal(skip.reason, "out-of-phase");
+});
+
+// ---------------------------------------------------------------------------
+// Review regressions (CR-01/02/03, WR-01) — false-positive selection locks
+// ---------------------------------------------------------------------------
+
+test("CR-01: interest-rate keywords must NOT select inbound-rest (no rest substring needle)", () => {
+  const index = packIndex();
+  const result = select(
+    index,
+    {
+      taskType: "feature",
+      keywords: ["interest-rate", "pricing"],
+      paths: ["src/main/java/com/acme/domain/InterestService.java"],
+    },
+    SUBSCRIBED,
+  );
+  assert.ok(
+    !isSelected(result, "java-spring-inbound-rest"),
+    "interest-rate must not substring-match a bare 'rest' trigger",
+  );
+});
+
+test("CR-02: consumer-banking keywords must NOT select inbound-kafka without messaging path", () => {
+  const index = packIndex();
+  const result = select(
+    index,
+    {
+      taskType: "feature",
+      keywords: ["consumer-banking", "loan"],
+      paths: ["src/main/java/com/acme/domain/ConsumerLoanService.java"],
+    },
+    SUBSCRIBED,
+  );
+  assert.ok(
+    !isSelected(result, "java-spring-inbound-kafka"),
+    "consumer-banking must not fire bare 'consumer' kafka trigger",
+  );
+});
+
+test("CR-03: EntityListener / ApplicationListener paths must NOT select inbound-kafka", () => {
+  const index = packIndex();
+  for (const p of [
+    "src/main/java/com/acme/domain/PaymentEntityListener.java",
+    "src/main/java/com/acme/config/AppApplicationListener.java",
+  ]) {
+    const result = select(
+      index,
+      { taskType: "feature", keywords: [], paths: [p] },
+      SUBSCRIBED,
+    );
+    assert.ok(
+      !isSelected(result, "java-spring-inbound-kafka"),
+      `${p} must not select inbound-kafka (narrowed path globs)`,
+    );
+  }
+});
+
+test("WR-01: bare webclient keyword alone must select neither outbound rule (fail-open)", () => {
+  const index = packIndex();
+  const result = select(
+    index,
+    {
+      taskType: "feature",
+      keywords: ["webclient"],
+      paths: [],
+    },
+    SUBSCRIBED,
+  );
+  assert.ok(
+    !isSelected(result, "java-spring-svc-internet-outbound"),
+    "library-only signal must not guess internet-facing class",
+  );
+  assert.ok(
+    !isSelected(result, "java-spring-svc-internal-outbound"),
+    "library-only signal must not select internal-outbound either",
+  );
 });

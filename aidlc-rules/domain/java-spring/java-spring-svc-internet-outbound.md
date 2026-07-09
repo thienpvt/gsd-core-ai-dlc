@@ -7,12 +7,6 @@ triggers:
     - external-facing
     - public-edge
     - edge-service
-    - api-gateway
-    - wso2
-    - webclient
-    - resttemplate
-    - feign
-    - outbound-http
   paths:
     - "**/internet-facing/**"
     - "**/external-facing/**"
@@ -39,7 +33,7 @@ detailPath: details/java-spring-svc-internet-outbound-detail.md
 
 Internet-facing services must route outbound calls to external systems through the approved API gateway. Domain and application code must not call external systems with raw WebClient, RestTemplate, Feign clients, or vendor SDKs.
 
-Place HTTP/SDK clients only in outbound adapters that target the gateway contract. Mutual exclusion with the internal-outbound rule is intentional: when both class markers appear, select neither rather than guessing.
+Place HTTP/SDK clients only in outbound adapters that target the gateway contract. Mutual exclusion with the internal-outbound rule is intentional: when both class markers appear, select neither rather than guessing. Bare client-library names without an internet-facing class marker do not select this rule (fail-open).
 
 ### Verification
 

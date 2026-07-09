@@ -3,11 +3,14 @@ id: java-spring-inbound-rest
 scope: domain
 triggers:
   keywords:
-    - rest
+    - rest-controller
+    - rest-api
+    - rest-endpoint
+    - restcontroller
     - controller
     - endpoint
   paths:
-    - "**/*Controller*"
+    - "**/*Controller.java"
     - "**/api/**"
     - "**/web/**"
     - "**/rest/**"

@@ -4,12 +4,13 @@ scope: domain
 triggers:
   keywords:
     - kafka
-    - consumer
-    - listener
+    - kafka-consumer
+    - kafka-listener
+    - message-listener
   paths:
-    - "**/*Listener*"
-    - "**/*Consumer*"
-    - "**/messaging/**"
+    - "**/*KafkaListener*"
+    - "**/*MessageListener*"
+    - "**/messaging/**/*Listener*"
     - "**/kafka/**"
     - "**/adapter/in/messaging/**"
   exclude:

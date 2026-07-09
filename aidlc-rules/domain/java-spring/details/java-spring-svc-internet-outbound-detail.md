@@ -12,7 +12,7 @@ This organization standardizes on **WSO2** as the approved API gateway product f
 
 - Service or module is marked internet-facing / external-facing / public-edge / edge-service.
 - Paths under `**/internet-facing/**`, `**/external-facing/**`, `**/edge/**`, `**/adapter/out/http/**`, or `**/infrastructure/gateway/**`.
-- Keywords such as `api-gateway`, `webclient`, `resttemplate`, `feign`, `outbound-http`, or `wso2` appear in the task signal.
+- Keywords such as `internet-facing`, `external-facing`, `public-edge`, or `edge-service` appear in the task signal (class markers only — bare client-library names like `webclient` alone do not select).
 
 ## Do
 
