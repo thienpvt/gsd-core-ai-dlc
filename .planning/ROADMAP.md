@@ -75,7 +75,11 @@ Content + one real adapter. Engine from v1–v3 stays frozen. Ship selectable `j
   2. Every pack rule summary is one sentence suitable for injection; full prose loads only via `detailPath` / `governance rule-detail`
   3. Selector classifies Internal vs internet-facing context and injects the matching outbound rule (Internal: JDBC/ORM OK; internet-facing: outbound via gateway/WSO2 capability language — vendor names only in rule content, not engine `src/`)
   4. Construction tasks on controller/API paths inject thin-controller REST conventions; listener/consumer paths inject idempotent Kafka conventions with no client types in domain
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 13-01-PLAN.md — TDD RED pack suite (subscription, summary, outbound XOR, inbound path matrices)
+- [ ] 13-02-PLAN.md — Author four java-spring rules + details, rebuild rule-index.json, GREEN suite
 
 ### Phase 14: Hexagonal + Tactical DDD Rules
 
