@@ -1,6 +1,6 @@
 # Testing Patterns
 
-**Analysis Date:** 2026-07-08
+**Analysis Date:** 2026-07-11
 
 ## Test Framework
 
@@ -27,6 +27,7 @@ npm run eval          # Run selector eval CLI from dist/select/eval-cli.js
 
 **Location:**
 - Tests are co-located beside source files under `src/`: `src/select/select.test.ts`, `src/inject/inject.test.ts`, `src/governance/state-store.test.ts`.
+- Current inventory: 51 TypeScript test files beside 41 non-test TypeScript source files under `src/`.
 - Compiled tests are emitted to `dist-test/` by `tsconfig.json`; do not edit generated `dist-test/` files.
 - Persistent fixture corpora live under `test/fixtures/`: `test/fixtures/eval/eval-rules/`, `test/fixtures/eval/cases/eval-cases.json`, `test/fixtures/precedence-store/`.
 
@@ -34,6 +35,7 @@ npm run eval          # Run selector eval CLI from dist/select/eval-cli.js
 - Unit/integration tests: `*.test.ts` such as `src/schema/frontmatter.test.ts` and `src/rules/load.test.ts`.
 - Property tests: `*.property.test.ts` such as `src/select/select.property.test.ts`, `src/index/no-body.property.test.ts`, `src/inject/inject.property.test.ts`.
 - CLI smoke tests: `*.smoke.test.ts` such as `src/cli/select.smoke.test.ts`, `src/cli/cli.smoke.test.ts`, `src/cli/rule-detail.smoke.test.ts`.
+- Production rule-pack contract tests use descriptive domain groupings: `src/select/java-spring-pack.test.ts`, `src/select/java-spring-hex-ddd.test.ts`, and `src/select/java-spring-log-api-evt.test.ts`.
 
 **Structure:**
 ```
@@ -43,7 +45,10 @@ src/
 │   ├── select.test.ts
 │   ├── select.property.test.ts
 │   ├── eval-fixtures.test.ts
-│   └── recall.test.ts
+│   ├── recall.test.ts
+│   ├── java-spring-pack.test.ts
+│   ├── java-spring-hex-ddd.test.ts
+│   └── java-spring-log-api-evt.test.ts
 ├── inject/
 │   ├── inject.ts
 │   ├── inject.test.ts
@@ -107,6 +112,7 @@ test("behavior name explains invariant and expected outcome", () => {
 - Use fixture corpora for cross-layer integration: `buildIndex(EVAL_ROOT)` in `src/select/select.test.ts`, `src/select/skip-reasons.test.ts`, `src/select/tokens.test.ts`.
 - Assert both positive and negative evidence when guarding no-leak/no-write behavior: `src/inject/inject.test.ts`, `src/governance/plan-hook.test.ts`, `src/governance/audit-artifact.test.ts`.
 - Use `assert.throws` and `assert.rejects` for fail-loud contracts: `src/index/build-guards.test.ts`, `src/governance/state-store.test.ts`, `src/enforcement/run-adapter.test.ts`.
+- For rule packs, lock exact IDs and combine build hygiene, body-canary quarantine, subscription gating, positive triggers, false-positive negatives, exclusions, phase gates, summary contracts, and injection assertions in the same suite: `src/select/java-spring-*.test.ts`.
 
 ## Mocking
 
@@ -186,11 +192,17 @@ function record(opts: {
 - Shared file fixtures live in `test/fixtures/`, outside `src/`, so TypeScript does not compile them.
 - Eval corpus fixtures live in `test/fixtures/eval/eval-rules/` and are built through `buildIndex` in `src/select/select.test.ts`, `src/select/eval-fixtures.test.ts`, and `src/select/recall.test.ts`.
 - Labeled eval cases live in `test/fixtures/eval/cases/eval-cases.json` and feed `src/select/eval-harness.ts` via `src/select/eval-fixtures.test.ts` and `src/select/eval-cli.test.ts`.
+- Java/Spring selector suites intentionally build the real production corpus at `aidlc-rules/`, rather than a copied fixture store, so rule IDs, summaries, triggers, detail paths, and body quarantine stay coupled to shipped content.
 - Tests that need bespoke malformed files generate them in `os.tmpdir()` with `mkdtempSync`: `src/select/select.test.ts`, `src/index/no-body.property.test.ts`, `src/governance/plan-hook.test.ts`.
 
 ## Coverage
 
-**Requirements:** None enforced by `package.json`. Coverage tooling exists through `c8`, but no threshold config detected.
+**Requirements:** None enforced by `package.json`. Coverage tooling exists through `c8`, but no threshold config or binding coverage gate is implemented.
+
+**Latest Local Evidence (2026-07-11):**
+- `npm test`: 525 tests, 522 passed, 0 failed, 3 skipped.
+- `npm run test:coverage`: aggregate 84.87% statements/lines, 80.89% branches, and 84.76% functions.
+- Caveat: the current coverage command observes both `dist-test/` and production `dist/` loaded by process-level smoke tests, so the aggregate is not yet a clean single-boundary production metric.
 
 **View Coverage:**
 ```bash
@@ -207,7 +219,7 @@ npm run test:coverage
 **Integration Tests:**
 - Scope: real rule corpora, filesystem stores, governance hooks, and schema validation across module boundaries.
 - Approach: temp directories plus real read/write paths; build fixture rule stores with `buildIndex`; assert persisted evidence.
-- Examples: `src/select/eval-fixtures.test.ts`, `src/governance/plan-hook.test.ts`, `src/governance/verify-gate-hook.test.ts`, `src/governance/audit-artifact.test.ts`.
+- Examples: `src/select/eval-fixtures.test.ts`, `src/select/java-spring-pack.test.ts`, `src/select/java-spring-hex-ddd.test.ts`, `src/select/java-spring-log-api-evt.test.ts`, `src/governance/plan-hook.test.ts`, `src/governance/verify-gate-hook.test.ts`, `src/governance/audit-artifact.test.ts`.
 
 **Property Tests:**
 - Framework: `fast-check` imported as `import * as fc from "fast-check"`.
@@ -304,4 +316,4 @@ test("invariant — repeated select() is byte-identical", () => {
 
 ---
 
-*Testing analysis: 2026-07-08*
+*Testing analysis: 2026-07-11*

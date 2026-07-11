@@ -1,6 +1,6 @@
 # Coding Conventions
 
-**Analysis Date:** 2026-07-08
+**Analysis Date:** 2026-07-11
 
 ## Naming Patterns
 
@@ -9,6 +9,7 @@
 - Co-locate tests beside implementation with `.test.ts`: `src/select/select.test.ts`, `src/inject/inject.test.ts`, `src/governance/state-store.test.ts`.
 - Use `.property.test.ts` suffix for fast-check property tests: `src/select/select.property.test.ts`, `src/index/no-body.property.test.ts`, `src/inject/inject.property.test.ts`.
 - Use `.smoke.test.ts` suffix for compiled CLI/process-boundary tests: `src/cli/select.smoke.test.ts`, `src/cli/inject.smoke.test.ts`, `src/cli/rule-detail.smoke.test.ts`.
+- Use domain-and-requirement names for production rule-pack inventory suites: `src/select/java-spring-pack.test.ts`, `src/select/java-spring-hex-ddd.test.ts`, `src/select/java-spring-log-api-evt.test.ts`.
 - Use `.schema.json` suffix for JSON Schema contracts imported by validators: `src/schema/frontmatter.schema.json`, `src/schema/rule-index.schema.json`, `src/schema/gate-result.schema.json`.
 
 **Functions:**
@@ -20,6 +21,7 @@
 **Variables:**
 - Use `camelCase` for local variables and object fields: `budgetExceeded` in `src/select/select.ts`, `requestedAt` in `src/governance/verify-gate-hook.ts`, `selectionResult` in `src/governance/state-store.ts`.
 - Use `UPPER_SNAKE_CASE` for module constants and fixed fixtures: `DEFAULT_TOKEN_BUDGET` in `src/select/select.ts`, `VALID_PHASES` in `src/cli/commands/select.ts`, `EVAL_ROOT` in `src/select/select.test.ts`.
+- Use named canary and locked-inventory constants where tests enforce content quarantine or exact rule membership: `BODY_CANARY_BY_ID`, `EXPECTED_PACK_IDS`, and `TARGET_IDS` in `src/select/java-spring-*.test.ts`.
 - Use short but meaningful loop variables only for local data transforms: `r` in `src/select/select.ts` comparator contexts, `s` in `src/cli/commands/select.ts` selected-rule formatting.
 - Use `result`, `record`, `signal`, and `config` consistently for domain objects in tests: `src/select/select.test.ts`, `src/governance/state-store.test.ts`, `src/enforcement/run-adapter.test.ts`.
 
@@ -89,6 +91,7 @@
 - Use block comments on exported functions, public interfaces, and module-level invariants: `select` in `src/select/select.ts`, `renderInjection` in `src/inject/inject.ts`, `GovernanceRecord` in `src/governance/state-store.ts`.
 - Use `{@link TypeName}` references for domain contracts when useful: `src/inject/inject.ts`, `src/types.ts`, `src/governance/state-store.ts`.
 - Tests often use file-level comments to state acceptance evidence and invariant coverage: `src/select/select.property.test.ts`, `src/index/no-body.property.test.ts`, `src/cli/select.smoke.test.ts`.
+- Rule-pack tests group assertions by requirement IDs and label false-positive regressions explicitly (`CR negative`, `bare-needle negative`, `unrelated`, `exclude`, `out-of-phase`) so trigger broadening is reviewable.
 
 ## Function Design
 
@@ -114,4 +117,4 @@
 
 ---
 
-*Convention analysis: 2026-07-08*
+*Convention analysis: 2026-07-11*

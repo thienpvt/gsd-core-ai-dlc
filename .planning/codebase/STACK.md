@@ -1,13 +1,13 @@
 # Technology Stack
 
-**Analysis Date:** 2026-07-08
+**Analysis Date:** 2026-07-11
 
 ## Languages
 
 **Primary:**
 - TypeScript `^6.0.3` - implementation code under `src/`, compiled to `dist/` via `tsc -p tsconfig.build.json` from `package.json`.
 - JSON Schema draft 2020-12 - contract schemas under `src/schema/*.schema.json`, copied to `dist/schema/` and `dist-test/schema/` by TypeScript JSON module resolution.
-- Markdown with YAML frontmatter - AI-DLC rule-pack authoring under `aidlc-rules/enterprise/require-mfa.md`; project skill indexes under `.claude/skills/*/SKILL.md`.
+- Markdown with YAML frontmatter - AI-DLC rule-pack authoring under `aidlc-rules/enterprise/require-mfa.md` and `aidlc-rules/domain/java-spring/*.md`; project skill indexes under `.claude/skills/*/SKILL.md`.
 
 **Secondary:**
 - JavaScript/CommonJS - CLI shim in `bin/governance.cjs`; compiled output in `dist/**/*.js` and `dist-test/**/*.js`.
@@ -42,6 +42,7 @@
 - TypeScript compiler `^6.0.3` - build command `npm run build` uses `tsc -p tsconfig.build.json`; test build command `npm run build:test` uses `tsc -p tsconfig.json`.
 - No bundler detected. There is no webpack/esbuild/rollup config in project source; package output ships compiled `dist/` files.
 - Node native APIs - `node:fs`, `node:path`, `node:util`, `node:child_process`, and `node:crypto` are used directly across `src/`.
+- Private npm distribution - `package.json` pins `publishConfig.registry` to the organization registry; `.npmrc.example` is the committed setup template while `.gitignore` excludes the token-bearing local `.npmrc`.
 
 ## Key Dependencies
 
@@ -64,13 +65,14 @@
 - Capability config lives in `.gsd/capabilities/aidlc-governance/capability.json`. It defines `governance.enabled` default `true` and `governance.token_budget` default `2000`.
 - CLI budget fallback reads `.planning/config.json` key `governance.token_budget` from `src/cli/commands/select.ts`; missing or invalid optional config falls back to `2000`.
 - No `.env*` file detected at repo root. Environment variable use is limited to test harness references such as `CODEX_HOME` in `src/governance/audit-hook-contract.test.ts`, `src/governance/config-no-warnings.test.ts`, `src/governance/consent.test.ts`, and `src/governance/consent-verify-post.test.ts`.
+- Package registry setup is file-based: `package.json` selects the private publish registry, `.npmrc.example` documents the client shape, and the local `.npmrc` remains untracked and must not be copied into governance artifacts.
 
 **Build:**
 - `package.json` - package metadata, `governance` bin, scripts, engines, dependencies, devDependencies.
 - `tsconfig.build.json` - production build config: target `es2022`, module `nodenext`, moduleResolution `nodenext`, rootDir `src`, outDir `dist`, strict mode, declarations, JSON module imports.
 - `tsconfig.json` - test build config extending `tsconfig.build.json`, outDir `dist-test`, includes test files.
 - `package-lock.json` - pinned dependency graph.
-- `rule-index.json` - generated index consumed by selection and governance hooks.
+- `rule-index.json` - generated, gitignored index consumed by selection and governance hooks; the current artifact contains 10 body-free records sourced from `aidlc-rules/`.
 - `src/schema/*.schema.json` - contract schemas imported by validators and copied to compiled output.
 
 ## Platform Requirements
@@ -82,10 +84,11 @@
 - Rule-pack changes require `governance build-index [--root aidlc-rules] [--out rule-index.json]` from `src/cli/commands/build-index.ts` to refresh `rule-index.json`.
 
 **Production:**
-- Deployment target is npm package/library CLI. `package.json` publishes `dist`, `bin`, and `aidlc-rules` via `files`.
+- Primary deployment target is the organization private npm registry. `package.json` publishes `dist`, `bin`, and `aidlc-rules` via `files` and fixes the destination with `publishConfig.registry`.
+- Private git and local/file installs are documented fallbacks in `README.md` and `docs/onboarding.md`; public npmjs.com publication is explicitly out of scope.
 - Runtime output is local filesystem state under `.planning/governance/` using helpers in `src/governance/paths.ts` and atomic writes in `src/governance/atomic-write.ts`.
 - Host integration target is GSD Core capability/skill runtime through `.gsd/capabilities/aidlc-governance/capability.json` and `.claude/skills/*/SKILL.md`.
 
 ---
 
-*Stack analysis: 2026-07-08*
+*Stack analysis: 2026-07-11*

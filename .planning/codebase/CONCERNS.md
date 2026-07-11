@@ -1,6 +1,6 @@
 # Codebase Concerns
 
-**Analysis Date:** 2026-07-08
+**Analysis Date:** 2026-07-11
 
 ## Tech Debt
 
@@ -22,12 +22,6 @@
 - Impact: Failed early injection can remove governance context from discussion/planning/execution. Ship catches missing plan/verify evidence later, but user-facing context can still be under-injected before the hard gates.
 - Fix approach: Decide whether early gate context loss should halt or remain advisory. If hard enforcement is required, change `onError` to `halt` for early steps and update consent/runtime tests.
 
-**Per-plan SUMMARY frontmatter omits requirement IDs in selected plans:**
-- Issue: Six per-plan summaries omit `requirements-completed` despite verification evidence covering the requirements.
-- Files: `.planning/milestones/v2.0-phases/06-v1-0-tech-debt-fold-in/06-02-SUMMARY.md`, `.planning/milestones/v2.0-phases/06-v1-0-tech-debt-fold-in/06-03-SUMMARY.md`, `.planning/milestones/v2.0-phases/07-enforcement-contracts-adapter-stubs/07-01-SUMMARY.md`, `.planning/milestones/v2.0-phases/07-enforcement-contracts-adapter-stubs/07-02-SUMMARY.md`, `.planning/milestones/v2.0-phases/10-selection-quality-harness/10-01-SUMMARY.md`, `.planning/milestones/v2.0-phases/10-selection-quality-harness/10-02-SUMMARY.md`
-- Impact: Machine readers using only SUMMARY frontmatter see partial coverage and require manual verification against phase `VERIFICATION.md` files.
-- Fix approach: Backfill `requirements-completed` fields from phase verification tables. Treat phase `VERIFICATION.md` as authoritative until frontmatter is normalized.
-
 **Eval npm script needs positional forwarding:**
 - Issue: `npm run eval` maps to `node dist/select/eval-cli.js` and requires a phase argument passed as `npm run eval -- <phaseNumber>`.
 - Files: `package.json`, `src/select/eval-cli.ts`, `src/cli/commands/eval.ts`, `.planning/milestones/v2.0-MILESTONE-AUDIT.md`
@@ -40,11 +34,17 @@
 - Impact: Schema validation behavior can drift if future changes update one validator and skip another.
 - Fix approach: Preserve duplication only where crash isolation is required. When editing validation behavior, update all validator copies and add contract tests for each boundary.
 
+**Coverage measurement is not yet a binding governance adapter:**
+- Issue: `npm run test:coverage` reports `c8` output, but no threshold is configured and no production `coverage-report` adapter parses the report into gate evidence.
+- Files: `package.json`, `src/enforcement/adapters.ts`, `src/governance/capture-test-evidence.ts`, `.planning/STATE.md`
+- Impact: The current 84.87% aggregate is informational only and includes both `dist-test/` plus production `dist/` loaded by smoke tests, so it is not a stable unit-line enforcement boundary.
+- Fix approach: Implement the planned coverage parser and binding adapter with a frozen measurement boundary, exclusions, and threshold in the same change.
+
 ## Known Bugs
 
 **No critical runtime bugs detected in current source scan:**
-- Symptoms: Test and milestone evidence show current shipped state with zero critical blockers.
-- Files: `.planning/milestones/v2.0-MILESTONE-AUDIT.md`, `package.json`, `src/**/*.test.ts`
+- Symptoms: The 2026-07-11 local run completed 525 tests with 522 passing, 0 failing, and 3 skipped.
+- Files: `package.json`, `src/**/*.test.ts`, `.planning/STATE.md`
 - Trigger: Not applicable.
 - Workaround: Not applicable.
 
@@ -126,11 +126,11 @@
 - Safe modification: Use `writePhaseRecord()` or task-specific keys for concurrent workflows. Keep canonical singleton for simple single-task loop behavior.
 - Test coverage: Atomic write and reload tests cover file integrity, not concurrent independent task isolation.
 
-**Audit enrichment depends on artifact naming conventions:**
-- Files: `src/governance/audit-artifact.ts`, `src/governance/audit-enrich.ts`, `.claude/skills/aidlc-governance-audit/SKILL.md`
-- Why fragile: Audit output path must be `.planning/phases/{NN}-*/GOVERNANCE.md`, but current repository stores historical phases under `.planning/milestones/...`; the audit skill requires exactly one matching `.planning/phases/{NN}-*/` directory.
-- Safe modification: Keep `assertGovernanceOutputPath()` strict for generated artifacts. If phase storage layout stays milestone-scoped, update skill resolution and output guard together.
-- Test coverage: Unit/integration tests cover output guard behavior; repository layout scan shows `.planning/phases/` absent.
+**Audit enrichment depends on phase artifact naming conventions:**
+- Files: `src/governance/audit-artifact.ts`, `src/governance/audit-enrich.ts`, `.claude/skills/aidlc-governance-audit/SKILL.md`, `.planning/phases/`
+- Why fragile: Audit output must resolve to exactly one `.planning/phases/{NN}-*/GOVERNANCE.md`; phase archival, duplicate phase directories, or renamed context/verification files can make skill resolution ambiguous even when the writer itself is correct.
+- Safe modification: Keep `assertGovernanceOutputPath()` and skill directory resolution synchronized whenever phase storage or cleanup behavior changes.
+- Test coverage: Unit/integration tests cover the strict output guard; archive/cleanup transitions remain workflow-level behavior.
 
 **Eval corpus is small and fixture-backed:**
 - Files: `test/fixtures/eval/cases/eval-cases.json`, `test/fixtures/eval/eval-rules/`, `src/select/eval-cli.ts`, `src/select/eval-harness.ts`
@@ -147,7 +147,7 @@
 ## Scaling Limits
 
 **Rule pack size:**
-- Current capacity: Source scan shows one production rule under `aidlc-rules/enterprise/require-mfa.md` plus eval fixtures under `test/fixtures/eval/eval-rules/`.
+- Current capacity: `rule-index.json` contains 10 production records: one enterprise rule and nine `java-spring` domain rules with lazy details under `aidlc-rules/domain/java-spring/details/`.
 - Limit: Selection is linear over index rules, and each path trigger compiles a picomatch matcher per run in `src/select/select.ts`.
 - Scaling path: Cache compiled matchers or precompute normalized trigger metadata when rule packs grow enough to make `governance select` latency visible.
 
@@ -197,11 +197,27 @@
 - Problem: Audit enrichment extracts requirements and remaining risks from Markdown.
 - Blocks: Fully stable machine-readable audit generation across arbitrary planning-doc format changes.
 
+**Binding coverage report adapter:**
+- Problem: Coverage is collected only as console output; no parser normalizes it into a validated gate result with a frozen unit-line threshold.
+- Blocks: Enforcing the planned coverage policy during verify/ship rather than merely reporting `c8` output.
+
 **Concurrent governed task identity:**
 - Problem: Selection state and approvals are keyed by latest record or phase.
 - Blocks: Safe parallel governance loops in one working tree.
 
 ## Test Coverage Gaps
+
+**Production Java/Spring pack in the eval corpus:**
+- What's not tested: The generic labeled eval corpus under `test/fixtures/eval/` does not score the nine shipped `java-spring` rules, even though dedicated selector inventory suites cover their positives and negatives.
+- Files: `aidlc-rules/domain/java-spring/`, `src/select/java-spring-pack.test.ts`, `src/select/java-spring-hex-ddd.test.ts`, `src/select/java-spring-log-api-evt.test.ts`, `test/fixtures/eval/cases/eval-cases.json`
+- Risk: Per-rule contract tests can pass while cross-rule precision/recall interactions in the full production domain pack remain unmeasured by `governance eval`.
+- Priority: Medium; a dedicated Java/Spring eval corpus is explicitly deferred from the current milestone.
+
+**Coverage parser and threshold boundary:**
+- What's not tested: Parsing real `c8` report artifacts, applying exclusions, enforcing the planned line threshold, and converting failures into a binding `GateResult`.
+- Files: `package.json`, `src/enforcement/adapters.ts`, `src/governance/capture-test-evidence.ts`, `.planning/STATE.md`
+- Risk: Coverage output can change shape or double-count compiled trees without causing verify/ship to fail.
+- Priority: High for the planned coverage-adapter phase.
 
 **Real external adapters:**
 - What's not tested: Actual scanner execution, scanner output parsing, tool availability errors, and scanner-specific finding normalization.
@@ -235,4 +251,4 @@
 
 ---
 
-*Concerns audit: 2026-07-08*
+*Concerns audit: 2026-07-11*

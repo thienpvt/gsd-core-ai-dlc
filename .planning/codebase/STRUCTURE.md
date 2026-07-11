@@ -1,6 +1,6 @@
 # Codebase Structure
 
-**Analysis Date:** 2026-07-08
+**Analysis Date:** 2026-07-11
 
 ## Directory Layout
 
@@ -19,6 +19,7 @@ gsd-core-ai-dlc/
 │   └── capabilities/
 │       └── aidlc-governance/
 │           └── capability.json
+├── .gsd-capabilities.json           # Installed capability registry snapshot
 ├── .planning/                       # GSD project state, roadmap, phases, governance ledger, codebase map
 │   ├── codebase/                    # Generated codebase architecture/stack/quality docs
 │   ├── governance/                  # Runtime governance selection/evidence state
@@ -29,10 +30,18 @@ gsd-core-ai-dlc/
 │   ├── ROADMAP.md                   # Phase roadmap
 │   └── STATE.md                     # Current phase state
 ├── aidlc-rules/                     # Authored governance rule pack store
-│   └── enterprise/                  # Enterprise-scope rule markdown
-│       └── require-mfa.md
+│   ├── enterprise/                  # Enterprise-scope rule markdown
+│   │   └── require-mfa.md
+│   └── domain/
+│       └── java-spring/             # Nine Java/Spring advisory rules
+│           ├── details/             # Nine lazy-loaded detail bodies
+│           └── java-spring-*.md     # Selectable rule frontmatter + summaries
 ├── bin/                             # Published executable shims
 │   └── governance.cjs               # CommonJS CLI shim
+├── docs/                            # Onboarding, workflow, and rule-authoring guides
+│   ├── governance-workflow.md
+│   ├── onboarding.md
+│   └── rule-authoring.md
 ├── src/                             # TypeScript source and co-located tests
 │   ├── cli/                         # CLI dispatcher, commands, CLI smoke tests
 │   │   └── commands/                # `governance` subcommand implementations
@@ -47,6 +56,9 @@ gsd-core-ai-dlc/
 │   └── types.ts                     # Shared domain type contracts
 ├── test/                            # Test fixtures and fixture scripts
 │   └── fixtures/                    # Rule stores, eval cases, governance store fixtures
+├── .gitignore                       # Generated output, local auth, and runtime-state exclusions
+├── .npmrc.example                   # Non-secret private-registry client template
+├── README.md                        # Package landing page and install/CLI overview
 ├── package.json                     # Package metadata, bin, scripts, dependencies
 ├── package-lock.json                # npm lockfile
 ├── rule-index.json                  # Generated body-free rule index artifact
@@ -65,7 +77,7 @@ gsd-core-ai-dlc/
 **`.gsd/`:**
 - Purpose: GSD capability installation metadata.
 - Contains: `.gsd/capabilities/aidlc-governance/capability.json`.
-- Key files: `.gsd/capabilities/aidlc-governance/capability.json`.
+- Key files: `.gsd/capabilities/aidlc-governance/capability.json`, `.gsd-capabilities.json`.
 - Use: Add or adjust loop binding metadata here only when capability surfaces change.
 
 **`.planning/`:**
@@ -100,8 +112,8 @@ gsd-core-ai-dlc/
 
 **`aidlc-rules/`:**
 - Purpose: Source rule-pack store for authored governance rules.
-- Contains: Tier directories `enterprise/`, `domain/<name>/`, `project/`; optional `details/` subtrees for lazy-loaded detail bodies.
-- Key files: `aidlc-rules/enterprise/require-mfa.md`.
+- Contains: `aidlc-rules/enterprise/require-mfa.md`; nine selectable Java/Spring rules under `aidlc-rules/domain/java-spring/`; nine lazy detail bodies under `aidlc-rules/domain/java-spring/details/`.
+- Key files: `aidlc-rules/enterprise/require-mfa.md`, `aidlc-rules/domain/java-spring/java-spring-inbound-rest.md`, `aidlc-rules/domain/java-spring/java-spring-hex-layering.md`, `aidlc-rules/domain/java-spring/java-spring-api-contract.md`.
 - Use: Add new rules as markdown with YAML frontmatter. Scope directory is source of truth and must match `scope` frontmatter.
 
 **`bin/`:**
@@ -109,6 +121,12 @@ gsd-core-ai-dlc/
 - Contains: `bin/governance.cjs`.
 - Key files: `bin/governance.cjs`.
 - Use: Keep as thin shim requiring `../dist/cli/index.js`; put CLI behavior in `src/cli/`.
+
+**`docs/`:**
+- Purpose: Maintainer and consumer documentation for installation, the governance lifecycle, and rule authoring.
+- Contains: `docs/onboarding.md`, `docs/governance-workflow.md`, `docs/rule-authoring.md`.
+- Key files: `README.md`, `docs/onboarding.md`, `docs/governance-workflow.md`, `docs/rule-authoring.md`.
+- Use: Keep installation and private-registry guidance synchronized between `README.md` and `docs/onboarding.md`; put end-to-end hook behavior in `docs/governance-workflow.md` and rule schema/examples in `docs/rule-authoring.md`.
 
 **`src/`:**
 - Purpose: All TypeScript implementation, public exports, and co-located tests.
@@ -196,11 +214,19 @@ gsd-core-ai-dlc/
 **Configuration:**
 - `package.json`: npm package, bin, scripts, dependencies.
 - `package-lock.json`: Locked npm dependency graph.
+- `.npmrc.example`: Non-secret client template for the organization private npm registry; copy to a local ignored `.npmrc` when needed.
+- `.gitignore`: Excludes local `.npmrc`, generated builds, generated `rule-index.json`, coverage, research cache, and governance runtime state.
 - `tsconfig.build.json`: Production build config, excludes `*.test.ts`.
 - `tsconfig.json`: Test build config, emits to `dist-test` and includes tests.
 - `.planning/config.json`: GSD/runtime config; `src/cli/commands/select.ts` reads `governance.token_budget`.
 - `.gsd-capabilities.json`: Installed capability registry snapshot.
 - `.gsd/capabilities/aidlc-governance/capability.json`: Capability config keys and loop step bindings.
+
+**Documentation:**
+- `README.md`: Package overview, private-registry-first install path, CLI command table, and contributor commands.
+- `docs/onboarding.md`: Prerequisites, private registry/local/private-git installation, consent activation, and first-run verification.
+- `docs/governance-workflow.md`: CLI and Discuss → Plan → Execute → Verify → Ship gate flow.
+- `docs/rule-authoring.md`: Frontmatter contract, scope layout, detail-path rules, index build, and verification examples.
 
 **Core Logic:**
 - `src/types.ts`: Shared type contracts for rules, signals, selection, phases, severity, skip reasons.
@@ -244,7 +270,9 @@ gsd-core-ai-dlc/
 
 **Rule Packs and Generated Index:**
 - `aidlc-rules/enterprise/require-mfa.md`: Production enterprise rule fixture/source.
-- `rule-index.json`: Generated index consumed by selector and hooks.
+- `aidlc-rules/domain/java-spring/*.md`: Nine advisory rules covering inbound REST/Kafka, outbound service classification, hexagonal layering, tactical DDD, logging/audit, API contracts, and saga/outbox decisions.
+- `aidlc-rules/domain/java-spring/details/*.md`: Nine lazy-loaded detail bodies paired with the Java/Spring rule summaries.
+- `rule-index.json`: Generated, gitignored index consumed by selector and hooks; current artifact contains 10 records.
 
 **Testing:**
 - `src/**/*.test.ts`: Co-located unit/property/integration-style tests.
@@ -265,6 +293,7 @@ gsd-core-ai-dlc/
 - JSON Schema files use `.schema.json`: `src/schema/gate-result.schema.json`, `src/schema/eval-report.schema.json`.
 - Skill files are always `SKILL.md` inside named skill directories: `.claude/skills/aidlc-governance-plan/SKILL.md`.
 - Rule markdown files use kebab-case IDs or names: `aidlc-rules/enterprise/require-mfa.md`, `test/fixtures/eval/eval-rules/enterprise/secrets-management.md`.
+- Domain-pack rule and detail names share a stable prefix: `aidlc-rules/domain/java-spring/java-spring-api-contract.md` and `aidlc-rules/domain/java-spring/details/java-spring-api-contract-detail.md`.
 
 **Directories:**
 - Source layer directories are singular by concern: `src/select/`, `src/inject/`, `src/index/`, `src/rules/`, `src/schema/`, `src/governance/`, `src/enforcement/`.
@@ -352,6 +381,12 @@ gsd-core-ai-dlc/
 - Index update: Run `governance build-index --root aidlc-rules --out rule-index.json`
 - Pattern: Frontmatter must include `id`, `scope`, `triggers`, `phases`, `severity`, `summary`, `classification`; binding rules require `enforcement`.
 
+**New Documentation:**
+- Landing-page or install change: Update `README.md` and `docs/onboarding.md` together.
+- Lifecycle/CLI behavior: Update `docs/governance-workflow.md`.
+- Rule schema, scope, or authoring workflow: Update `docs/rule-authoring.md`.
+- Pattern: Keep commands and file paths executable against `bin/governance.cjs`, `src/cli/index.ts`, and `package.json`; never place real registry credentials in tracked docs or `.npmrc.example`.
+
 **Utilities:**
 - Shared domain-independent utility: Prefer nearest owner module first; create new shared helper only if at least two production modules need it.
 - Governance path utility: `src/governance/paths.ts`
@@ -423,4 +458,4 @@ gsd-core-ai-dlc/
 
 ---
 
-*Structure analysis: 2026-07-08*
+*Structure analysis: 2026-07-11*

@@ -1,7 +1,7 @@
-<!-- refreshed: 2026-07-08 -->
+<!-- refreshed: 2026-07-11 -->
 # Architecture
 
-**Analysis Date:** 2026-07-08
+**Analysis Date:** 2026-07-11
 
 ## System Overview
 
@@ -24,7 +24,8 @@
          ▼
 ┌─────────────────────────────────────────────────────────────┐
 │      Rule packs, schemas, evidence ledger, audit output      │
-│ `aidlc-rules/`, `src/schema/`, `.planning/governance/`, `GOVERNANCE.md` │
+│ `aidlc-rules/enterprise/`, `aidlc-rules/domain/java-spring/`,          │
+│ `src/schema/`, `.planning/governance/`, `GOVERNANCE.md`                │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -41,6 +42,7 @@
 | Rule-detail command | Lazily load one rule body through guarded `detailPath` resolution. | `src/cli/commands/rule-detail.ts` |
 | Eval command | Delegate selection eval CLI without duplicating harness logic. | `src/cli/commands/eval.ts` |
 | Rule loader | Recursively load rule markdown, parse frontmatter with `gray-matter`, validate metadata, and quarantine bodies. | `src/rules/load.ts` |
+| Rule corpus | Provide one enterprise rule and nine Java/Spring domain rules, with domain details loaded only on demand. | `aidlc-rules/enterprise/`, `aidlc-rules/domain/java-spring/` |
 | Scope resolver | Enforce directory-derived scope, cross-tier precedence, and same-tier duplicate failure. | `src/rules/scope.ts` |
 | Detail path guard | Resolve `detailPath` safely before body reads. | `src/rules/detail-path.ts` |
 | Index builder | Convert validated rules to body-free `RuleIndexRecord` objects and validate `rule-index.json`. | `src/index/build.ts` |
@@ -76,6 +78,7 @@
 - Keep selection math pure: `src/select/select.ts` performs no I/O, no clock reads, no randomness, and always emits every candidate as selected or skipped.
 - Keep context injection summary-only: `src/inject/inject.ts` imports no filesystem modules and renders only `id`, `severity`, `summary`, and lazy `governance rule-detail <id>` pointers.
 - Keep rule bodies quarantined: `src/rules/load.ts` parses markdown but returns only frontmatter and paths; `src/index/build.ts` whitelists index fields; `src/cli/commands/rule-detail.ts` is the only body-read surface.
+- Keep domain packs subscription-gated: the nine records under `aidlc-rules/domain/java-spring/` become candidates only when `SelectionConfig.domains` includes `java-spring`; enterprise rules such as `aidlc-rules/enterprise/require-mfa.md` remain global candidates.
 - Keep GSD integration thin: `.claude/skills/aidlc-governance-discuss/SKILL.md`, `.claude/skills/aidlc-governance-plan/SKILL.md`, `.claude/skills/aidlc-governance-execute/SKILL.md`, `.claude/skills/aidlc-governance-verify/SKILL.md`, `.claude/skills/aidlc-governance-audit/SKILL.md`, and `.claude/skills/aidlc-governance-ship/SKILL.md` marshal inputs and invoke compiled hooks.
 - Fail closed at trust boundaries: `src/select/validate-signal.ts`, `src/index/validate-index.ts`, `src/enforcement/validate-gate-result.ts`, `src/enforcement/validate-approval.ts`, `src/governance/gate-evidence-store.ts`, `src/governance/test-evidence.ts`, and `src/governance/eval-evidence.ts` validate external or persisted data before use.
 - Persist state through compaction/subagents: `src/governance/state-store.ts` writes `.planning/governance/selection-state.json`; `src/governance/execute-hook.ts` reloads it instead of re-selecting.
@@ -92,7 +95,7 @@
 **Rule-pack ingestion layer:**
 - Purpose: Load authored markdown rules, validate frontmatter, enforce scope/precedence/detail-path constraints, and emit body-free index records.
 - Location: `aidlc-rules/`, `src/rules/`, `src/index/`, `src/schema/frontmatter.schema.json`, `src/schema/rule-index.schema.json`
-- Contains: Rule markdown, frontmatter parser, scope derivation, precedence resolver, detail path guard, index builder, index validator.
+- Contains: One enterprise rule, nine Java/Spring domain rule summaries, nine lazy detail files, frontmatter parser, scope derivation, precedence resolver, detail path guard, index builder, index validator.
 - Depends on: `gray-matter`, `node:fs`, `node:path`, `Ajv2020`, `src/types.ts`.
 - Used by: `src/cli/commands/build-index.ts`, `src/cli/commands/select.ts` directory fallback, `src/cli/commands/rule-detail.ts`, `src/governance/discuss-hook.ts`, `src/governance/plan-hook.ts`, `src/select/eval-cli.ts`.
 
@@ -149,6 +152,7 @@
 3. Frontmatter is parsed and validated; body content is not returned (`src/rules/load.ts:56`).
 4. Scope resolver rejects mismatched directory/frontmatter scope and same-tier duplicate IDs (`src/rules/scope.ts:67`, `src/rules/scope.ts:89`).
 5. Index builder validates `detailPath` targets, whitelists record fields, validates the final index, and writes `rule-index.json` (`src/index/build.ts:59`, `src/index/build.ts:100`).
+6. The current `rule-index.json` holds 10 records sourced from `aidlc-rules/enterprise/require-mfa.md` and `aidlc-rules/domain/java-spring/*.md`; the nine domain detail files remain outside the index.
 
 ### Lazy Rule Detail Flow
 
@@ -183,13 +187,13 @@
 
 **Rule metadata contract:**
 - Purpose: Machine-selectable rule metadata separate from prose rule bodies.
-- Examples: `src/types.ts`, `src/schema/frontmatter.schema.json`, `aidlc-rules/enterprise/require-mfa.md`
+- Examples: `src/types.ts`, `src/schema/frontmatter.schema.json`, `aidlc-rules/enterprise/require-mfa.md`, `aidlc-rules/domain/java-spring/java-spring-inbound-rest.md`
 - Pattern: Markdown with YAML frontmatter; scope derives from directory and must match frontmatter.
 
 **RuleIndex:**
 - Purpose: Body-free, deterministic selection input artifact.
 - Examples: `src/types.ts`, `src/index/build.ts`, `rule-index.json`, `src/schema/rule-index.schema.json`
-- Pattern: Explicit field whitelist; no spread from parsed markdown; validate before returning/writing.
+- Pattern: Explicit field whitelist; no spread from parsed markdown; validate before returning/writing; domain records retain source paths and lazy `detailPath` pointers without embedding detail bodies.
 
 **TaskSignal:**
 - Purpose: Small deterministic selector input derived by caller, not free-form task prose.
@@ -382,4 +386,4 @@
 
 ---
 
-*Architecture analysis: 2026-07-08*
+*Architecture analysis: 2026-07-11*

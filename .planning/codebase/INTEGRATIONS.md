@@ -1,6 +1,6 @@
 # External Integrations
 
-**Analysis Date:** 2026-07-08
+**Analysis Date:** 2026-07-11
 
 ## APIs & External Services
 
@@ -16,6 +16,14 @@
 - AI-DLC rule corpus - local Markdown rules under `aidlc-rules/` are parsed by `src/rules/load.ts`, indexed by `src/index/build.ts`, and consumed from `rule-index.json` by `src/select/select.ts`.
   - SDK/Client: `gray-matter` for Markdown/YAML frontmatter; no network client.
   - Auth: Not applicable.
+- Current corpus - `rule-index.json` contains 10 body-free records: `aidlc-rules/enterprise/require-mfa.md` plus nine advisory Java/Spring domain rules under `aidlc-rules/domain/java-spring/`, each with a lazy detail file under `aidlc-rules/domain/java-spring/details/`.
+  - SDK/Client: local rule-index contract in `src/types.ts` and `src/schema/rule-index.schema.json`.
+  - Auth: Not applicable.
+
+**Package Registry:**
+- Organization private npm registry - package installs and publishes use `package.json` `publishConfig.registry`; setup and fallback paths are documented in `README.md` and `docs/onboarding.md`.
+  - SDK/Client: npm `>=10.0.0`; committed template at `.npmrc.example`.
+  - Auth: organization token is supplied only through a local `.npmrc`, which `.gitignore` excludes; no token value is stored in tracked project files.
 
 **Policy / Scanner Adapter Surface:**
 - Semgrep, Bandit, Checkov, Grype, Gitleaks, generic exit-code CI, and human approval are stub names only in `src/enforcement/adapters.ts`.
@@ -80,7 +88,8 @@
 ## CI/CD & Deployment
 
 **Hosting:**
-- npm package/CLI distribution. `package.json` has package name `@opengsd/gsd-aidlc-overlay`, version `0.1.0`, main `dist/index.js`, bin `governance`, and published files `dist`, `bin`, `aidlc-rules`.
+- Private npm package/CLI distribution. `package.json` has package name `@opengsd/gsd-aidlc-overlay`, version `0.1.0`, main `dist/index.js`, bin `governance`, published files `dist`, `bin`, `aidlc-rules`, and an organization-only `publishConfig.registry`.
+- Private git, local checkout, and `file:` installs are documented fallbacks in `README.md` and `docs/onboarding.md`.
 - No Dockerfile, docker-compose, or platform deployment config detected in repo root.
 
 **CI Pipeline:**
@@ -98,6 +107,7 @@
 **Secrets location:**
 - No `.env*` files detected at repo root.
 - No credential, key, certificate, or secret config files detected in scanned root patterns.
+- npm authentication, when configured, belongs in the ignored local `.npmrc`; `.npmrc.example` is the non-secret committed template.
 - Secrets should not be stored in rule packs or governance artifacts; current code stores only structured evidence and local config in `.planning/`.
 
 ## Webhooks & Callbacks
@@ -106,7 +116,8 @@
 - None detected. No HTTP server, route handlers, webhook endpoints, or callback listeners detected in production source.
 
 **Outgoing:**
-- None detected. No production `fetch`, HTTP client, SDK network calls, or webhook emitter detected under `src/`.
+- No runtime application calls detected. Production source under `src/` has no `fetch`, HTTP client, SDK network calls, or webhook emitter.
+- Operator-driven npm install/publish traffic targets the private registry configured in `package.json`; it is packaging infrastructure, not an application webhook or runtime service dependency.
 
 ## Integration Contracts
 
@@ -124,6 +135,11 @@
 - Audit artifact: `.claude/skills/aidlc-governance-audit/SKILL.md` calls `node dist/governance/audit-artifact.js <projectRoot> <phaseDir>/GOVERNANCE.md`.
 - Ship gate: `.claude/skills/aidlc-governance-ship/SKILL.md` calls `node dist/governance/ship-gate-hook.js <projectRoot> <phaseNumber>` and blocks on missing/failing plan/verify/eval evidence or unresolved approval.
 
+**Package Distribution Contract:**
+- Package metadata: `package.json` publishes `dist/`, `bin/`, and `aidlc-rules/` for package consumers.
+- Registry boundary: `package.json` fixes publish destination to the organization private registry; `README.md` explicitly excludes public npmjs.com publication.
+- Client setup: `.npmrc.example` is copied to an untracked local `.npmrc`; `.gitignore` prevents authentication material from entering version control.
+
 ---
 
-*Integration audit: 2026-07-08*
+*Integration audit: 2026-07-11*
