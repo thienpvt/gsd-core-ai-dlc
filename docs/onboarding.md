@@ -146,7 +146,7 @@ Set or omit `governance.enabled` in `.planning/config.json`. Default is `true` f
 
 Consent is the loader-level grant. `governance.enabled` is the per-project on/off switch.
 
-Java/Spring consumers can add domain subscription and a report path by following the [Java/Spring Coverage Gate](java-spring-coverage.md) guide.
+Java/Spring consumers can add domain subscription and a report path by following the [Java/Spring Coverage Gate](java-spring-coverage.md) guide. The overlay maps GSD phase 1 to AI-DLC inception and all later positive GSD phase numbers to construction; operations-phase governance remains deferred pending explicit AI-DLC phase metadata.
 
 ### Hook chain
 

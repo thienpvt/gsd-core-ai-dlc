@@ -66,6 +66,11 @@ test("Java Spring coverage guide documents the complete consumer contract", () =
     "absolute",
     "out-of-root",
     "fixed inclusive 70%",
+    "current_phase: 1",
+    "phase 18",
+    "operations-phase governance remains deferred",
+    "never overwrites that state",
+    "fails closed on disagreement",
   ]);
   assert.doesNotMatch(guide, /configurable (?:coverage )?threshold/i);
   assert.doesNotMatch(guide, /(?:configure|setting for) (?:the )?format/i);

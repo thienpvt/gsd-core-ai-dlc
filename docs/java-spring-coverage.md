@@ -20,7 +20,9 @@ Set the capability-owned values in the consumer project's `.planning/config.json
 
 ## When the binding rule is selected
 
-`java-spring-unit-line-coverage` can be selected for a construction task that touches Java production paths. Documentation, test, and infrastructure tasks are excluded, as are test, generated, build, and target paths. Verify routes the selected binding rule to the real `coverage-report` adapter; it does not fall back to the generic CI adapter.
+`java-spring-unit-line-coverage` can be selected for a construction task that touches Java production paths. The overlay maps GSD `current_phase: 1` to AI-DLC `inception` and every later positive GSD phase number (`2+`, including phase 18) to `construction`. GSD phase numbers are project-defined, so they do not imply an operations transition; operations-phase governance remains deferred until explicit AI-DLC phase metadata is added. Documentation, test, and infrastructure tasks are excluded, as are test, generated, build, and target paths.
+
+Discuss persists canonical execute selection state; plan writes separate authoritative plan evidence and never overwrites that state. Verify reconciles binding-rule presence across both records and fails closed on disagreement. When both select `java-spring-unit-line-coverage`, verify routes to the real `coverage-report` adapter; it does not fall back to the generic CI adapter.
 
 ## Produce the report before verify
 
@@ -68,7 +70,7 @@ Verify writes durable evidence to `.planning/governance/gates/{NN}-verify.json`.
 
 | Symptom | Check |
 | --- | --- |
-| Binding rule not selected | Confirm `"domains": "java-spring"`, a construction task, and a Java production path. Excluded docs/test/infra tasks and test/generated/build/target paths intentionally do not select it. |
+| Binding rule not selected | Confirm `"domains": "java-spring"`, `current_phase: 2` or later, and a Java production path. Rerun discuss and plan after finalizing Java paths; verify rejects binding-selection disagreement between their evidence. Excluded docs/test/infra tasks and test/generated/build/target paths intentionally do not select it. |
 | missing report | Generate the report in CI before verify and confirm `coverage_report_path` names the file relative to the project root. |
 | unknown suffix | Use JaCoCo `.xml` or LCOV `.info`/`.lcov`; other suffixes fail closed. |
 | Report has zero lines | Confirm the producer emitted aggregate unit line counters or complete LCOV records. Zero lines fail closed. |
