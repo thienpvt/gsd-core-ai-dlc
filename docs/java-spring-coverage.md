@@ -20,6 +20,8 @@ Set the capability-owned values in the consumer project's `.planning/config.json
 
 ## When the binding rule is selected
 
+Verify requires same-phase authoritative plan evidence (`aidlc-governance-plan` source/evaluator, pass or waived status, matching phase/taskSignal/selected rule IDs, timestamps not older than discuss). Missing plan evidence fails closed before any adapter runs; `plan:pre` uses `onError: halt` because plan evidence is mandatory for verify.
+
 `java-spring-unit-line-coverage` can be selected for a construction task that touches Java production paths. The overlay maps GSD `current_phase: 1` to AI-DLC `inception` and every later positive GSD phase number (`2+`, including phase 18) to `construction`. GSD phase numbers are project-defined, so they do not imply an operations transition; operations-phase governance remains deferred until explicit AI-DLC phase metadata is added. Documentation, test, and infrastructure tasks are excluded, as are test, generated, build, and target paths.
 
 Discuss persists canonical execute selection state; plan writes separate authoritative plan evidence and never overwrites that state. Verify reconciles binding-rule presence across both records and fails closed on disagreement. When both select `java-spring-unit-line-coverage`, verify routes to the real `coverage-report` adapter; it does not fall back to the generic CI adapter.

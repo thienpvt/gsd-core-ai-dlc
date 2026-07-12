@@ -170,11 +170,14 @@ test("capability manifest registers remaining governance gates additively", () =
     "PATTERNS.md",
   ]);
   assert.equal(plan.when, "governance.enabled");
-  assert.equal(plan.onError, "skip");
+  assert.equal(plan.onError, "halt");
 
   const verify = stepBySkill(capability, "verify:post", "aidlc-governance-verify");
   assert.deepEqual(verify.produces, [".planning/governance/gates/{NN}-verify.json"]);
-  assert.deepEqual(verify.consumes, [".planning/governance/selection-state.json"]);
+  assert.deepEqual(verify.consumes, [
+    ".planning/governance/selection-state.json",
+    ".planning/governance/gates/{NN}-plan.json",
+  ]);
   assert.equal(verify.when, "governance.enabled");
   assert.equal(verify.onError, "halt");
 

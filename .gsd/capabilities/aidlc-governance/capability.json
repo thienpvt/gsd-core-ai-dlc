@@ -10,7 +10,9 @@
     "gsd": ">=1.6.0"
   },
   "runtimeCompat": {
-    "supported": ["*"],
+    "supported": [
+      "*"
+    ],
     "unsupported": []
   },
   "skills": [
@@ -51,7 +53,10 @@
       "ref": {
         "skill": "aidlc-governance-discuss"
       },
-      "produces": ["CONTEXT.md", ".planning/governance/selection-state.json"],
+      "produces": [
+        "CONTEXT.md",
+        ".planning/governance/selection-state.json"
+      ],
       "consumes": [],
       "when": "governance.enabled",
       "onError": "skip"
@@ -61,22 +66,29 @@
       "ref": {
         "skill": "aidlc-governance-plan"
       },
-      "produces": ["planner-context", ".planning/governance/gates/{NN}-plan.json"],
+      "produces": [
+        "planner-context",
+        ".planning/governance/gates/{NN}-plan.json"
+      ],
       "consumes": [
         "CONTEXT.md",
         "RESEARCH.md",
         "PATTERNS.md"
       ],
       "when": "governance.enabled",
-      "onError": "skip"
+      "onError": "halt"
     },
     {
       "point": "execute:pre",
       "ref": {
         "skill": "aidlc-governance-execute"
       },
-      "produces": ["executor-context"],
-      "consumes": [".planning/governance/selection-state.json"],
+      "produces": [
+        "executor-context"
+      ],
+      "consumes": [
+        ".planning/governance/selection-state.json"
+      ],
       "when": "governance.enabled",
       "onError": "skip"
     },
@@ -85,8 +97,13 @@
       "ref": {
         "skill": "aidlc-governance-verify"
       },
-      "produces": [".planning/governance/gates/{NN}-verify.json"],
-      "consumes": [".planning/governance/selection-state.json"],
+      "produces": [
+        ".planning/governance/gates/{NN}-verify.json"
+      ],
+      "consumes": [
+        ".planning/governance/selection-state.json",
+        ".planning/governance/gates/{NN}-plan.json"
+      ],
       "when": "governance.enabled",
       "onError": "halt"
     },
@@ -95,7 +112,9 @@
       "ref": {
         "skill": "aidlc-governance-audit"
       },
-      "produces": ["GOVERNANCE.md"],
+      "produces": [
+        "GOVERNANCE.md"
+      ],
       "consumes": [
         ".planning/governance/selection-state.json",
         "CONTEXT.md"
