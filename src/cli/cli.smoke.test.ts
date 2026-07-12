@@ -96,3 +96,16 @@ test("fast-check imports and executes under the CommonJS/nodenext build", () => 
   // proving downstream property tests (01-02/03/04) will work under this config.
   fc.assert(fc.property(fc.integer(), (n) => n === n));
 });
+
+// Phase 18 WR-03: domains have one source of truth — project config.
+// The CLI must reject --domains so operators cannot bypass config-driven
+// selection with a command-line override.
+test("governance discuss CLI rejects --domains flag (single source of truth)", () => {
+  const result = spawnSync(
+    process.execPath,
+    [cliEntry, "discuss", "/tmp/proj", "/tmp/signal.json", "--domains", "java-spring"],
+    { cwd: repoRoot, encoding: "utf8" },
+  );
+  assert.notEqual(result.status, 0, "--domains must not be accepted");
+  assert.match(result.stderr, /unknown option|ERR_PARSE_ARGS_UNKNOWN_OPTION/i);
+});
