@@ -53,11 +53,11 @@ The rule selection engine correctly injects only the relevant AI-DLC rule summar
 - [x] Subscribe-able `java-spring` domain pack with one-sentence summaries + Internal vs internet-facing outbound + inbound REST/Kafka conventions — **Validated in Phase 13: Domain Pack + Service Classification + Integrations** (JAVA-PACK-01/02, JAVA-SVC-01/02/03, JAVA-IN-01/02; 4 advisory rules under `aidlc-rules/domain/java-spring/`; pack suite green; verify 4/4)
 - [x] Hexagonal + tactical DDD coding-convention rules (path-triggered, advisory) — **Validated in Phase 14** (JAVA-HEX-01, JAVA-DDD-01; sibling suite 36/36; verify 7/7)
 - [x] Error/audit logging, API contract, and saga/event pattern rules — **Validated in Phase 15** (JAVA-LOG-01, JAVA-API-01, JAVA-EVT-01; sibling suite 42/42; verify 8/8; saga when-NOT-to-use guidance)
+- [x] Non-indexed Java/Spring starter examples — **Validated in Phase 16** (JAVA-EX-01/02: thin Hexagonal Order slice under `examples/java-spring/`; npm package includes examples; 13 focused tests prove real-corpus exclusion, D-10 backstop, and unchanged 10-rule inventory; verify 9/9)
 
 ### Active
 
 - [ ] Unit-test coverage >70% rule with consumer-side real CI check (coverage report parser adapter)
-- [ ] Starter examples: project structure + thin Java/Spring reference snippets
 
 ### Out of Scope
 
@@ -123,4 +123,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-09 after Phase 15*
+*Last updated: 2026-07-12 after Phase 16*
