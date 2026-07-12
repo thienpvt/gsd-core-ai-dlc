@@ -10,6 +10,7 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { existsSync, readFileSync } from "node:fs";
 import { buildIndex } from "../index/build.js";
+import { deriveScope } from "../rules/scope.js";
 
 const REAL_RULES_ROOT = path.resolve(process.cwd(), "aidlc-rules");
 const EXAMPLES_ROOT = path.resolve(process.cwd(), "examples", "java-spring");
@@ -164,12 +165,21 @@ test("JAVA-EX-02: buildIndex(aidlc-rules) never indexes examples/ sourceFiles", 
   }
 });
 
-test("JAVA-EX-02 backstop: buildIndex(EXAMPLES_ROOT) throws (not a rule root)", () => {
-  // Load order: frontmatter validation on .md runs before D-10 tier check.
-  // Either failure proves examples/ is not a valid selectable corpus root.
+test("JAVA-EX-02: plain README fails frontmatter validation", () => {
+  // buildIndex hits frontmatter validation on README.md before any D-10 path check.
+  // This proves the plain README is not a selectable rule; it is NOT a D-10 proof.
   assert.throws(
     () => buildIndex(EXAMPLES_ROOT),
-    /outside the enterprise\/domain\/project tiers|D-10|must have required property|missing '/,
+    /must have required property|missing '/,
+  );
+});
+
+test("JAVA-EX-02 backstop: path under examples is outside enterprise/domain/project tiers (D-10)", () => {
+  // Public deriveScope on a path under EXAMPLES_ROOT — genuine D-10, not frontmatter.
+  // buildIndex itself never reaches D-10 for this tree (README fails first).
+  assert.throws(
+    () => deriveScope(path.join(EXAMPLES_ROOT, "README.md"), EXAMPLES_ROOT),
+    /outside the enterprise\/domain\/project tiers|D-10/,
   );
 });
 
