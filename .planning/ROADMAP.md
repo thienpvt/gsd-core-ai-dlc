@@ -184,7 +184,7 @@ Plans:
 | 14. Hexagonal + Tactical DDD Rules | v4.0 | 2/2 | Complete   | 2026-07-09 |
 | 15. Logging, API Contract & Saga Decision Rules | v4.0 | 2/2 | Complete    | 2026-07-09 |
 | 16. Starter Examples Outside Index | v4.0 | 1/1 | Complete    | 2026-07-12 |
-| 17. Coverage Parser + Binding GateAdapter | v4.0 | 2/2 | Complete   | 2026-07-12 |
+| 17. Coverage Parser + Binding GateAdapter | v4.0 | 2/2 | Complete    | 2026-07-12 |
 | 18. Verify/Ship Wire + Consumer Docs | v4.0 | 0/? | Not started | - |
 
 ---

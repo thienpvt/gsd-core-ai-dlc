@@ -32,9 +32,9 @@
 
 ### Coverage Enforcement
 
-- [ ] **JAVA-COV-01**: Binding rule requires unit-test line coverage ≥ 70% for new/changed consumer Java work (`classification: binding`, named `enforcement` contract)
-- [ ] **JAVA-COV-02**: Real `coverage-report` GateAdapter parses consumer JaCoCo XML (primary) and LCOV (secondary) via Node stdlib only; emits schema-valid `GateResult`
-- [ ] **JAVA-COV-03**: Missing coverage report or line coverage < 70% fails closed at verify (and blocks ship when coverage evidence is required)
+- [x] **JAVA-COV-01**: Binding rule requires unit-test line coverage ≥ 70% for new/changed consumer Java work (`classification: binding`, named `enforcement` contract)
+- [x] **JAVA-COV-02**: Real `coverage-report` GateAdapter parses consumer JaCoCo XML (primary) and LCOV (secondary) via Node stdlib only; emits schema-valid `GateResult`
+- [x] **JAVA-COV-03**: Missing coverage report or line coverage < 70% fails closed at verify (and blocks ship when coverage evidence is required)
 
 ### Starter Examples & Docs
 
@@ -99,9 +99,9 @@ Which phases cover which requirements. Filled during roadmap creation.
 | JAVA-LOG-01 | Phase 15 | Complete |
 | JAVA-API-01 | Phase 15 | Complete |
 | JAVA-EVT-01 | Phase 15 | Complete |
-| JAVA-COV-01 | Phase 17 | Pending |
-| JAVA-COV-02 | Phase 17 | Pending |
-| JAVA-COV-03 | Phase 17 | Pending |
+| JAVA-COV-01 | Phase 17 | Complete |
+| JAVA-COV-02 | Phase 17 | Complete |
+| JAVA-COV-03 | Phase 17 | Complete |
 | JAVA-EX-01 | Phase 16 | Complete |
 | JAVA-EX-02 | Phase 16 | Complete |
 | JAVA-DOC-01 | Phase 18 | Pending |
