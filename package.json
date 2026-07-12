@@ -21,7 +21,8 @@
     "examples",
     ".gsd",
     ".claude/skills",
-    "docs"
+    "docs",
+    "test/fixtures/eval"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",

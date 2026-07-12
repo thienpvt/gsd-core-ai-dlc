@@ -18,6 +18,14 @@ import path from "node:path";
 
 const CLI_RUNNER = path.resolve(process.cwd(), "dist", "cli", "index.js");
 
+function evalSpawnEnv(root: string): NodeJS.ProcessEnv {
+  return {
+    ...process.env,
+    GOVERNANCE_EVAL_FIXTURES_ROOT: path.join(root, "test", "fixtures", "eval"),
+  };
+}
+
+
 const ALWAYS_CRITICAL_RULE = `---
 id: always-critical
 scope: enterprise
@@ -56,6 +64,7 @@ test("WR-01: governance eval shim returns exit 3 on parse/load error (D-08 contr
     const child = spawnSync(process.execPath, [CLI_RUNNER, "eval", "10"], {
       cwd: root,
       encoding: "utf8",
+      env: evalSpawnEnv(root),
     });
     assert.equal(
       child.status,
@@ -71,6 +80,7 @@ test("IN-03: governance eval shim returns exit 3 on usage error (no positional)"
     const child = spawnSync(process.execPath, [CLI_RUNNER, "eval"], {
       cwd: root,
       encoding: "utf8",
+      env: evalSpawnEnv(root),
     });
     assert.equal(
       child.status,

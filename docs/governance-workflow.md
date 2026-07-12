@@ -342,7 +342,7 @@ node bin/governance.cjs eval 12 --json
 }
 ```
 
-`eval 12 --json` persists `.planning/governance/eval/12.json` and `.planning/governance/eval/12-report.md`. Exit `0` means pass. Exit `2` means critical-recall regression with evidence still persisted. Exit `3` means parse/load error.
+`eval 12 --json` loads the **packaged** corpus from `@opengsd/gsd-aidlc-overlay/test/fixtures/eval/` (not the consumer tree) and persists evidence under the consumer project: `.planning/governance/eval/12.json` and `.planning/governance/eval/12-report.md`. Exit `0` means pass. Exit `2` means critical-recall regression with evidence still persisted. Exit `3` means parse/load error.
 
 ## Gate Chain (Audit + Ship)
 
@@ -360,6 +360,20 @@ The audit writer reads:
 - `CONTEXT.md`
 
 It produces a machine-derived audit artifact from persisted selection state, not hand-written governance prose.
+
+### capture-test-evidence
+
+```text
+governance capture-test-evidence <phaseNumber>
+```
+
+Runs `node --test --test-reporter=tap dist-test/**/*.test.js` from the **consumer cwd** and writes `.planning/governance/tests/{NN}.json`.
+
+Consumer contract:
+
+- Produce compiled tests under `dist-test/**/*.test.js` (or an equivalent layout that matches this glob).
+- Runner output must include TAP `# tests N` with **N > 0**.
+- Zero tests / empty glob / malformed output hard-fail and write **no** evidence file.
 
 ### Ship gate
 

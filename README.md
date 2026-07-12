@@ -96,7 +96,7 @@ The package exposes the `governance` binary.
 | `governance verify <projectRoot> <phaseNumber>` | Verify gate: correlate + run adapter + write evidence. |
 | `governance ship <projectRoot> <phaseNumber>` | Ship gate: require prior plan/verify evidence. |
 | `governance audit <projectRoot> <outputPath>` | Write GOVERNANCE.md audit artifact. |
-| `governance capture-test-evidence <phaseNumber>` | Persist TAP test evidence (cwd = project root). |
+| `governance capture-test-evidence <phaseNumber>` | Run `node --test --test-reporter=tap dist-test/**/*.test.js` at cwd; fail closed if zero tests; write `.planning/governance/tests/{NN}.json`. |
 
 Full command examples: [Governance Workflow Guide](docs/governance-workflow.md).
 

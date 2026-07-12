@@ -94,12 +94,54 @@ test("all documentation entrypoints link the focused guide", () => {
   assert.match(read("docs/governance-workflow.md"), /java-spring-coverage\.md/);
 });
 
-test("package.json ships capability, skills, and docs surfaces", () => {
+test("package.json ships capability, skills, docs, and eval corpus surfaces", () => {
   const pkg = JSON.parse(read("package.json")) as { files?: string[] };
   assert.ok(Array.isArray(pkg.files), "package.json files must be an array");
-  for (const required of [".gsd", ".claude/skills", "docs", "aidlc-rules", "dist", "bin", "examples"]) {
+  for (const required of [
+    ".gsd",
+    ".claude/skills",
+    "docs",
+    "aidlc-rules",
+    "dist",
+    "bin",
+    "examples",
+    "test/fixtures/eval",
+  ]) {
     assert.ok(pkg.files!.includes(required), `package.json files must include ${required}`);
   }
+});
+
+
+test("skill commands are cross-platform npx --no-install governance (no bash BIN=$(...))", () => {
+  const skillRoots = [
+    path.join(ROOT, ".claude", "skills"),
+    path.join(ROOT, ".gsd", "capabilities", "aidlc-governance", "skills"),
+  ];
+  const stems = [
+    "aidlc-governance-discuss",
+    "aidlc-governance-plan",
+    "aidlc-governance-execute",
+    "aidlc-governance-verify",
+    "aidlc-governance-ship",
+    "aidlc-governance-audit",
+  ];
+  let commandHits = 0;
+  for (const root of skillRoots) {
+    for (const stem of stems) {
+      const skillPath = path.join(root, stem, "SKILL.md");
+      assert.ok(existsSync(skillPath), `missing skill ${skillPath}`);
+      const text = readFileSync(skillPath, "utf8");
+      assert.equal(text.includes("$("), false, `${skillPath} must not use shell $(...)`);
+      assert.equal(text.includes("BIN="), false, `${skillPath} must not set BIN=`);
+      const hits = text.split("npx --no-install governance").length - 1;
+      assert.ok(hits >= 1, `${skillPath} must invoke npx --no-install governance`);
+      commandHits += hits;
+    }
+  }
+  // 6 skills × 2 trees; verify has 3 commands → 1+1+1+3+1+1 = 8 per tree × 2 = 16
+  assert.ok(commandHits >= 16, `expected ≥16 npx governance commands, got ${commandHits}`);
+  const pkg = JSON.parse(read("package.json")) as { bin?: Record<string, string> };
+  assert.equal(pkg.bin?.governance, "bin/governance.cjs");
 });
 
 test("plan:pre consumes only host-available CONTEXT.md and onError is halt", () => {
@@ -213,6 +255,8 @@ test("npm pack tarball includes capability, six skills, and docs", () => {
     "docs/onboarding.md",
     "docs/java-spring-coverage.md",
     "docs/governance-workflow.md",
+    "test/fixtures/eval/cases/eval-cases.json",
+    "test/fixtures/eval/eval-rules/enterprise/test-coverage.md",
   ];
   for (const rel of required) {
     assert.ok(paths.has(rel), `tarball missing ${rel}`);
@@ -452,6 +496,12 @@ test("isolated GSD capability install activates six skills and hooks", () => {
     assert.ok(existsSync(overlayRoot), "overlay missing under consumer node_modules");
     const bin = path.join(overlayRoot, "bin", "governance.cjs");
     assert.ok(existsSync(bin), "governance binary missing in installed package");
+    assert.ok(
+      existsSync(
+        path.join(overlayRoot, "test", "fixtures", "eval", "cases", "eval-cases.json"),
+      ),
+      "packaged install must ship test/fixtures/eval corpus",
+    );
 
     const indexBuild = spawnSync(
       process.execPath,
@@ -482,7 +532,7 @@ test("isolated GSD capability install activates six skills and hooks", () => {
     );
     const discuss = spawnSync(
       process.execPath,
-      [bin, "discuss", consumer, signalPath, "--domains", "java-spring"],
+      [bin, "discuss", consumer, signalPath],
       { cwd: consumer, encoding: "utf8", shell: false },
     );
     assert.equal(discuss.status, 0, "discuss failed: " + (discuss.stderr || discuss.stdout));
@@ -490,6 +540,39 @@ test("isolated GSD capability install activates six skills and hooks", () => {
     assert.ok(
       existsSync(path.join(consumer, ".planning", "governance", "selection-state.json")),
       "discuss must persist selection-state",
+    );
+
+    // CR-01: eval corpus is packaged; consumer cwd has no local fixtures.
+    const evalRun = spawnSync(process.execPath, [bin, "eval", "18"], {
+      cwd: consumer,
+      encoding: "utf8",
+      shell: false,
+    });
+    assert.equal(evalRun.status, 0, "consumer eval failed: " + (evalRun.stderr || evalRun.stdout));
+    assert.ok(
+      existsSync(path.join(consumer, ".planning", "governance", "eval", "18.json")),
+      "eval must write consumer .planning/governance/eval/18.json",
+    );
+    assert.ok(
+      existsSync(path.join(consumer, ".planning", "governance", "eval", "18-report.md")),
+      "eval must write consumer .planning/governance/eval/18-report.md",
+    );
+
+    // WR-01: empty consumer has no dist-test/**/*.test.js — capture fails closed.
+    const capture = spawnSync(
+      process.execPath,
+      [bin, "capture-test-evidence", "18"],
+      { cwd: consumer, encoding: "utf8", shell: false },
+    );
+    assert.notEqual(
+      capture.status,
+      0,
+      "capture must fail closed when consumer has zero matching tests",
+    );
+    assert.equal(
+      existsSync(path.join(consumer, ".planning", "governance", "tests", "18.json")),
+      false,
+      "capture must not write evidence when zero tests found",
     );
 
     const planInputs = path.join(consumer, "plan-inputs.json");

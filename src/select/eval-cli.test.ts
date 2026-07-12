@@ -22,6 +22,7 @@ import path from "node:path";
 import {
   runEval,
   renderMarkdown,
+  evalCorpusRoot,
   type RunEvalArgs,
 } from "./eval-cli.js";
 import { readEvalEvidence, writeEvalEvidence } from "../governance/eval-evidence.js";
@@ -230,6 +231,15 @@ function seedCriticalMissCorpus(root: string): void {
 
 const RUNNER = path.resolve(process.cwd(), "dist-test", "select", "eval-cli.js");
 
+/** Point default loaders at seeded temp fixtures (spawn e2e only). */
+function evalSpawnEnv(root: string): NodeJS.ProcessEnv {
+  return {
+    ...process.env,
+    GOVERNANCE_EVAL_FIXTURES_ROOT: path.join(root, "test", "fixtures", "eval"),
+  };
+}
+
+
 // ---------------------------------------------------------------------------
 // Tests.
 // ---------------------------------------------------------------------------
@@ -348,6 +358,7 @@ test("End-to-end: node dist/select/eval-cli.js 10 writes 10.json + 10-report.md 
     const child = spawnSync(process.execPath, [RUNNER, "10"], {
       cwd: root,
       encoding: "utf8",
+      env: evalSpawnEnv(root),
     });
     assert.equal(
       child.status,
@@ -368,6 +379,7 @@ test("D-05 critical-recall miss → exit 2 + persisted failed report (D-08)", ()
     const child = spawnSync(process.execPath, [RUNNER, "10"], {
       cwd: root,
       encoding: "utf8",
+      env: evalSpawnEnv(root),
     });
     assert.equal(
       child.status,
@@ -392,6 +404,7 @@ test("--json flag emits JSON to stdout; default emits markdown (D-03)", () => {
     const jsonChild = spawnSync(process.execPath, [RUNNER, "10", "--json"], {
       cwd: root,
       encoding: "utf8",
+      env: evalSpawnEnv(root),
     });
     assert.equal(jsonChild.status, 0);
     const parsed = JSON.parse(jsonChild.stdout) as { phase: string; corpusHash: string };
@@ -402,6 +415,7 @@ test("--json flag emits JSON to stdout; default emits markdown (D-03)", () => {
     const mdChild = spawnSync(process.execPath, [RUNNER, "10"], {
       cwd: root,
       encoding: "utf8",
+      env: evalSpawnEnv(root),
     });
     assert.equal(mdChild.status, 0);
     assert.match(mdChild.stdout, /microRecall|Recall/i);
@@ -425,4 +439,32 @@ test("production-caller evidence: runCases/aggregate have a non-test caller (eva
     src.includes("aggregate("),
     "eval-cli must call aggregate (production caller of the pure layer)",
   );
+});
+
+test("evalCorpusRoot points at package-shipped test/fixtures/eval corpus", () => {
+  const prev = process.env.GOVERNANCE_EVAL_FIXTURES_ROOT;
+  delete process.env.GOVERNANCE_EVAL_FIXTURES_ROOT;
+  try {
+    const root = evalCorpusRoot();
+    const norm = root.split("\\").join("/");
+    assert.ok(norm.endsWith("test/fixtures/eval"), `unexpected corpus root: ${root}`);
+    assert.ok(existsSync(path.join(root, "cases", "eval-cases.json")), `missing cases at ${root}`);
+    assert.ok(existsSync(path.join(root, "eval-rules")), `missing eval-rules at ${root}`);
+  } finally {
+    if (prev === undefined) delete process.env.GOVERNANCE_EVAL_FIXTURES_ROOT;
+    else process.env.GOVERNANCE_EVAL_FIXTURES_ROOT = prev;
+  }
+});
+
+test("runEval default loaders use package corpus (not empty projectRoot)", () => {
+  const prev = process.env.GOVERNANCE_EVAL_FIXTURES_ROOT;
+  delete process.env.GOVERNANCE_EVAL_FIXTURES_ROOT;
+  try {
+    const report = runEval({ projectRoot: path.join(os.tmpdir(), "empty-consumer"), phaseNumber: "18" });
+    assert.ok(report.cases.length > 0, "default packaged corpus must yield cases");
+    assert.equal(typeof report.aggregate.microRecall, "number");
+  } finally {
+    if (prev === undefined) delete process.env.GOVERNANCE_EVAL_FIXTURES_ROOT;
+    else process.env.GOVERNANCE_EVAL_FIXTURES_ROOT = prev;
+  }
 });

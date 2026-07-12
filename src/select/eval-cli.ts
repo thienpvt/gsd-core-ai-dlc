@@ -25,7 +25,7 @@
  * `process.exit()` — it truncates piped stdout (CR-02, T-10-05).
  */
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { parseArgs } from "node:util";
 import { buildIndex } from "../index/build.js";
@@ -45,16 +45,54 @@ import { evalEvidencePath, evalReportPath } from "../governance/paths.js";
 // Injectable seams — tests pass fixture loaders; production callers omit them.
 // ---------------------------------------------------------------------------
 
-/** Default index loader: buildIndex over the eval-rules corpus (D-02, recall.test.ts idiom). */
-function defaultIndexLoader(projectRoot: string): () => RuleIndex {
-  const evalRoot = path.resolve(projectRoot, "test", "fixtures", "eval", "eval-rules");
-  return () => buildIndex(evalRoot);
+/**
+ * Package root for the shipped eval corpus.
+ * `eval-cli` compiles to `dist/select/` or `dist-test/select/` — two levels up is
+ * the package root in both layouts. Consumers resolve corpus from the installed
+ * package, never from consumer cwd (CR-01).
+ */
+function packageRoot(): string {
+  return path.resolve(__dirname, "..", "..");
 }
 
-/** Default cases loader: read + parse eval-cases.json (recall.test.ts:49-54 idiom). */
-function defaultCasesLoader(projectRoot: string): () => EvalCase[] {
-  const casesFile = path.resolve(projectRoot, "test", "fixtures", "eval", "cases", "eval-cases.json");
-  return () => loadCases(casesFile);
+/**
+ * Eval fixtures root (`.../test/fixtures/eval`).
+ * Default: packaged corpus under package root.
+ * Override: `GOVERNANCE_EVAL_FIXTURES_ROOT` absolute path to an eval fixtures dir
+ * (test injection for spawn e2e only — production never sets this).
+ */
+export function evalCorpusRoot(): string {
+  const override = process.env.GOVERNANCE_EVAL_FIXTURES_ROOT;
+  if (override && override.trim().length > 0) {
+    return path.resolve(override);
+  }
+  return path.join(packageRoot(), "test", "fixtures", "eval");
+}
+
+/** Default index loader: buildIndex over the packaged eval-rules corpus (D-02). */
+function defaultIndexLoader(): () => RuleIndex {
+  const evalRoot = path.join(evalCorpusRoot(), "eval-rules");
+  return () => {
+    if (!existsSync(evalRoot)) {
+      throw new Error(
+        `eval corpus missing at ${evalRoot} — package must ship test/fixtures/eval`,
+      );
+    }
+    return buildIndex(evalRoot);
+  };
+}
+
+/** Default cases loader: read + parse packaged eval-cases.json. */
+function defaultCasesLoader(): () => EvalCase[] {
+  const casesFile = path.join(evalCorpusRoot(), "cases", "eval-cases.json");
+  return () => {
+    if (!existsSync(casesFile)) {
+      throw new Error(
+        `eval cases missing at ${casesFile} — package must ship test/fixtures/eval`,
+      );
+    }
+    return loadCases(casesFile);
+  };
 }
 
 /**
@@ -94,8 +132,10 @@ export interface RunEvalArgs {
  * the same corpus produce byte-identical reports modulo capturedAt.
  */
 export function runEval(args: RunEvalArgs): EvalReport {
-  const index = (args.indexLoader ?? defaultIndexLoader(args.projectRoot))();
-  const cases = (args.casesLoader ?? defaultCasesLoader(args.projectRoot))();
+  // Default loaders resolve the shipped package corpus (not consumer cwd).
+  // Evidence still writes under args.projectRoot via writeEvalEvidence.
+  const index = (args.indexLoader ?? defaultIndexLoader())();
+  const cases = (args.casesLoader ?? defaultCasesLoader())();
 
   // D-14: deterministic case ordering. Sort a copy so the caller's array is not
   // mutated in place (casesLoader may return a cached reference).
