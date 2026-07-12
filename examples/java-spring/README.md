@@ -8,6 +8,11 @@ indexes it. Do not put YAML rule frontmatter here.
 **Not runnable.** No Maven/Gradle, no Spring Boot main, no broker/DB wiring.
 Snippets are compile-shaped pointers, not a sample application.
 
+**Layout is layer-oriented, not Maven.** Paths intentionally differ from a
+`src/main/java/com/example/orders/...` package tree. Packages are logical
+(`com.example.orders…`); the on-disk tree is by hex layer for readability.
+Relocate under a standard source root when copying into a real project.
+
 ## Layout
 
 ```
@@ -26,6 +31,7 @@ examples/java-spring/
 2. Put framework annotations only in `adapter/**`.
 3. REST and Kafka adapters both call the same input port.
 4. Leave concrete JPA/driver/Kafka client details to the consumer project.
+5. Move files under `src/main/java/com/example/orders/...` (or your root) before compiling.
 
 ## Governing rule IDs
 
