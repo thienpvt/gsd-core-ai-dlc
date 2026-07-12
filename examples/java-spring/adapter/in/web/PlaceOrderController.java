@@ -20,13 +20,17 @@ public class PlaceOrderController {
   }
 
   @PostMapping("/api/v1/orders")
-  public Order place(@RequestBody PlaceOrderRequest body) {
+  public PlaceOrderResponse place(@RequestBody PlaceOrderRequest body) {
     if (body == null || body.customerId() == null || body.customerId().isBlank()) {
       throw new IllegalArgumentException("customerId required");
     }
-    return placeOrder.place(new PlaceOrderCommand(body.customerId(), body.amountCents()));
+    Order order = placeOrder.place(new PlaceOrderCommand(body.customerId(), body.amountCents()));
+    return new PlaceOrderResponse(order.orderId(), order.customerId(), order.amountCents());
   }
 
-  /** Boundary DTO — not a domain type. */
+  /** Boundary request DTO — not a domain type. */
   public record PlaceOrderRequest(String customerId, long amountCents) {}
+
+  /** Boundary response DTO — not a domain type (JS-IN-01). */
+  public record PlaceOrderResponse(String orderId, String customerId, long amountCents) {}
 }

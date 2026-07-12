@@ -150,6 +150,24 @@ test("JAVA-EX-01: README states non-selectability and cites governing rule ids",
   }
 });
 
+test("JAVA-EX-01: REST adapter returns boundary response DTO, not domain Order", () => {
+  const rest = readSnippet("adapter/in/web/PlaceOrderController.java");
+  assert.match(
+    rest,
+    /public\s+PlaceOrderResponse\s+place\s*\(/,
+    "REST place() must return PlaceOrderResponse",
+  );
+  assert.match(
+    rest,
+    /record\s+PlaceOrderResponse\s*\(/,
+    "REST adapter must declare PlaceOrderResponse boundary record",
+  );
+  assert.ok(
+    !/public\s+Order\s+place\s*\(/.test(rest),
+    "REST place() must not return domain Order",
+  );
+});
+
 // ---------------------------------------------------------------------------
 // JAVA-EX-02 — non-indexing + D-10 + inventory
 // ---------------------------------------------------------------------------
