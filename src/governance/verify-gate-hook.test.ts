@@ -808,16 +808,14 @@ test("verifyGateHook accepts independently derived task signals and advisory dif
   });
 });
 
-test("verifyGateHook rejects changed binding rule metadata", async () => {
-  const changedFields = ["severity", "summary", "matchedAxis", "matchedValue"] as const;
+test("verifyGateHook rejects changed binding severity/summary metadata", async () => {
+  const changedFields = ["severity", "summary"] as const;
   for (const field of changedFields) {
     await withTempRoot(async (root) => {
       const seeded = bindingRecord();
       const changed = { ...seeded.selectionResult.selected[0]! };
       if (field === "severity") changed.severity = "critical";
       if (field === "summary") changed.summary = "Changed binding summary.";
-      if (field === "matchedAxis") changed.matchedAxis = "keywords";
-      if (field === "matchedValue") changed.matchedValue = "changed-value";
       writeSelection(seeded, root);
       writeGovConfig(root, seedReport(root, "pass-70.xml"));
       seedPlanEvidence(root, "18", seeded, { rules: [changed] });
@@ -829,6 +827,95 @@ test("verifyGateHook rejects changed binding rule metadata", async () => {
       assert.equal(existsSync(gateEvidencePath(root, "18", "verify")), false);
     });
   }
+});
+
+test("verifyGateHook accepts match provenance variance on same binding identity", async () => {
+  await withTempRoot(async (root) => {
+    const seeded = bindingRecord();
+    // Discuss selected via path A; plan via path B — same id/severity/summary.
+    const planBinding = {
+      ...seeded.selectionResult.selected[0]!,
+      matchedAxis: "paths" as const,
+      matchedValue: "service/src/main/java/com/example/Other.java",
+    };
+    writeSelection(seeded, root);
+    writeGovConfig(root, seedReport(root, "pass-70.xml"));
+    seedPlanEvidence(root, "18", seeded, { rules: [planBinding] });
+
+    const verified = await verifyGateHook({ projectRoot: root, phaseNumber: "18" });
+    assert.equal(verified.evidence.result.status, "pass");
+    assert.equal(verified.evidence.result.evaluatedBy, COVERAGE_ADAPTER_NAME);
+  });
+});
+
+test("real pack: different Java production paths select same binding and verify reaches coverage adapter", async () => {
+  await withTempRoot(async (root) => {
+    const stateDir = path.join(root, ".planning");
+    mkdirSync(stateDir, { recursive: true });
+    writeFileSync(
+      path.join(stateDir, "STATE.md"),
+      [
+        "---",
+        "gsd_state_version: 1.0",
+        "current_phase: 18",
+        "status: executing",
+        "---",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+    const reportPath = seedReport(root, "pass-70.xml");
+    writeGovConfig(root, reportPath);
+    const realRulePack = path.resolve(process.cwd(), "aidlc-rules");
+    const indexPath = path.join(root, "rule-index.json");
+    writeIndex(buildIndex(realRulePack), indexPath);
+
+    // Discuss path A
+    const discussed = discussHook({
+      projectRoot: root,
+      indexPath,
+      taskSignal: {
+        taskType: "feature",
+        keywords: ["java", "coverage"],
+        paths: ["service/src/main/java/com/example/Service.java"],
+      },
+    });
+    const discussBinding = discussed.record.selectionResult.selected.find(
+      (r) => r.id === BINDING_RULE_ID,
+    );
+    assert.ok(discussBinding, "discuss must select binding via path A");
+
+    // Plan path B — different production file, same binding identity
+    const planned = planHook({
+      projectRoot: root,
+      phaseNumber: "18",
+      indexPath,
+      plannerInputs: {
+        phaseGoal: "Implement Java order coverage gate on alternate module",
+        requirementIds: ["GATE-04", "ENF-03"],
+        riskThreatModel: ["Threat: forged coverage evidence could bypass release."],
+        acceptanceCriteria: ["Tests prove the coverage adapter blocks below threshold."],
+        impactedFiles: ["orders/src/main/java/com/example/OrderService.java"],
+        impactedModules: ["orders/src/main/java"],
+      },
+    });
+    const planBinding = planned.evidence.request.rules.find(
+      (r) => r.id === BINDING_RULE_ID,
+    );
+    assert.ok(planBinding, "plan must select binding via path B");
+    assert.equal(planBinding!.severity, discussBinding!.severity);
+    assert.equal(planBinding!.summary, discussBinding!.summary);
+    // Provenance may differ across paths
+    assert.notEqual(
+      planBinding!.matchedAxis + ":" + planBinding!.matchedValue,
+      discussBinding!.matchedAxis + ":" + discussBinding!.matchedValue,
+      "realistic discuss/plan paths should record different match provenance",
+    );
+
+    const verified = await verifyGateHook({ projectRoot: root, phaseNumber: "18" });
+    assert.equal(verified.evidence.result.status, "pass");
+    assert.equal(verified.evidence.result.evaluatedBy, COVERAGE_ADAPTER_NAME);
+  });
 });
 
 test("verifyGateHook rejects duplicate binding ids on either side", async () => {

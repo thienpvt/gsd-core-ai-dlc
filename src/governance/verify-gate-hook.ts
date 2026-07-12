@@ -1,5 +1,4 @@
 import { rmSync } from "node:fs";
-import { isDeepStrictEqual } from "node:util";
 import { ADAPTERS, type GateAdapter } from "../enforcement/adapters.js";
 import { createCoverageAdapter } from "../enforcement/coverage-report.js";
 import { runAdapter } from "../enforcement/run-adapter.js";
@@ -13,13 +12,25 @@ import { gateEvidencePath, selectionStatePath } from "./paths.js";
 import { readSelection, type GovernanceRecord } from "./state-store.js";
 import { readGovernanceConfig } from "./config.js";
 
-
 /** Binding rule that forces real coverage-report evaluation. */
 const BINDING_RULE_ID = "java-spring-unit-line-coverage";
 /** Forced adapter name when the binding rule is selected. */
 const COVERAGE_ADAPTER_NAME = "coverage-report";
 /** Canonical plan gate producer identity. */
 const PLAN_SOURCE = "aidlc-governance-plan";
+
+/**
+ * Canonical binding identity for discuss/plan correlation.
+ * Excludes matchedAxis/matchedValue — runtime match provenance that legitimately
+ * differs when the same binding rule is selected via different Java production paths.
+ */
+function bindingIdentity(rule: GateRequest["rules"][number]): {
+  id: string;
+  severity: string;
+  summary: string;
+} {
+  return { id: rule.id, severity: rule.severity, summary: rule.summary };
+}
 
 export interface VerifyGateHookArgs {
   projectRoot: string;
@@ -134,14 +145,18 @@ export function assertPlanEvidenceCorrelated(
       `verifyGateHook: binding rule selection disagreement for '${BINDING_RULE_ID}'; rerun discuss and plan before verify`,
     );
   }
-  if (
-    discussBinding !== undefined &&
-    planBinding !== undefined &&
-    !isDeepStrictEqual(planBinding, discussBinding)
-  ) {
-    throw new Error(
-      `verifyGateHook: binding rule metadata does not match discuss selection for '${BINDING_RULE_ID}'; rerun discuss and plan before verify`,
-    );
+  if (discussBinding !== undefined && planBinding !== undefined) {
+    const discussId = bindingIdentity(discussBinding);
+    const planId = bindingIdentity(planBinding);
+    if (
+      discussId.id !== planId.id ||
+      discussId.severity !== planId.severity ||
+      discussId.summary !== planId.summary
+    ) {
+      throw new Error(
+        `verifyGateHook: binding rule metadata does not match discuss selection for '${BINDING_RULE_ID}'; rerun discuss and plan before verify`,
+      );
+    }
   }
 
   const discussTs = Date.parse(record.timestamp);
