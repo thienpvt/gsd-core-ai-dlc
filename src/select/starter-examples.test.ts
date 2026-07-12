@@ -133,13 +133,21 @@ test("JAVA-EX-01: at least one ponytail: ceiling comment under examples tree", (
   assert.ok(found, "examples/java-spring must include a ponytail: ceiling marker");
 });
 
-test("JAVA-EX-01: README is plain Markdown without YAML frontmatter", () => {
+test("JAVA-EX-01: README states non-selectability and cites governing rule ids", () => {
   const readme = readSnippet("README.md");
   assert.ok(!readme.startsWith("---"), "README must not start with YAML frontmatter");
   assert.ok(
     !/^---\r?\n/.test(readme),
     "README must not open with a frontmatter fence",
   );
+  assert.match(readme, /not selectable|outside `?aidlc-rules`?/i);
+  for (const id of [
+    "java-spring-hex-layering",
+    "java-spring-inbound-rest",
+    "java-spring-inbound-kafka",
+  ]) {
+    assert.ok(readme.includes(id), `README must cite ${id}`);
+  }
 });
 
 // ---------------------------------------------------------------------------
