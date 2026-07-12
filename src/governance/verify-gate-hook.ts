@@ -146,6 +146,9 @@ async function runDirect(argv: string[]): Promise<void> {
   const [projectRoot, phaseNumber] = argv;
   const result = await verifyGateHook({ projectRoot, phaseNumber });
   process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+  if (result.evidence.result.status === "fail") {
+    process.exitCode = 1;
+  }
 }
 
 if (require.main === module) {
