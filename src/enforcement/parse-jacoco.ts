@@ -32,9 +32,9 @@ function rejectDtdAndEntities(xml: string): void {
 }
 
 /**
- * Bounded structure-safe pass: drop complete comment/CDATA bodies so the tag
- * scanner never treats their contents as elements. Unterminated comment/CDATA
- * is malformed. Does not nest comments (XML comments are non-nesting).
+ * Bounded structure-safe pass: drop complete comment/CDATA/PI bodies so the tag
+ * scanner never treats their contents as elements. Unterminated regions and
+ * nested `<!--` inside a comment are malformed. XML comments are non-nesting.
  */
 function stripIgnoredRegions(xml: string): string {
   let out = "";
@@ -45,6 +45,10 @@ function stripIgnoredRegions(xml: string): string {
       if (end === -1) {
         throw new Error("jacoco: unterminated XML comment");
       }
+      // Nested <!-- is XML-illegal; first --> would leave a live illegal tail.
+      if (xml.slice(i + 4, end).includes("<!--")) {
+        throw new Error("jacoco: nested comment marker is not allowed");
+      }
       i = end + 3;
       continue;
     }
@@ -54,6 +58,14 @@ function stripIgnoredRegions(xml: string): string {
         throw new Error("jacoco: unterminated CDATA section");
       }
       i = end + 3;
+      continue;
+    }
+    if (xml.startsWith("<?", i)) {
+      const end = xml.indexOf("?>", i + 2);
+      if (end === -1) {
+        throw new Error("jacoco: unterminated processing instruction");
+      }
+      i = end + 2;
       continue;
     }
     out += xml[i];
