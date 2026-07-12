@@ -55,10 +55,11 @@ The rule selection engine correctly injects only the relevant AI-DLC rule summar
 - [x] Error/audit logging, API contract, and saga/event pattern rules — **Validated in Phase 15** (JAVA-LOG-01, JAVA-API-01, JAVA-EVT-01; sibling suite 42/42; verify 8/8; saga when-NOT-to-use guidance)
 - [x] Non-indexed Java/Spring starter examples — **Validated in Phase 16** (JAVA-EX-01/02: thin Hexagonal Order slice under `examples/java-spring/`; npm package includes examples; 13 focused tests prove real-corpus exclusion, D-10 backstop, and unchanged 10-rule inventory; verify 9/9)
 - [x] Unit-test coverage ≥70% rule with consumer-side real report adapter — **Validated in Phase 17** (JAVA-COV-01/02/03: binding `coverage-report` rule; stdlib JaCoCo/LCOV parsers; fail-closed path/format/size/threshold handling through `runAdapter`; verify 12/12)
+- [x] Java/Spring consumer configuration, executable capability packaging, and verify/ship coverage wiring — **Validated in Phase 18** (JAVA-DOC-01: config-backed `java-spring` domain subscription + report path; authoritative plan/verify correlation; binding forces real `coverage-report`; stale evidence invalidation; self-contained GSD capability and package CLI; focused JaCoCo/LCOV guide linked from three entrypoints; verify 17/17, Nyquist compliant, 13/13 threats closed)
 
 ### Active
 
-No active implementation requirements. Phase 18 wires the validated adapter into verify/ship configuration and documents consumer setup.
+No active implementation requirements. v4.0 implementation and phase verification are complete; milestone audit/closure remains.
 
 ### Out of Scope
 
@@ -124,4 +125,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-12 after Phase 17*
+*Last updated: 2026-07-13 after Phase 18*

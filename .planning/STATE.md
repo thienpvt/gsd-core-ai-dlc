@@ -2,44 +2,44 @@
 gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Developer Coding Conventions
-current_phase_name: Verify/Ship Wire + Consumer Docs
-status: executing
-stopped_at: Phase 18 context gathered
-last_updated: "2026-07-12T16:57:59.031Z"
-last_activity: 2026-07-12
-last_activity_desc: Phase null execution started
+current_phase: 18
+status: completed
+stopped_at: Phase 18 verified; v4.0 audit next
+last_updated: "2026-07-13T00:00:00.000Z"
+last_activity: 2026-07-13
+last_activity_desc: Phase 18 verified 17/17
 progress:
   total_phases: 6
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 11
-  completed_plans: 10
-  percent: 83
-current_phase: 18
+  completed_plans: 11
+  percent: 100
+current_phase_name: Verify/Ship Wire + Consumer Docs
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-07-09)
+See: .planning/PROJECT.md (updated 2026-07-13)
 
 **Core value:** The rule selection engine injects only the relevant AI-DLC rule summaries for the current task and phase — enough governance to be safe, little enough to avoid context bloat.
-**Current focus:** Phase null — Verify/Ship Wire + Consumer Docs
+**Current focus:** v4.0 milestone audit and closure
 
 ## Current Position
 
-Phase: null (Verify/Ship Wire + Consumer Docs) — EXECUTING
-Plan: 1 of ?
-Status: Executing Phase null
-Last activity: 2026-07-12 — Phase null execution started
+Phase: 18 — complete and verified
+Plan: 2/2 complete
+Status: Milestone audit pending
+Last activity: 2026-07-13 — Phase 18 verified 17/17
 
-Progress: [███████░░░] 67%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 45 (all milestones)
+- Total plans completed: 47 (all milestones)
 - Average duration: — min
 - Total execution time: 0.0 hours
 
@@ -64,6 +64,7 @@ Progress: [███████░░░] 67%
 | 15 | 2 | - | - |
 | 16 | 1 | - | - |
 | 17 | 2 | - | - |
+| 18 | 2 | - | - |
 
 **v2.0 Phases:**
 
@@ -90,8 +91,8 @@ Progress: [███████░░░] 67%
 | 14. Hexagonal + Tactical DDD Rules | 2/2 | Complete (verified 7/7) |
 | 15. Logging, API Contract & Saga Decision Rules | 2/2 | Complete (verified 8/8) |
 | 16. Starter Examples Outside Index | 1/1 | Complete (verified 9/9) |
-| 17. Coverage Parser + Binding GateAdapter | 0/2 | Planned — ready to execute |
-| 18. Verify/Ship Wire + Consumer Docs | 0/? | Not started |
+| 17. Coverage Parser + Binding GateAdapter | 2/2 | Complete (verified 12/12) |
+| 18. Verify/Ship Wire + Consumer Docs | 2/2 | Complete (verified 17/17) |
 
 **Recent Trend:**
 
@@ -166,8 +167,7 @@ None yet.
 
 [Issues that affect future work]
 
-- RUN-01 upstream gsd-core capability-manifest `consumes` constraint still open (deferred from v2/v3) — DOC-01 consent-activate path blocked until upstream fix.
-- Phase 17 decisions frozen: `coverage-report`, aggregate unit-line ≥70%, producer-owned exclusions; implementation pending.
+None blocking v4.0 closure. Phase 18's self-contained capability bundle and host-supported consumes resolved the prior RUN-01 activation blocker for this overlay. Deferred future scope remains listed below.
 
 ### Quick Tasks Completed
 
@@ -192,8 +192,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-12T16:57:59.025Z
-Stopped at: Phase 18 context gathered
-Resume file: 
+Last session: 2026-07-13
+Stopped at: Phase 18 verified; v4.0 audit next
+Resume file:
 
 None

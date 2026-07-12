@@ -196,7 +196,7 @@ Plans:
 | 15. Logging, API Contract & Saga Decision Rules | v4.0 | 2/2 | Complete    | 2026-07-09 |
 | 16. Starter Examples Outside Index | v4.0 | 1/1 | Complete    | 2026-07-12 |
 | 17. Coverage Parser + Binding GateAdapter | v4.0 | 2/2 | Complete    | 2026-07-12 |
-| 18. Verify/Ship Wire + Consumer Docs | v4.0 | 2/2 | Complete   | 2026-07-12 |
+| 18. Verify/Ship Wire + Consumer Docs | v4.0 | 2/2 | Complete    | 2026-07-12 |
 
 ---
 *See `.planning/MILESTONES.md` for shipped-milestone summaries, `.planning/milestones/v1.0-ROADMAP.md` for full v1.0 phase detail, `.planning/milestones/v2.0-ROADMAP.md` for v2.0, and `.planning/milestones/v3.0-ROADMAP.md` for v3.0.*
