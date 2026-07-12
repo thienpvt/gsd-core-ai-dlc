@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Developer Coding Conventions
-current_phase: 18
-status: completed
+current_phase: 0
+status: Awaiting next milestone
 stopped_at: Phase 18 verified; v4.0 audit next
-last_updated: "2026-07-13T00:00:00.000Z"
-last_activity: 2026-07-13
-last_activity_desc: Phase 18 verified 17/17
+last_updated: "2026-07-12T22:30:22.484Z"
+last_activity: 2026-07-12
+last_activity_desc: Milestone v4.0 completed and archived
 progress:
   total_phases: 6
   completed_phases: 6
@@ -28,12 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-13)
 
 ## Current Position
 
-Phase: 18 — complete and verified
-Plan: 2/2 complete
-Status: Milestone audit pending
-Last activity: 2026-07-13 — Phase 18 verified 17/17
-
-Progress: [██████████] 100%
+Phase: Milestone v4.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-07-12 — Milestone v4.0 completed and archived
 
 ## Performance Metrics
 
@@ -197,3 +195,7 @@ Stopped at: Phase 18 verified; v4.0 audit next
 Resume file:
 
 None
+
+## Operator Next Steps
+
+- Start the next milestone with /gsd-new-milestone

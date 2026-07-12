@@ -1,5 +1,22 @@
 # Milestones
 
+## v4.0 Developer Coding Conventions (Shipped: 2026-07-12)
+
+**Phases completed:** 6 phases, 11 plans, 28 tasks
+
+**Key accomplishments:**
+
+- Selectable `java-spring` domain pack: 10 advisory convention rules for service boundaries, REST/Kafka, Hexagonal Architecture, DDD, logging, OpenAPI, and saga/outbox decisions.
+- Summary-only injection and lazy `detailPath` loading preserved across all Java/Spring rules; domain subscription prevents unrelated projects receiving the pack.
+- Thin `examples/java-spring/` Order slice ships for LLM mirroring while remaining outside every rule-index path.
+- Real stdlib-only JaCoCo/LCOV `coverage-report` adapter enforces inclusive ≥70% unit line coverage and fails closed on missing, malformed, unsafe, or low reports.
+- Config-backed discuss/plan/verify/ship flow correlates authoritative binding evidence, invalidates stale verify passes, and blocks ship on durable coverage failure.
+- Self-contained capability, package-owned CLI, immutable eval corpus, consumer guide, and executable install tests close the former activation gap; audit passed 18/18 requirements, 15/15 integrations, and 6/6 flows.
+
+**Audit:** [passed](./milestones/v4.0-MILESTONE-AUDIT.md) — all six phases Nyquist-compliant and security-verified; 0 open threats.
+
+---
+
 ## v3.0 Adoption & Hygiene (Shipped: 2026-07-09)
 
 **Phases completed:** 2 phases, 3 plans, 6 tasks
