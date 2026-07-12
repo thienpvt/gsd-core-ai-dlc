@@ -1,4 +1,5 @@
 import { test } from "node:test";
+import { spawnSync } from "node:child_process";
 import assert from "node:assert/strict";
 import {
   copyFileSync,
@@ -388,6 +389,25 @@ test("verifyGateHook fails closed when plan binding coverage is absent from disc
       /selection disagreement|binding.*omission/i,
     );
     assert.equal(existsSync(gateEvidencePath(root, "18", "verify")), false);
+  });
+});
+
+test("verify gate direct runner exits non-zero after persisting coverage fail evidence", () => {
+  withTempRoot((root) => {
+    writeSelection(bindingRecord(), root);
+    writeGovConfig(root, seedReport(root, "fail-below-70.xml"));
+    const runner = path.resolve(process.cwd(), "dist-test", "governance", "verify-gate-hook.js");
+
+    const child = spawnSync(process.execPath, [runner, root, "18"], {
+      cwd: process.cwd(),
+      encoding: "utf8",
+    });
+
+    assert.notEqual(child.status, 0, `expected non-zero exit, stdout=${child.stdout}`);
+    const evidence = readGateEvidence(root, "18", "verify");
+    assert.ok(evidence, "fail evidence must be durable before process exit");
+    assert.equal(evidence.result.status, "fail");
+    assert.equal(evidence.result.evaluatedBy, COVERAGE_ADAPTER_NAME);
   });
 });
 
