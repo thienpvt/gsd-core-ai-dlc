@@ -113,6 +113,7 @@ test("verifyGateHook defaults to ADAPTERS generic-exit-ci and writes validated p
   await withTempRoot(async (root) => {
     const seeded = record();
     writeSelection(seeded, root);
+    seedPlanEvidence(root, "08", seeded);
 
     const hookResult = await verifyGateHook({ projectRoot: root, phaseNumber: "08" });
     const evidence = readGateEvidence(root, "08", "verify");
@@ -139,7 +140,9 @@ test("verifyGateHook defaults to ADAPTERS generic-exit-ci and writes validated p
 
 test("verifyGateHook rejects malformed adapter output through runAdapter and writes no evidence", async () => {
   await withTempRoot(async (root) => {
-    writeSelection(record(), root);
+    const seeded = record();
+    writeSelection(seeded, root);
+    seedPlanEvidence(root, "08", seeded);
     const badAdapter = {
       name: "bad-adapter",
       async evaluate() {
@@ -168,7 +171,9 @@ test("verifyGateHook rejects malformed adapter output through runAdapter and wri
 
 test("verifyGateHook allows injected ECHO_ADAPTERS for tests and persists findings", async () => {
   await withTempRoot(async (root) => {
-    writeSelection(record(), root);
+    const seeded = record();
+    writeSelection(seeded, root);
+    seedPlanEvidence(root, "08", seeded);
 
     const hookResult = await verifyGateHook({
       projectRoot: root,
@@ -296,6 +301,57 @@ function writeGovConfig(
   );
 }
 
+
+function seedPlanEvidence(
+  root: string,
+  phaseNumber: string,
+  rec: GovernanceRecord,
+  overrides: {
+    status?: "pass" | "fail" | "waived";
+    phase?: GovernanceRecord["phase"];
+    taskSignal?: GovernanceRecord["taskSignal"];
+    rules?: GovernanceRecord["selectionResult"]["selected"];
+    source?: string;
+    evaluatedBy?: string;
+    requestedAt?: string;
+    writtenAt?: string;
+  } = {},
+): void {
+  const requestedAt = overrides.requestedAt ?? rec.timestamp;
+  const writtenAt = overrides.writtenAt ?? rec.timestamp;
+  const rules = overrides.rules ?? rec.selectionResult.selected;
+  writeGateEvidence(root, phaseNumber, {
+    request: {
+      gateId: "plan",
+      phase: overrides.phase ?? rec.phase,
+      taskSignal: overrides.taskSignal ?? rec.taskSignal,
+      rules,
+      requestedAt,
+    },
+    result: {
+      gateId: "plan",
+      status: overrides.status ?? "pass",
+      findings:
+        overrides.status === "fail"
+          ? [
+              {
+                id: "plan-fixture-fail",
+                severity: "high",
+                message: "fixture plan failure",
+              },
+            ]
+          : [],
+      evaluatedBy: overrides.evaluatedBy ?? "aidlc-governance-plan",
+      evaluatedAt: writtenAt,
+    },
+    metadata: {
+      phase: phaseNumber,
+      writtenAt,
+      source: overrides.source ?? "aidlc-governance-plan",
+    },
+  });
+}
+
 test("real rule pack selects coverage at GSD phase 18 and verify routes the real report adapter", async () => {
   await withTempRoot(async (root) => {
     const stateDir = path.join(root, ".planning");
@@ -332,21 +388,31 @@ test("real rule pack selects coverage at GSD phase 18 and verify routes the real
       "real binding rule must be selected for phase 18 Java production work",
     );
 
+    // phaseGoal tokens must equal discuss keywords so plan/discuss TaskSignals deep-equal
     const planned = planHook({
       projectRoot: root,
       phaseNumber: "18",
       indexPath,
       plannerInputs: {
-        phaseGoal: "Implement Java service behavior",
+        phaseGoal: "java coverage",
         requirementIds: [],
         riskThreatModel: [],
-        acceptanceCriteria: ["Coverage report passes"],
+        acceptanceCriteria: [],
         impactedFiles: ["service/src/main/java/com/example/Service.java"],
       },
     });
     assert.ok(
       planned.evidence.request.rules.some((rule) => rule.id === BINDING_RULE_ID),
       "authoritative plan evidence must retain the binding rule",
+    );
+    assert.deepEqual(planned.evidence.request.taskSignal, discussed.record.taskSignal);
+    assert.deepEqual(
+      planned.evidence.request.rules.map((r) => r.id).sort(),
+      discussed.record.selectionResult.selected.map((r) => r.id).sort(),
+    );
+    assert.ok(
+      Date.parse(planned.evidence.metadata.writtenAt) >=
+        Date.parse(discussed.record.timestamp),
     );
 
     const verified = await verifyGateHook({ projectRoot: root, phaseNumber: "18" });
@@ -357,36 +423,19 @@ test("real rule pack selects coverage at GSD phase 18 and verify routes the real
 
 test("verifyGateHook fails closed when plan binding coverage is absent from discuss state", async () => {
   await withTempRoot(async (root) => {
-    writeSelection(record(), root);
+    const discuss = record(); // no binding
+    writeSelection(discuss, root);
     writeGovConfig(root, seedReport(root, "pass-70.xml"));
-    const now = "2026-07-12T00:00:00.000Z";
-    const planBinding = bindingRecord().selectionResult.selected;
-    const evidence = {
-      request: {
-        gateId: "plan" as const,
-        phase: "construction" as const,
-        taskSignal: bindingRecord().taskSignal,
-        rules: planBinding,
-        requestedAt: now,
-      },
-      result: {
-        gateId: "plan" as const,
-        status: "pass" as const,
-        findings: [],
-        evaluatedBy: "aidlc-governance-plan",
-        evaluatedAt: now,
-      },
-      metadata: {
-        phase: "18",
-        writtenAt: now,
-        source: "aidlc-governance-plan",
-      },
-    };
-    writeGateEvidence(root, "18", evidence);
+    // same phase/taskSignal/timestamps as discuss; only rule set differs (plan has binding)
+    seedPlanEvidence(root, "18", discuss, {
+      rules: bindingRecord().selectionResult.selected,
+      requestedAt: discuss.timestamp,
+      writtenAt: discuss.timestamp,
+    });
 
     await assert.rejects(
       verifyGateHook({ projectRoot: root, phaseNumber: "18" }),
-      /selection disagreement|binding.*omission/i,
+      /selected rule set|selection disagreement|binding/i,
     );
     assert.equal(existsSync(gateEvidencePath(root, "18", "verify")), false);
   });
@@ -394,7 +443,9 @@ test("verifyGateHook fails closed when plan binding coverage is absent from disc
 
 test("verify gate direct runner exits non-zero after persisting coverage fail evidence", () => {
   withTempRoot((root) => {
-    writeSelection(bindingRecord(), root);
+    const seeded = bindingRecord();
+    writeSelection(seeded, root);
+    seedPlanEvidence(root, "18", seeded);
     writeGovConfig(root, seedReport(root, "fail-below-70.xml"));
     const runner = path.resolve(process.cwd(), "dist-test", "governance", "verify-gate-hook.js");
 
@@ -413,7 +464,9 @@ test("verify gate direct runner exits non-zero after persisting coverage fail ev
 
 test("verifyGateHook routes binding rule to coverage-report pass fixture", async () => {
   await withTempRoot(async (root) => {
-    writeSelection(bindingRecord(), root);
+    const seeded = bindingRecord();
+    writeSelection(seeded, root);
+    seedPlanEvidence(root, "18", seeded);
     const reportPath = seedReport(root, "pass-70.xml");
     writeGovConfig(root, reportPath);
 
@@ -433,7 +486,9 @@ test("verifyGateHook routes binding rule to coverage-report pass fixture", async
 
 test("verifyGateHook routes binding rule to coverage-report fail fixture", async () => {
   await withTempRoot(async (root) => {
-    writeSelection(bindingRecord(), root);
+    const seeded = bindingRecord();
+    writeSelection(seeded, root);
+    seedPlanEvidence(root, "18", seeded);
     const reportPath = seedReport(root, "fail-below-70.xml");
     writeGovConfig(root, reportPath);
 
@@ -456,7 +511,9 @@ test("verifyGateHook routes binding rule to coverage-report fail fixture", async
 
 test("verifyGateHook empty coverage_report_path with binding yields durable fail evidence", async () => {
   await withTempRoot(async (root) => {
-    writeSelection(bindingRecord(), root);
+    const seeded = bindingRecord();
+    writeSelection(seeded, root);
+    seedPlanEvidence(root, "18", seeded);
     writeGovConfig(root, "");
 
     const hookResult = await verifyGateHook({
@@ -478,7 +535,9 @@ test("verifyGateHook empty coverage_report_path with binding yields durable fail
 
 test("verifyGateHook rejects non-coverage adapterName when binding selected (no evidence)", async () => {
   await withTempRoot(async (root) => {
-    writeSelection(bindingRecord(), root);
+    const seeded = bindingRecord();
+    writeSelection(seeded, root);
+    seedPlanEvidence(root, "18", seeded);
     writeGovConfig(root, "build/reports/jacoco/test/jacocoTestReport.xml");
 
     await assert.rejects(
@@ -495,7 +554,9 @@ test("verifyGateHook rejects non-coverage adapterName when binding selected (no 
 
 test("verifyGateHook without binding rule still defaults to generic-exit-ci", async () => {
   await withTempRoot(async (root) => {
-    writeSelection(record(), root);
+    const seeded = record();
+    writeSelection(seeded, root);
+    seedPlanEvidence(root, "08", seeded);
 
     const hookResult = await verifyGateHook({
       projectRoot: root,
@@ -512,7 +573,9 @@ test("verifyGateHook without binding rule still defaults to generic-exit-ci", as
 
 test("verifyGateHook without binding honors explicit adapterName injection", async () => {
   await withTempRoot(async (root) => {
-    writeSelection(record(), root);
+    const seeded = record();
+    writeSelection(seeded, root);
+    seedPlanEvidence(root, "08", seeded);
     const custom: GateAdapter = {
       name: "custom-test-adapter",
       async evaluate(request) {
@@ -538,7 +601,9 @@ test("verifyGateHook without binding honors explicit adapterName injection", asy
 
 test("verifyGateHook uses injected coverage-report adapter when binding selected", async () => {
   await withTempRoot(async (root) => {
-    writeSelection(bindingRecord(), root);
+    const seeded = bindingRecord();
+    writeSelection(seeded, root);
+    seedPlanEvidence(root, "18", seeded);
     writeGovConfig(root, "whatever.xml");
     let called = false;
     const injected: GateAdapter = {
@@ -568,7 +633,9 @@ test("verifyGateHook uses injected coverage-report adapter when binding selected
 
 test("verifyGateHook injected map without coverage-report falls back to factory", async () => {
   await withTempRoot(async (root) => {
-    writeSelection(bindingRecord(), root);
+    const seeded = bindingRecord();
+    writeSelection(seeded, root);
+    seedPlanEvidence(root, "18", seeded);
     const reportPath = seedReport(root, "pass-70.xml");
     writeGovConfig(root, reportPath);
     const other: GateAdapter = {
@@ -585,6 +652,234 @@ test("verifyGateHook injected map without coverage-report falls back to factory"
     });
     assert.equal(hookResult.evidence.result.evaluatedBy, COVERAGE_ADAPTER_NAME);
     assert.equal(hookResult.evidence.result.status, "pass");
+  });
+});
+
+// ── Phase 18 review iteration 2: plan evidence correlation (CR-01/CR-02) ─────
+
+test("verifyGateHook rejects absent plan evidence when binding selected (no verify write)", async () => {
+  await withTempRoot(async (root) => {
+    writeSelection(bindingRecord(), root);
+    writeGovConfig(root, seedReport(root, "pass-70.xml"));
+
+    await assert.rejects(
+      verifyGateHook({ projectRoot: root, phaseNumber: "18" }),
+      /missing authoritative plan evidence/i,
+    );
+    assert.equal(existsSync(gateEvidencePath(root, "18", "verify")), false);
+  });
+});
+
+test("verifyGateHook rejects absent plan evidence when binding omitted (no verify write)", async () => {
+  await withTempRoot(async (root) => {
+    writeSelection(record(), root);
+
+    await assert.rejects(
+      verifyGateHook({ projectRoot: root, phaseNumber: "08" }),
+      /missing authoritative plan evidence/i,
+    );
+    assert.equal(existsSync(gateEvidencePath(root, "08", "verify")), false);
+  });
+});
+
+test("verifyGateHook rejects failed plan evidence before adapter evaluation", async () => {
+  await withTempRoot(async (root) => {
+    const seeded = bindingRecord();
+    writeSelection(seeded, root);
+    writeGovConfig(root, seedReport(root, "pass-70.xml"));
+    seedPlanEvidence(root, "18", seeded, { status: "fail" });
+    let evaluated = false;
+    const injected: GateAdapter = {
+      name: COVERAGE_ADAPTER_NAME,
+      async evaluate() {
+        evaluated = true;
+        throw new Error("adapter must not run");
+      },
+    };
+
+    await assert.rejects(
+      verifyGateHook({
+        projectRoot: root,
+        phaseNumber: "18",
+        adapters: new Map([[COVERAGE_ADAPTER_NAME, injected]]),
+      }),
+      /plan evidence status is fail/i,
+    );
+    assert.equal(evaluated, false);
+    assert.equal(existsSync(gateEvidencePath(root, "18", "verify")), false);
+  });
+});
+
+test("verifyGateHook rejects wrong plan phase", async () => {
+  await withTempRoot(async (root) => {
+    const seeded = bindingRecord();
+    writeSelection(seeded, root);
+    writeGovConfig(root, seedReport(root, "pass-70.xml"));
+    seedPlanEvidence(root, "18", seeded, { phase: "inception" });
+
+    await assert.rejects(
+      verifyGateHook({ projectRoot: root, phaseNumber: "18" }),
+      /phase/i,
+    );
+    assert.equal(existsSync(gateEvidencePath(root, "18", "verify")), false);
+  });
+});
+
+test("verifyGateHook rejects wrong plan source", async () => {
+  await withTempRoot(async (root) => {
+    const seeded = bindingRecord();
+    writeSelection(seeded, root);
+    writeGovConfig(root, seedReport(root, "pass-70.xml"));
+    seedPlanEvidence(root, "18", seeded, { source: "spoofed-plan" });
+
+    await assert.rejects(
+      verifyGateHook({ projectRoot: root, phaseNumber: "18" }),
+      /source must be 'aidlc-governance-plan'/i,
+    );
+    assert.equal(existsSync(gateEvidencePath(root, "18", "verify")), false);
+  });
+});
+
+test("verifyGateHook rejects wrong plan evaluatedBy", async () => {
+  await withTempRoot(async (root) => {
+    const seeded = bindingRecord();
+    writeSelection(seeded, root);
+    writeGovConfig(root, seedReport(root, "pass-70.xml"));
+    seedPlanEvidence(root, "18", seeded, { evaluatedBy: "not-the-plan-hook" });
+
+    await assert.rejects(
+      verifyGateHook({ projectRoot: root, phaseNumber: "18" }),
+      /evaluatedBy must be 'aidlc-governance-plan'/i,
+    );
+    assert.equal(existsSync(gateEvidencePath(root, "18", "verify")), false);
+  });
+});
+
+test("verifyGateHook rejects stale plan older than discuss timestamp", async () => {
+  await withTempRoot(async (root) => {
+    const seeded = bindingRecord();
+    writeSelection(seeded, root);
+    writeGovConfig(root, seedReport(root, "pass-70.xml"));
+    seedPlanEvidence(root, "18", seeded, {
+      requestedAt: "2026-07-11T00:00:00.000Z",
+      writtenAt: "2026-07-11T00:00:00.000Z",
+    });
+
+    await assert.rejects(
+      verifyGateHook({ projectRoot: root, phaseNumber: "18" }),
+      /older than discuss/i,
+    );
+    assert.equal(existsSync(gateEvidencePath(root, "18", "verify")), false);
+  });
+});
+
+test("verifyGateHook rejects mismatched taskSignal", async () => {
+  await withTempRoot(async (root) => {
+    const seeded = bindingRecord();
+    writeSelection(seeded, root);
+    writeGovConfig(root, seedReport(root, "pass-70.xml"));
+    seedPlanEvidence(root, "18", seeded, {
+      taskSignal: {
+        taskType: "feature",
+        keywords: ["other", "task"],
+        paths: ["src/main/java/com/example/Other.java"],
+      },
+    });
+
+    await assert.rejects(
+      verifyGateHook({ projectRoot: root, phaseNumber: "18" }),
+      /taskSignal/i,
+    );
+    assert.equal(existsSync(gateEvidencePath(root, "18", "verify")), false);
+  });
+});
+
+test("verifyGateHook rejects selected rule set mismatch with binding on both sides", async () => {
+  await withTempRoot(async (root) => {
+    const seeded = bindingRecord();
+    writeSelection(seeded, root);
+    writeGovConfig(root, seedReport(root, "pass-70.xml"));
+    seedPlanEvidence(root, "18", seeded, {
+      rules: [
+        ...seeded.selectionResult.selected,
+        {
+          id: "require-mfa",
+          severity: "critical",
+          summary: "extra plan-only rule",
+          matchedAxis: "always-in-phase",
+          matchedValue: "always-in-phase",
+        },
+      ],
+    });
+
+    await assert.rejects(
+      verifyGateHook({ projectRoot: root, phaseNumber: "18" }),
+      /selected rule set/i,
+    );
+    assert.equal(existsSync(gateEvidencePath(root, "18", "verify")), false);
+  });
+});
+
+test("verifyGateHook rejects discuss-selected plan-omitted binding (both directions covered)", async () => {
+  await withTempRoot(async (root) => {
+    const seeded = bindingRecord();
+    writeSelection(seeded, root);
+    writeGovConfig(root, seedReport(root, "pass-70.xml"));
+    seedPlanEvidence(root, "18", seeded, {
+      rules: [
+        {
+          id: "require-logging",
+          severity: "high",
+          summary: "no binding",
+          matchedAxis: "always-in-phase",
+          matchedValue: "always-in-phase",
+        },
+      ],
+    });
+
+    await assert.rejects(
+      verifyGateHook({ projectRoot: root, phaseNumber: "18" }),
+      /selected rule set|selection disagreement|binding/i,
+    );
+    assert.equal(existsSync(gateEvidencePath(root, "18", "verify")), false);
+  });
+});
+
+test("verifyGateHook accepts valid correlated plan evidence path", async () => {
+  await withTempRoot(async (root) => {
+    const seeded = bindingRecord();
+    writeSelection(seeded, root);
+    writeGovConfig(root, seedReport(root, "pass-70.xml"));
+    seedPlanEvidence(root, "18", seeded, {
+      requestedAt: "2026-07-12T01:00:00.000Z",
+      writtenAt: "2026-07-12T01:00:00.000Z",
+    });
+
+    const verified = await verifyGateHook({ projectRoot: root, phaseNumber: "18" });
+    assert.equal(verified.evidence.result.status, "pass");
+    assert.equal(verified.evidence.result.evaluatedBy, COVERAGE_ADAPTER_NAME);
+    assert.ok(existsSync(gateEvidencePath(root, "18", "verify")));
+  });
+});
+
+test("ship chain cannot proceed when verify rejected mismatched plan (no verify evidence)", async () => {
+  await withTempRoot(async (root) => {
+    const { shipGateHook } = await import("./ship-gate-hook.js");
+    const seeded = bindingRecord();
+    writeSelection(seeded, root);
+    writeGovConfig(root, seedReport(root, "pass-70.xml"));
+    seedPlanEvidence(root, "18", seeded, { phase: "inception" });
+
+    await assert.rejects(
+      verifyGateHook({ projectRoot: root, phaseNumber: "18" }),
+      /phase/i,
+    );
+    assert.equal(existsSync(gateEvidencePath(root, "18", "verify")), false);
+
+    assert.throws(
+      () => shipGateHook({ projectRoot: root, phaseNumber: "18" }),
+      /missing governance evidence.*verify/i,
+    );
   });
 });
 

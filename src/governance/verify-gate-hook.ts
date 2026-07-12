@@ -7,8 +7,8 @@ import {
   writeGateEvidence,
   type GateEvidence,
 } from "./gate-evidence-store.js";
-import { selectionStatePath } from "./paths.js";
-import { readSelection } from "./state-store.js";
+import { gateEvidencePath, selectionStatePath } from "./paths.js";
+import { readSelection, type GovernanceRecord } from "./state-store.js";
 import { readGovernanceConfig } from "./config.js";
 
 
@@ -16,6 +16,8 @@ import { readGovernanceConfig } from "./config.js";
 const BINDING_RULE_ID = "java-spring-unit-line-coverage";
 /** Forced adapter name when the binding rule is selected. */
 const COVERAGE_ADAPTER_NAME = "coverage-report";
+/** Canonical plan gate producer identity. */
+const PLAN_SOURCE = "aidlc-governance-plan";
 
 export interface VerifyGateHookArgs {
   projectRoot: string;
@@ -62,6 +64,93 @@ export function deriveRuleGateStatuses(
   });
 }
 
+function sortedRuleIds(rules: ReadonlyArray<{ id: string }>): string[] {
+  return rules.map((rule) => rule.id).slice().sort();
+}
+
+/**
+ * Strict plan/discuss correlation before any adapter evaluation.
+ * Plan evidence is mandatory for every verify path (CR-01/CR-02).
+ * Preserves Phase 8 D-03: plan evidence is separate from selection-state.
+ */
+export function assertPlanEvidenceCorrelated(
+  projectRoot: string,
+  phaseNumber: string,
+  record: GovernanceRecord,
+  planEvidence: GateEvidence | null,
+): asserts planEvidence is GateEvidence {
+  if (planEvidence === null) {
+    throw new Error(
+      `verifyGateHook: missing authoritative plan evidence at ${gateEvidencePath(projectRoot, phaseNumber, "plan")}; run plan:pre before verify`,
+    );
+  }
+
+  if (planEvidence.result.status === "fail") {
+    throw new Error(
+      `verifyGateHook: plan evidence status is fail; resolve plan findings before verify`,
+    );
+  }
+  if (
+    planEvidence.result.status !== "pass" &&
+    planEvidence.result.status !== "waived"
+  ) {
+    throw new Error(
+      `verifyGateHook: plan evidence status must be pass or waived, got '${planEvidence.result.status}'`,
+    );
+  }
+
+  if (planEvidence.metadata.source !== PLAN_SOURCE) {
+    throw new Error(
+      `verifyGateHook: plan evidence source must be '${PLAN_SOURCE}', got '${planEvidence.metadata.source}'`,
+    );
+  }
+  if (planEvidence.result.evaluatedBy !== PLAN_SOURCE) {
+    throw new Error(
+      `verifyGateHook: plan evidence evaluatedBy must be '${PLAN_SOURCE}', got '${planEvidence.result.evaluatedBy}'`,
+    );
+  }
+
+  if (planEvidence.request.phase !== record.phase) {
+    throw new Error(
+      `verifyGateHook: plan evidence phase '${planEvidence.request.phase}' does not match discuss phase '${record.phase}'`,
+    );
+  }
+
+  const discussSignal = JSON.stringify(record.taskSignal);
+  const planSignal = JSON.stringify(planEvidence.request.taskSignal);
+  if (planSignal !== discussSignal) {
+    throw new Error(
+      `verifyGateHook: plan evidence taskSignal does not deep-equal discuss taskSignal; rerun discuss and plan for the same task`,
+    );
+  }
+
+  const discussIds = sortedRuleIds(record.selectionResult.selected);
+  const planIds = sortedRuleIds(planEvidence.request.rules);
+  if (JSON.stringify(planIds) !== JSON.stringify(discussIds)) {
+    throw new Error(
+      `verifyGateHook: plan evidence selected rule set does not match discuss selection (${planIds.join(",")} vs ${discussIds.join(",")}); rerun discuss and plan before verify`,
+    );
+  }
+
+  const discussTs = Date.parse(record.timestamp);
+  const planRequested = Date.parse(planEvidence.request.requestedAt);
+  const planWritten = Date.parse(planEvidence.metadata.writtenAt);
+  if (
+    Number.isNaN(discussTs) ||
+    Number.isNaN(planRequested) ||
+    Number.isNaN(planWritten)
+  ) {
+    throw new Error(
+      `verifyGateHook: plan/discuss timestamps must be valid ISO-8601 values`,
+    );
+  }
+  if (planRequested < discussTs || planWritten < discussTs) {
+    throw new Error(
+      `verifyGateHook: plan evidence timestamps are older than discuss selection timestamp; rerun plan after discuss`,
+    );
+  }
+}
+
 export async function verifyGateHook(
   args: VerifyGateHookArgs,
 ): Promise<VerifyGateHookResult> {
@@ -76,16 +165,13 @@ export async function verifyGateHook(
     (rule) => rule.id === BINDING_RULE_ID,
   );
   const planEvidence = readGateEvidence(args.projectRoot, args.phaseNumber, "plan");
-  if (planEvidence !== null) {
-    const planBindingSelected = planEvidence.request.rules.some(
-      (rule) => rule.id === BINDING_RULE_ID,
-    );
-    if (planBindingSelected !== bindingSelected) {
-      throw new Error(
-        `verifyGateHook: selection disagreement for binding rule '${BINDING_RULE_ID}' between persisted discuss state (${bindingSelected ? "selected" : "omitted"}) and authoritative plan evidence (${planBindingSelected ? "selected" : "omitted"}); rerun discuss and plan before verify`,
-      );
-    }
-  }
+  // Fail closed before adapter selection when plan evidence is missing/invalid.
+  assertPlanEvidenceCorrelated(
+    args.projectRoot,
+    args.phaseNumber,
+    record,
+    planEvidence,
+  );
 
   let adapter: GateAdapter;
   if (bindingSelected) {
