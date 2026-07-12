@@ -60,7 +60,7 @@ Content + one real adapter. Engine from v1–v3 stays frozen. Ship selectable `j
 - [x] **Phase 14: Hexagonal + Tactical DDD Rules** - Path-triggered layering and aggregate/VO/event naming rules (advisory) (completed 2026-07-09)
 - [x] **Phase 15: Logging, API Contract & Saga Decision Rules** - Correlation/no-PII logging, OpenAPI/error envelope, saga/outbox when-not-to-use (completed 2026-07-09)
 - [x] **Phase 16: Starter Examples Outside Index** - Thin examples/java-spring/ tree never enters rule-index (completed 2026-07-12)
-- [ ] **Phase 17: Coverage Parser + Binding GateAdapter** - JaCoCo/LCOV stdlib parse, binding ≥70% rule, fail-closed on missing/low coverage
+- [x] **Phase 17: Coverage Parser + Binding GateAdapter** - JaCoCo/LCOV stdlib parse, binding ≥70% rule, fail-closed on missing/low coverage (completed 2026-07-12)
 - [ ] **Phase 18: Verify/Ship Wire + Consumer Docs** - Coverage evidence path wired; docs for domain subscribe + report path
 
 ## Phase Details
@@ -146,10 +146,10 @@ Plans:
   3. Missing coverage report or line coverage &lt; 70% fails closed at verify and blocks ship when coverage evidence is required
   4. Fixture tests prove pass-at-threshold, fail-under, missing report, and malformed report — zero new npm deps; no Maven/JDK shell-out; vendor-neutral `src/`
 
-**Plans**: 0/2 plans complete
+**Plans**: 2/2 plans complete
 
-- [ ] 17-01-PLAN.md — TDD JaCoCo/LCOV parsers + real fail-closed `coverage-report` adapter
-- [ ] 17-02-PLAN.md — TDD binding Java coverage rule + selection/quarantine + inventory 10→11
+- [x] 17-01-PLAN.md — TDD JaCoCo/LCOV parsers + real fail-closed `coverage-report` adapter
+- [x] 17-02-PLAN.md — TDD binding Java coverage rule + selection/quarantine + inventory 10→11
 
 ### Phase 18: Verify/Ship Wire + Consumer Docs
 
@@ -184,7 +184,7 @@ Plans:
 | 14. Hexagonal + Tactical DDD Rules | v4.0 | 2/2 | Complete   | 2026-07-09 |
 | 15. Logging, API Contract & Saga Decision Rules | v4.0 | 2/2 | Complete    | 2026-07-09 |
 | 16. Starter Examples Outside Index | v4.0 | 1/1 | Complete    | 2026-07-12 |
-| 17. Coverage Parser + Binding GateAdapter | v4.0 | 0/? | Not started | - |
+| 17. Coverage Parser + Binding GateAdapter | v4.0 | 2/2 | Complete   | 2026-07-12 |
 | 18. Verify/Ship Wire + Consumer Docs | v4.0 | 0/? | Not started | - |
 
 ---
