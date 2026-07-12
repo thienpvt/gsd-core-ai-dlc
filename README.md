@@ -54,6 +54,7 @@ Full setup, consent, and first-run smoke checks: [Onboarding Guide](docs/onboard
 
 - [Onboarding Guide](docs/onboarding.md) — install, consent, first-run smoke check.
 - [Governance Workflow Guide](docs/governance-workflow.md) — all 5 CLI commands plus gate chain.
+- [Java/Spring Coverage Gate](docs/java-spring-coverage.md) — subscribe the domain and configure JaCoCo or LCOV evidence.
 - [Rule Authoring Guide](docs/rule-authoring.md) — write, integrate, and verify governance rules.
 
 ## CLI

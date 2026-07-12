@@ -382,4 +382,6 @@ Ship gate outputs after required prior gates pass or waive:
 
 The gate fails closed. Missing, malformed, or failed evidence blocks shipping.
 
+For binding Java/Spring coverage report setup and verify evidence behavior, see [Java/Spring Coverage Gate](java-spring-coverage.md).
+
 Next: [Rule Authoring Guide](rule-authoring.md)

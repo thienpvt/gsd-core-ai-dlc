@@ -146,6 +146,8 @@ Set or omit `governance.enabled` in `.planning/config.json`. Default is `true` f
 
 Consent is the loader-level grant. `governance.enabled` is the per-project on/off switch.
 
+Java/Spring consumers can add domain subscription and a report path by following the [Java/Spring Coverage Gate](java-spring-coverage.md) guide.
+
 ### Hook chain
 
 | Loop point | Skill ref | When | Produces | Consumes | Error behavior |

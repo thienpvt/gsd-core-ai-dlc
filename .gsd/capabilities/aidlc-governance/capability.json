@@ -33,6 +33,16 @@
       "type": "number",
       "default": 2000,
       "description": "Per-request governance token budget. The discuss hook resolves the same key via the CLI budget resolution order (flag > config > default 2000)."
+    },
+    "governance.domains": {
+      "type": "string",
+      "default": "",
+      "description": "Comma-separated domain subscriptions, for example java-spring."
+    },
+    "governance.coverage_report_path": {
+      "type": "string",
+      "default": "",
+      "description": "Project-relative path to a consumer-produced JaCoCo XML or LCOV report."
     }
   },
   "steps": [
