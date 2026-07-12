@@ -14,6 +14,7 @@ import {
   openSync,
   readSync,
   realpathSync,
+  statSync,
 } from "node:fs";
 import path from "node:path";
 import type { GateAdapter } from "./adapters.js";
@@ -43,6 +44,23 @@ export interface CoverageAdapterConfig {
   projectRoot: string;
   reportPath: string;
   format?: "jacoco" | "lcov";
+}
+
+/**
+ * Non-public internals for defense-in-depth seams (tests only).
+ * Not part of consumer configuration.
+ */
+export interface CoverageAdapterInternals {
+  /** Called after openSync, before post-open revalidation. */
+  afterOpen?: (candidatePath: string) => void;
+  /** Override post-open realpath (deterministic identity tests). */
+  postOpenRealpath?: (candidatePath: string) => string;
+  /** Override post-open path stat (deterministic identity tests). */
+  postOpenStat?: (resolvedPath: string) => {
+    dev: number | bigint;
+    ino: number | bigint;
+    isFile(): boolean;
+  };
 }
 
 function escapesRoot(rel: string): boolean {
@@ -120,17 +138,82 @@ function passResult(request: GateRequest): GateResult {
   };
 }
 
+type FileIdentity = { dev: number | bigint; ino: number | bigint };
+
+/** True when both stats share the same device+inode identity. */
+function sameFileIdentity(a: FileIdentity, b: FileIdentity): boolean {
+  return String(a.dev) === String(b.dev) && String(a.ino) === String(b.ino);
+}
+
 /**
- * Open a regular file, fstat the fd, and read at most MAX+1 bytes.
- * Rejects non-regular files and oversized content. Always closes the fd.
+ * Re-bind the opened fd to the candidate path: re-resolve, re-check root
+ * containment, then compare fd identity to the post-open real path.
+ *
+ * ponytail: Node stdlib ceiling — no openat2 / O_PATH / handle-based
+ * canonical path. Residual TOCTOU remains under hostile concurrent path
+ * mutation. Upgrade path: platform openat2+RESOLVE_BENEATH or fd-based
+ * realpath when available.
  */
-function readBoundedRegularFile(absPath: string): string {
+function verifyOpenedPathIdentity(
+  fd: number,
+  candidatePath: string,
+  realRoot: string,
+  internals?: CoverageAdapterInternals,
+): void {
+  if (internals?.afterOpen) {
+    internals.afterOpen(candidatePath);
+  }
+
+  const resolve = internals?.postOpenRealpath ?? realpathSync;
+  let postReal: string;
+  try {
+    postReal = resolve(candidatePath);
+  } catch {
+    throw new Error("coverage report path changed after open");
+  }
+
+  const postRel = path.relative(realRoot, postReal);
+  if (escapesRoot(postRel)) {
+    throw new Error("coverage report real path escapes projectRoot after open");
+  }
+
+  const fdStat = fstatSync(fd);
+  if (!fdStat.isFile()) {
+    throw new Error("coverage report path is not a regular file");
+  }
+
+  const pathStatFn = internals?.postOpenStat ?? statSync;
+  let pathStat: FileIdentity & { isFile(): boolean };
+  try {
+    pathStat = pathStatFn(postReal);
+  } catch {
+    throw new Error("coverage report path changed after open");
+  }
+  if (!pathStat.isFile()) {
+    throw new Error("coverage report path is not a regular file");
+  }
+
+  // Where dev/ino are meaningful (non-zero on at least one side), require match.
+  if (
+    (Number(fdStat.ino) !== 0 || Number(pathStat.ino) !== 0) &&
+    !sameFileIdentity(fdStat, pathStat)
+  ) {
+    throw new Error("coverage report identity mismatch after open");
+  }
+}
+
+/**
+ * Open a regular file, re-validate path identity/containment on the fd,
+ * then read at most MAX+1 bytes. Always closes the fd.
+ */
+function readBoundedRegularFile(
+  absPath: string,
+  realRoot: string,
+  internals?: CoverageAdapterInternals,
+): string {
   const fd = openSync(absPath, "r");
   try {
-    const st = fstatSync(fd);
-    if (!st.isFile()) {
-      throw new Error("coverage report path is not a regular file");
-    }
+    verifyOpenedPathIdentity(fd, absPath, realRoot, internals);
     const cap = MAX_COVERAGE_REPORT_BYTES + 1;
     const buf = Buffer.allocUnsafe(cap);
     let offset = 0;
@@ -151,8 +234,13 @@ function readBoundedRegularFile(absPath: string): string {
 /**
  * Build a real coverage-report GateAdapter closed over projectRoot/reportPath.
  * Does not register into STUB_NAMES / ADAPTERS / ECHO_ADAPTERS.
+ *
+ * Second arg is a non-public internals seam (tests only); not consumer config.
  */
-export function createCoverageAdapter(config: CoverageAdapterConfig): GateAdapter {
+export function createCoverageAdapter(
+  config: CoverageAdapterConfig,
+  internals?: CoverageAdapterInternals,
+): GateAdapter {
   const { projectRoot, reportPath, format: formatOpt } = config;
 
   return {
@@ -234,13 +322,16 @@ export function createCoverageAdapter(config: CoverageAdapterConfig): GateAdapte
 
         let text: string;
         try {
-          text = readBoundedRegularFile(realTarget);
+          text = readBoundedRegularFile(realTarget, realRoot, internals);
         } catch (err) {
           const msg =
             err instanceof Error ? err.message : ("coverage report unreadable: " + reportPath);
           if (
             msg.includes("exceeds") ||
-            msg.includes("not a regular file")
+            msg.includes("not a regular file") ||
+            msg.includes("identity mismatch") ||
+            msg.includes("changed after open") ||
+            msg.includes("escapes projectRoot after open")
           ) {
             return failResult(request, msg, evidencePath);
           }

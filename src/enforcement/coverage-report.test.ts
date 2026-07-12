@@ -431,3 +431,84 @@ test("runAdapter dangling symlink fails closed (WR-05)", async (t) => {
     rmSync(base, { recursive: true, force: true });
   }
 });
+
+
+const PASS_XML =
+  "<?xml version=\"1.0\"?><report name=\"x\"><counter type=\"LINE\" missed=\"30\" covered=\"70\"/></report>";
+
+test("runAdapter post-open containment escape fails closed (WR-07)", async () => {
+  const base = mkdtempSync(path.join(os.tmpdir(), "cov-wr07-esc-"));
+  try {
+    const projectRoot = path.join(base, "proj");
+    mkdirSync(projectRoot, { recursive: true });
+    writeFileSync(path.join(projectRoot, "report.xml"), PASS_XML, "utf8");
+    const outside = path.join(base, "outside.xml");
+    writeFileSync(outside, PASS_XML, "utf8");
+    const r = await runAdapter(
+      createCoverageAdapter(
+        { projectRoot, reportPath: "report.xml", format: "jacoco" },
+        {
+          postOpenRealpath: () => outside,
+        },
+      ),
+      makeRequest(),
+    );
+    assert.equal(r.status, "fail");
+    assert.equal(r.findings[0].id, COVERAGE_FINDING_ID);
+    assert.match(r.findings[0].message, /escapes projectRoot after open|identity mismatch|changed after open/i);
+  } finally {
+    rmSync(base, { recursive: true, force: true });
+  }
+});
+
+test("runAdapter post-open identity mismatch fails closed (WR-07)", async () => {
+  const base = mkdtempSync(path.join(os.tmpdir(), "cov-wr07-id-"));
+  try {
+    const projectRoot = path.join(base, "proj");
+    mkdirSync(projectRoot, { recursive: true });
+    writeFileSync(path.join(projectRoot, "report.xml"), PASS_XML, "utf8");
+    const r = await runAdapter(
+      createCoverageAdapter(
+        { projectRoot, reportPath: "report.xml", format: "jacoco" },
+        {
+          postOpenStat: () => ({
+            dev: 999999,
+            ino: 888888,
+            isFile: () => true,
+          }),
+        },
+      ),
+      makeRequest(),
+    );
+    assert.equal(r.status, "fail");
+    assert.equal(r.findings[0].id, COVERAGE_FINDING_ID);
+    assert.match(r.findings[0].message, /identity mismatch after open/i);
+  } finally {
+    rmSync(base, { recursive: true, force: true });
+  }
+});
+
+test("runAdapter post-open re-resolve failure fails closed (WR-07)", async () => {
+  const base = mkdtempSync(path.join(os.tmpdir(), "cov-wr07-re-"));
+  try {
+    const projectRoot = path.join(base, "proj");
+    mkdirSync(projectRoot, { recursive: true });
+    writeFileSync(path.join(projectRoot, "report.xml"), PASS_XML, "utf8");
+    const r = await runAdapter(
+      createCoverageAdapter(
+        { projectRoot, reportPath: "report.xml", format: "jacoco" },
+        {
+          postOpenRealpath: () => {
+            throw new Error("ENOENT");
+          },
+        },
+      ),
+      makeRequest(),
+    );
+    assert.equal(r.status, "fail");
+    assert.equal(r.findings[0].id, COVERAGE_FINDING_ID);
+    assert.match(r.findings[0].message, /changed after open/i);
+  } finally {
+    rmSync(base, { recursive: true, force: true });
+  }
+});
