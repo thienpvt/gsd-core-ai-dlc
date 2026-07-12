@@ -314,11 +314,13 @@ function seedPlanEvidence(
     source?: string;
     evaluatedBy?: string;
     requestedAt?: string;
+    evaluatedAt?: string;
     writtenAt?: string;
   } = {},
 ): void {
   const requestedAt = overrides.requestedAt ?? rec.timestamp;
-  const writtenAt = overrides.writtenAt ?? rec.timestamp;
+  const evaluatedAt = overrides.evaluatedAt ?? requestedAt;
+  const writtenAt = overrides.writtenAt ?? evaluatedAt;
   const rules = overrides.rules ?? rec.selectionResult.selected;
   writeGateEvidence(root, phaseNumber, {
     request: {
@@ -342,7 +344,7 @@ function seedPlanEvidence(
             ]
           : [],
       evaluatedBy: overrides.evaluatedBy ?? "aidlc-governance-plan",
-      evaluatedAt: writtenAt,
+      evaluatedAt,
     },
     metadata: {
       phase: phaseNumber,
@@ -764,7 +766,7 @@ test("verifyGateHook rejects stale plan older than discuss timestamp", async () 
 
     await assert.rejects(
       verifyGateHook({ projectRoot: root, phaseNumber: "18" }),
-      /older than discuss/i,
+      /timestamp causality/i,
     );
     assert.equal(existsSync(gateEvidencePath(root, "18", "verify")), false);
   });
@@ -847,6 +849,50 @@ test("verifyGateHook rejects duplicate binding ids on either side", async () => 
       await assert.rejects(
         verifyGateHook({ projectRoot: root, phaseNumber: "18" }),
         /duplicate binding rule/i,
+      );
+      assert.equal(existsSync(gateEvidencePath(root, "18", "verify")), false);
+    });
+  }
+});
+
+test("verifyGateHook enforces complete plan timestamp causality and future bound", async () => {
+  const cases = [
+    {
+      name: "requested before discuss",
+      requestedAt: "2026-07-11T23:59:59.999Z",
+      evaluatedAt: "2026-07-12T00:00:00.000Z",
+      writtenAt: "2026-07-12T00:00:00.000Z",
+    },
+    {
+      name: "evaluated before requested",
+      requestedAt: "2026-07-12T00:00:02.000Z",
+      evaluatedAt: "2026-07-12T00:00:01.000Z",
+      writtenAt: "2026-07-12T00:00:03.000Z",
+    },
+    {
+      name: "written before evaluated",
+      requestedAt: "2026-07-12T00:00:01.000Z",
+      evaluatedAt: "2026-07-12T00:00:03.000Z",
+      writtenAt: "2026-07-12T00:00:02.000Z",
+    },
+    {
+      name: "far future",
+      requestedAt: "2999-01-01T00:00:00.000Z",
+      evaluatedAt: "2999-01-01T00:00:01.000Z",
+      writtenAt: "2999-01-01T00:00:02.000Z",
+    },
+  ];
+  for (const fixture of cases) {
+    await withTempRoot(async (root) => {
+      const seeded = bindingRecord();
+      writeSelection(seeded, root);
+      writeGovConfig(root, seedReport(root, "pass-70.xml"));
+      seedPlanEvidence(root, "18", seeded, fixture);
+
+      await assert.rejects(
+        verifyGateHook({ projectRoot: root, phaseNumber: "18" }),
+        /timestamp causality/i,
+        fixture.name,
       );
       assert.equal(existsSync(gateEvidencePath(root, "18", "verify")), false);
     });

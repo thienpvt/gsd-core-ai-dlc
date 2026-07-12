@@ -145,19 +145,27 @@ export function assertPlanEvidenceCorrelated(
 
   const discussTs = Date.parse(record.timestamp);
   const planRequested = Date.parse(planEvidence.request.requestedAt);
+  const planEvaluated = Date.parse(planEvidence.result.evaluatedAt);
   const planWritten = Date.parse(planEvidence.metadata.writtenAt);
+  const futureLimit = Date.now() + 60_000;
   if (
     Number.isNaN(discussTs) ||
     Number.isNaN(planRequested) ||
+    Number.isNaN(planEvaluated) ||
     Number.isNaN(planWritten)
   ) {
     throw new Error(
       `verifyGateHook: plan/discuss timestamps must be valid ISO-8601 values`,
     );
   }
-  if (planRequested < discussTs || planWritten < discussTs) {
+  if (
+    discussTs > planRequested ||
+    planRequested > planEvaluated ||
+    planEvaluated > planWritten ||
+    planWritten > futureLimit
+  ) {
     throw new Error(
-      `verifyGateHook: plan evidence timestamps are older than discuss selection timestamp; rerun plan after discuss`,
+      `verifyGateHook: plan evidence timestamp causality must satisfy discuss <= requested <= evaluated <= written <= now + 60 seconds`,
     );
   }
 }

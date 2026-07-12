@@ -163,7 +163,11 @@ function resolveIndex(indexPath: string): RuleIndex {
   return parsed;
 }
 
-function budgetFailureResult(phaseNumber: string, selectionConfig: SelectionConfig): GateResult {
+function budgetFailureResult(
+  phaseNumber: string,
+  selectionConfig: SelectionConfig,
+  evaluatedAt: string,
+): GateResult {
   return {
     gateId: "plan",
     status: "fail",
@@ -180,7 +184,7 @@ function budgetFailureResult(phaseNumber: string, selectionConfig: SelectionConf
       },
     ],
     evaluatedBy: "aidlc-governance-plan",
-    evaluatedAt: new Date().toISOString(),
+    evaluatedAt,
   };
 }
 
@@ -202,7 +206,7 @@ export function planHook(args: PlanHookArgs): PlanHookResult {
   const fragment = renderInjection(selectionResult);
   const now = new Date().toISOString();
   const gateResult: GateResult = selectionResult.budgetExceeded
-    ? budgetFailureResult(args.phaseNumber, selectionConfig)
+    ? budgetFailureResult(args.phaseNumber, selectionConfig, now)
     : {
         gateId: "plan",
         status: "pass",

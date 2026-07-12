@@ -239,6 +239,8 @@ test("planHook preserves fragment output and records a failing gate result on bu
     assert.deepEqual(result.evidence.result.findings[0]?.evidence, {
       path: ".planning/governance/gates/08-plan.json",
     });
+    assert.equal(result.evidence.result.evaluatedAt, result.evidence.request.requestedAt);
+    assert.equal(result.evidence.metadata.writtenAt, result.evidence.result.evaluatedAt);
     assert.equal(readGateEvidence(root, "08", "plan")?.result.status, "fail");
     assert.equal(existsSync(selectionStatePath(root)), false);
   });
