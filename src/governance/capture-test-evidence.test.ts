@@ -138,6 +138,24 @@ test("D-04 malformed runner output hard-fails through parseTapSummary before wri
   });
 });
 
+test("zero tests fail closed before any evidence is returned", () => {
+  const TAP_ZERO = `TAP version 13
+1..0
+# tests 0
+# pass 0
+# fail 0
+# duration_ms 1.0`;
+  assert.throws(
+    () =>
+      captureTestEvidence({
+        projectRoot: "/tmp/proj",
+        phaseNumber: "09",
+        spawnRunner: () => TAP_ZERO,
+      }),
+    /zero tests found/i,
+  );
+});
+
 test("D-03 narration rejection: TAP-shaped output without the # tests N summary line hard-fails", () => {
   withTempRoot((root) => {
     // TAP-ish (has ok line + plan line) but NO summary block.

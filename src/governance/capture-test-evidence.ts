@@ -66,6 +66,13 @@ export function captureTestEvidence(args: CaptureTestEvidenceArgs): TestEvidence
   const runner = args.spawnRunner ?? (() => defaultSpawnRunner(args.projectRoot));
   const stdout = runner();
   const summary = parseTapSummary(stdout);
+  // Fail-closed: zero tests is not success evidence (consumer without matching
+  // glob / empty suite must not persist 0/0/0 pass).
+  if (summary.total === 0) {
+    throw new Error(
+      "capture-test-evidence: zero tests found (glob dist-test/**/*.test.js) — refusing empty evidence",
+    );
+  }
   return {
     phase: args.phaseNumber,
     capturedAt: new Date().toISOString(),
