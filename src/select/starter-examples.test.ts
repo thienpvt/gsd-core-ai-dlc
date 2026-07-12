@@ -168,6 +168,15 @@ test("JAVA-EX-01: REST adapter returns boundary response DTO, not domain Order",
   );
 });
 
+test("JAVA-EX-01: Kafka listener carries Spring component stereotype", () => {
+  const kafka = readSnippet("adapter/in/messaging/PlaceOrderKafkaListener.java");
+  assert.match(
+    kafka,
+    /@Component/,
+    "Kafka listener must be a Spring component bean",
+  );
+});
+
 // ---------------------------------------------------------------------------
 // JAVA-EX-02 — non-indexing + D-10 + inventory
 // ---------------------------------------------------------------------------

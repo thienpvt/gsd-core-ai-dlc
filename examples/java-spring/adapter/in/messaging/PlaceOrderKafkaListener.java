@@ -3,12 +3,14 @@ package com.example.orders.adapter.in.messaging;
 import com.example.orders.application.port.PlaceOrderPort;
 import com.example.orders.domain.PlaceOrderCommand;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.stereotype.Component;
 
 /**
  * Kafka inbound adapter — map payload → input port.
  * Consumer must own: idempotency key store, retry policy, and DLQ routing.
  * See JS-IN-02 / java-spring-inbound-kafka.
  */
+@Component
 public class PlaceOrderKafkaListener {
   private final PlaceOrderPort placeOrder;
 
