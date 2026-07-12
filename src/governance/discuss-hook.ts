@@ -214,25 +214,20 @@ export function discussHook(args: DiscussHookArgs): DiscussHookResult {
 }
 
 function runDirect(argv: string[]): void {
-  // Minimal CLI: projectRoot + taskSignal JSON file + optional domains/budget/index.
+  // Minimal CLI: projectRoot + taskSignal JSON file + optional budget/index.
+  // Domains are project-config only (no CLI override — matches plan).
   // Prefer `governance discuss` from skills; this keeps checkout-local parity.
   if (argv.length < 2) {
     throw new Error(
-      "usage: discuss-hook <projectRoot> <taskSignalJsonFile> [--domains a,b] [--budget n] [--index <f>]",
+      "usage: discuss-hook <projectRoot> <taskSignalJsonFile> [--budget n] [--index <f>]",
     );
   }
   const [projectRoot, signalPath, ...flags] = argv;
-  let domains: string[] | undefined;
   let budget: number | undefined;
   let indexPath: string | undefined;
   for (let i = 0; i < flags.length; i++) {
     const f = flags[i];
-    if (f === "--domains") {
-      domains = (flags[++i] ?? "")
-        .split(",")
-        .map((x) => x.trim())
-        .filter((x) => x.length > 0);
-    } else if (f === "--budget") {
+    if (f === "--budget") {
       const n = Number(flags[++i]);
       if (!Number.isInteger(n) || n < 0) throw new Error("discuss-hook: --budget must be non-negative integer");
       budget = n;
@@ -246,7 +241,6 @@ function runDirect(argv: string[]): void {
   const result = discussHook({
     projectRoot: projectRoot!,
     taskSignal,
-    ...(domains !== undefined ? { baseDomains: domains } : {}),
     ...(budget !== undefined ? { budget } : {}),
     ...(indexPath !== undefined ? { indexPath } : {}),
   });

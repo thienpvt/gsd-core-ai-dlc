@@ -25,20 +25,10 @@ function die(msg: string): never {
   throw new Error(msg);
 }
 
-function parseDomains(raw: string | undefined): string[] | undefined {
-  if (raw === undefined) return undefined;
-  const parts = raw
-    .split(",")
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0);
-  return parts;
-}
-
 export async function runDiscuss(argv: string[]): Promise<void> {
   const { values, positionals } = parseArgs({
     args: argv,
     options: {
-      domains: { type: "string" },
       budget: { type: "string" },
       index: { type: "string" },
     },
@@ -47,7 +37,7 @@ export async function runDiscuss(argv: string[]): Promise<void> {
   });
   if (positionals.length !== 2) {
     die(
-      "usage: governance discuss <projectRoot> <taskSignalJsonFile> [--domains a,b] [--budget n] [--index <f>]",
+      "usage: governance discuss <projectRoot> <taskSignalJsonFile> [--budget n] [--index <f>]",
     );
   }
   const [projectRoot, signalPath] = positionals;
@@ -58,13 +48,11 @@ export async function runDiscuss(argv: string[]): Promise<void> {
     if (!Number.isInteger(n) || n < 0) die("discuss: --budget must be a non-negative integer");
     budget = n;
   }
+  // Domains come only from project config (single source of truth with plan).
   const result = discussHook({
     projectRoot,
     taskSignal,
     ...(values.index !== undefined ? { indexPath: values.index } : {}),
-    ...(parseDomains(values.domains) !== undefined
-      ? { baseDomains: parseDomains(values.domains) }
-      : {}),
     ...(budget !== undefined ? { budget } : {}),
   });
   process.stdout.write(result.fragment);

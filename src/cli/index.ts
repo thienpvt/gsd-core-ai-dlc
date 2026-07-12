@@ -55,7 +55,7 @@ export async function main(argv: string[]): Promise<void> {
           "  governance inject [--input <file>]\n" +
           "  governance rule-detail <id> [--index <f>]\n" +
           "  governance eval <phaseNumber> [--json]\n" +
-          "  governance discuss <projectRoot> <taskSignalJsonFile> [--domains a,b] [--budget n] [--index <f>]\n" +
+          "  governance discuss <projectRoot> <taskSignalJsonFile> [--budget n] [--index <f>]\n" +
           "  governance plan <projectRoot> <phaseNumber> <plannerInputsJsonFile>\n" +
           "  governance execute <projectRoot>\n" +
           "  governance verify <projectRoot> <phaseNumber>\n" +
