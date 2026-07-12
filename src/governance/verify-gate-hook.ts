@@ -1,3 +1,4 @@
+import { rmSync } from "node:fs";
 import { isDeepStrictEqual } from "node:util";
 import { ADAPTERS, type GateAdapter } from "../enforcement/adapters.js";
 import { createCoverageAdapter } from "../enforcement/coverage-report.js";
@@ -170,9 +171,17 @@ export function assertPlanEvidenceCorrelated(
   }
 }
 
+function removeCurrentVerifyEvidence(
+  projectRoot: string,
+  phaseNumber: string,
+): void {
+  rmSync(gateEvidencePath(projectRoot, phaseNumber, "verify"), { force: true });
+}
+
 export async function verifyGateHook(
   args: VerifyGateHookArgs,
 ): Promise<VerifyGateHookResult> {
+  removeCurrentVerifyEvidence(args.projectRoot, args.phaseNumber);
   const record = readSelection(args.projectRoot);
   if (record === null) {
     throw new Error(

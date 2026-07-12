@@ -941,13 +941,35 @@ test("verifyGateHook accepts valid correlated plan evidence path", async () => {
   });
 });
 
-test("ship chain cannot proceed when verify rejected mismatched plan (no verify evidence)", async () => {
+test("rejected current verify removes stale pass evidence and ship blocks", async () => {
   await withTempRoot(async (root) => {
     const { shipGateHook } = await import("./ship-gate-hook.js");
     const seeded = bindingRecord();
     writeSelection(seeded, root);
     writeGovConfig(root, seedReport(root, "pass-70.xml"));
     seedPlanEvidence(root, "18", seeded, { phase: "inception" });
+    writeGateEvidence(root, "18", {
+      request: {
+        gateId: "verify",
+        phase: seeded.phase,
+        taskSignal: seeded.taskSignal,
+        rules: seeded.selectionResult.selected,
+        requestedAt: seeded.timestamp,
+      },
+      result: {
+        gateId: "verify",
+        status: "pass",
+        findings: [],
+        evaluatedBy: COVERAGE_ADAPTER_NAME,
+        evaluatedAt: seeded.timestamp,
+      },
+      metadata: {
+        phase: "18",
+        source: "stale-fixture",
+        writtenAt: seeded.timestamp,
+      },
+    });
+    assert.equal(existsSync(gateEvidencePath(root, "18", "verify")), true);
 
     await assert.rejects(
       verifyGateHook({ projectRoot: root, phaseNumber: "18" }),
