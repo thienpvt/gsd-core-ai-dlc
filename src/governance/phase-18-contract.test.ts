@@ -1,6 +1,14 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+  mkdirSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import { test } from "node:test";
 
@@ -93,7 +101,7 @@ test("package.json ships capability, skills, and docs surfaces", () => {
   }
 });
 
-test("plan:pre onError is halt because plan evidence is mandatory for verify", () => {
+test("plan:pre consumes only host-available CONTEXT.md and onError is halt", () => {
   const full = JSON.parse(
     read(".gsd/capabilities/aidlc-governance/capability.json"),
   ) as {
@@ -109,6 +117,9 @@ test("plan:pre onError is halt because plan evidence is mandatory for verify", (
   );
   assert.ok(plan, "plan:pre step must exist");
   assert.equal(plan!.onError, "halt");
+  assert.deepEqual(plan!.consumes, ["CONTEXT.md"]);
+  assert.ok(!(plan!.consumes ?? []).includes("RESEARCH.md"));
+  assert.ok(!(plan!.consumes ?? []).includes("PATTERNS.md"));
   const verify = full.steps?.find(
     (s) => s.point === "verify:post" && s.ref?.skill === "aidlc-governance-verify",
   );
@@ -119,22 +130,59 @@ test("plan:pre onError is halt because plan evidence is mandatory for verify", (
   );
 });
 
+
+test("capability bundle is self-contained with six skill bodies", () => {
+  const stems = [
+    "aidlc-governance-audit",
+    "aidlc-governance-discuss",
+    "aidlc-governance-execute",
+    "aidlc-governance-plan",
+    "aidlc-governance-ship",
+    "aidlc-governance-verify",
+  ];
+  for (const stem of stems) {
+    const skillPath = path.join(
+      ROOT,
+      ".gsd",
+      "capabilities",
+      "aidlc-governance",
+      "skills",
+      stem,
+      "SKILL.md",
+    );
+    assert.ok(existsSync(skillPath), "missing bundled skill " + stem);
+  }
+});
+
 test("onboarding documents installed package capability install path", () => {
   const onboarding = read("docs/onboarding.md");
   assertIncludesAll(onboarding, [
     "node_modules/@opengsd/gsd-aidlc-overlay/.gsd/capabilities/aidlc-governance",
     "gsd-tools capability install",
     "no auto-registration, postinstall, or manual copy",
+    "self-contained",
+    "explicitAdds",
   ]);
 });
 
 
 test("npm pack tarball includes capability, six skills, and docs", () => {
-  const pack = spawnSync("npm", ["pack", "--dry-run", "--json"], {
-    cwd: ROOT,
-    encoding: "utf8",
-    shell: true,
-  });
+  // Shell-free: invoke npm-cli.js via node (Windows rejects spawn of .cmd without shell).
+  const npmCliCandidates = [
+    path.join(path.dirname(process.execPath), "node_modules", "npm", "bin", "npm-cli.js"),
+    path.join(path.dirname(process.execPath), "..", "lib", "node_modules", "npm", "bin", "npm-cli.js"),
+  ];
+  const npmCli = npmCliCandidates.find((c) => existsSync(c));
+  assert.ok(npmCli, "npm-cli.js not found next to node executable");
+  const pack = spawnSync(
+    process.execPath,
+    [npmCli, "pack", "--dry-run", "--json", "--ignore-scripts"],
+    {
+      cwd: ROOT,
+      encoding: "utf8",
+      shell: false,
+    },
+  );
   assert.equal(pack.status, 0, `npm pack failed: ${pack.stderr || pack.stdout}`);
   const payload = JSON.parse(pack.stdout.trim()) as Array<{
     files?: Array<{ path?: string }>;
@@ -149,6 +197,12 @@ test("npm pack tarball includes capability, six skills, and docs", () => {
   );
   const required = [
     ".gsd/capabilities/aidlc-governance/capability.json",
+    ".gsd/capabilities/aidlc-governance/skills/aidlc-governance-discuss/SKILL.md",
+    ".gsd/capabilities/aidlc-governance/skills/aidlc-governance-plan/SKILL.md",
+    ".gsd/capabilities/aidlc-governance/skills/aidlc-governance-execute/SKILL.md",
+    ".gsd/capabilities/aidlc-governance/skills/aidlc-governance-verify/SKILL.md",
+    ".gsd/capabilities/aidlc-governance/skills/aidlc-governance-ship/SKILL.md",
+    ".gsd/capabilities/aidlc-governance/skills/aidlc-governance-audit/SKILL.md",
     ".claude/skills/aidlc-governance-discuss/SKILL.md",
     ".claude/skills/aidlc-governance-plan/SKILL.md",
     ".claude/skills/aidlc-governance-execute/SKILL.md",
@@ -183,5 +237,139 @@ test("npm pack tarball includes capability, six skills, and docs", () => {
       "node_modules/@opengsd/gsd-aidlc-overlay/.gsd/capabilities/aidlc-governance",
     ),
   );
+});
+test("isolated GSD capability install activates six skills and hooks", () => {
+  const candidates = [
+    path.join(process.env.APPDATA ?? "", "npm", "node_modules", "@opengsd", "gsd-core", "gsd-core", "bin", "gsd-tools.cjs"),
+    path.join(process.env.APPDATA ?? "", "npm", "node_modules", "@opengsd", "gsd-core", "bin", "gsd-tools.cjs"),
+  ];
+  let gsdTools: string | null = null;
+  for (const c of candidates) {
+    if (c && existsSync(c)) {
+      gsdTools = c;
+      break;
+    }
+  }
+  if (gsdTools === null) {
+    return;
+  }
+  const tools = gsdTools;
+
+  const stems = [
+    "aidlc-governance-audit",
+    "aidlc-governance-discuss",
+    "aidlc-governance-execute",
+    "aidlc-governance-plan",
+    "aidlc-governance-ship",
+    "aidlc-governance-verify",
+  ];
+  const probe = mkdtempSync(path.join(tmpdir(), "aidlc-install-"));
+  const home = path.join(probe, "home");
+  const proj = path.join(probe, "proj");
+  const claude = path.join(probe, "claude");
+  const capSrc = path.join(ROOT, ".gsd", "capabilities", "aidlc-governance");
+
+  try {
+    mkdirSync(home, { recursive: true });
+    mkdirSync(path.join(proj, ".planning"), { recursive: true });
+    mkdirSync(path.join(claude, "skills"), { recursive: true });
+    writeFileSync(
+      path.join(proj, ".planning", "config.json"),
+      JSON.stringify({ governance: { enabled: true } }, null, 2),
+    );
+
+    const install = spawnSync(
+      process.execPath,
+      [tools, "capability", "install", capSrc, "--scope", "project", "--yes", "--raw", "--cwd", proj],
+      {
+        encoding: "utf8",
+        shell: false,
+        env: { ...process.env, GSD_HOME: home, CLAUDE_CONFIG_DIR: claude },
+      },
+    );
+    assert.equal(install.status, 0, "capability install failed: " + (install.stderr || install.stdout));
+    const installOut = JSON.parse(install.stdout.trim()) as { status?: string; id?: string };
+    assert.equal(installOut.status, "installed");
+    assert.equal(installOut.id, "aidlc-governance");
+
+    const installedCap = path.join(proj, ".gsd", "capabilities", "aidlc-governance");
+    for (const stem of stems) {
+      assert.ok(
+        existsSync(path.join(installedCap, "skills", stem, "SKILL.md")),
+        "installed bundle missing skill " + stem,
+      );
+    }
+
+    writeFileSync(
+      path.join(claude, ".gsd-surface.json"),
+      JSON.stringify(
+        {
+          baseProfile: "full",
+          disabledClusters: [],
+          explicitAdds: stems,
+          explicitRemoves: [],
+        },
+        null,
+        2,
+      ),
+    );
+
+    const state = spawnSync(
+      process.execPath,
+      [tools, "capability", "state", "--raw", "--cwd", proj],
+      {
+        encoding: "utf8",
+        shell: false,
+        env: { ...process.env, GSD_HOME: home, CLAUDE_CONFIG_DIR: claude },
+      },
+    );
+    assert.equal(state.status, 0, "capability state failed: " + (state.stderr || state.stdout));
+    const envelope = JSON.parse(state.stdout.trim()) as {
+      capabilities?: Array<{
+        id?: string;
+        installed?: boolean;
+        surfaced?: boolean;
+        active?: boolean;
+        skills?: string[];
+      }>;
+    };
+    const cap = (envelope.capabilities ?? []).find((c) => c.id === "aidlc-governance");
+    assert.ok(cap, "aidlc-governance missing from capability state");
+    assert.equal(cap!.installed, true);
+    assert.equal(cap!.surfaced, true);
+    assert.equal(cap!.active, true);
+    assert.deepEqual((cap!.skills ?? []).slice().sort(), stems.slice().sort());
+
+    for (const point of ["discuss:pre", "plan:pre", "execute:pre", "verify:post", "ship:pre"] as const) {
+      const hookRun = spawnSync(
+        process.execPath,
+        [tools, "loop", "render-hooks", point, "--raw", "--cwd", proj],
+        {
+          encoding: "utf8",
+          shell: false,
+          env: { ...process.env, GSD_HOME: home, CLAUDE_CONFIG_DIR: claude },
+        },
+      );
+      assert.equal(
+        hookRun.status,
+        0,
+        "render-hooks " + point + " failed: " + (hookRun.stderr || hookRun.stdout),
+      );
+      const hook = JSON.parse(hookRun.stdout.trim()) as {
+        activeHooks?: unknown[];
+        rendered?: string;
+      };
+      assert.ok(
+        Array.isArray(hook.activeHooks) && hook.activeHooks.length > 0,
+        "no active hooks at " + point,
+      );
+      assert.ok(
+        typeof hook.rendered === "string" && !hook.rendered.includes("No active hooks"),
+        "render-hooks " + point + " reported no active hooks",
+      );
+    }
+  } finally {
+    rmSync(probe, { recursive: true, force: true });
+  }
 });
 

@@ -71,9 +71,7 @@
         ".planning/governance/gates/{NN}-plan.json"
       ],
       "consumes": [
-        "CONTEXT.md",
-        "RESEARCH.md",
-        "PATTERNS.md"
+        "CONTEXT.md"
       ],
       "when": "governance.enabled",
       "onError": "halt"

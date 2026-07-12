@@ -59,7 +59,7 @@ npm install git+ssh://git@<org-host>/<team>/gsd-core-ai-dlc.git
 
 ### 4. Register capability and skills through GSD
 
-The package tarball ships `.gsd/capabilities/aidlc-governance/`, the six `.claude/skills/aidlc-governance-*/` skill directories, and `docs/`. After install, register the capability with GSD Core's existing `capability install` command — no auto-registration, postinstall, or manual copy of `agents/`/`commands/` is used.
+The package ships a **self-contained** capability bundle at `.gsd/capabilities/aidlc-governance/` (manifest + six skill bodies under `skills/`) plus checkout-local `.claude/skills/` mirrors and `docs/`. Register it with GSD Core's existing `capability install` — no auto-registration, postinstall, or manual copy of `agents/`/`commands/` is used.
 
 From a full repository checkout (or when the package is the project root):
 
@@ -73,7 +73,7 @@ From a consumer project that installed the package into `node_modules`:
 gsd-tools capability install ./node_modules/@opengsd/gsd-aidlc-overlay/.gsd/capabilities/aidlc-governance --scope project --yes --raw
 ```
 
-GSD capability install records the capability bundle for the project. Skills remain at their package-relative paths under the installed package; do not invent a second registration mechanism.
+GSD Core 1.6.x surfaces third-party skill stems only when they appear in the runtime surface. After install, add the six stems via the supported surface state (`~/.claude/.gsd-surface.json` `explicitAdds`, or `/gsd-surface` / the surface write path GSD documents). With `governance.enabled: true` in `.planning/config.json`, `gsd-tools capability state` reports `active: true` and `loop render-hooks` emits the six declared points. Do not invent a second registration mechanism.
 
 ### For maintainers (publish)
 
@@ -170,9 +170,9 @@ Java/Spring consumers can add domain subscription and a report path by following
 | Loop point | Skill ref | When | Produces | Consumes | Error behavior |
 | --- | --- | --- | --- | --- | --- |
 | `discuss:pre` | `aidlc-governance-discuss` | `governance.enabled` | `CONTEXT.md`, `.planning/governance/selection-state.json` | none | `skip` |
-| `plan:pre` | `aidlc-governance-plan` | `governance.enabled` | `planner-context`, `.planning/governance/gates/{NN}-plan.json` | `CONTEXT.md`, `RESEARCH.md`, `PATTERNS.md` | `skip` |
+| `plan:pre` | `aidlc-governance-plan` | `governance.enabled` | `planner-context`, `.planning/governance/gates/{NN}-plan.json` | `CONTEXT.md` | `halt` |
 | `execute:pre` | `aidlc-governance-execute` | `governance.enabled` | `executor-context` | `.planning/governance/selection-state.json` | `skip` |
-| `verify:post` | `aidlc-governance-verify` | `governance.enabled` | `.planning/governance/gates/{NN}-verify.json` | `.planning/governance/selection-state.json` | `halt` |
+| `verify:post` | `aidlc-governance-verify` | `governance.enabled` | `.planning/governance/gates/{NN}-verify.json` | `.planning/governance/selection-state.json`, `.planning/governance/gates/{NN}-plan.json` | `halt` |
 | `verify:post` | `aidlc-governance-audit` | `governance.enabled` | `GOVERNANCE.md` | `.planning/governance/selection-state.json`, `CONTEXT.md` | `halt` |
 | `ship:pre` | `aidlc-governance-ship` | `governance.enabled` | `.planning/governance/gates/{NN}-ship.json`, `.planning/governance/approvals/{NN}.json` | `.planning/governance/gates/{NN}-plan.json`, `.planning/governance/gates/{NN}-verify.json`, `GOVERNANCE.md` | `halt` |
 

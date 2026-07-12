@@ -20,8 +20,11 @@ cp .npmrc.example .npmrc
 # 2. Install (requires gsd-core first)
 npm install @opengsd/gsd-aidlc-overlay
 
-# 3. Register capability via GSD (package ships .gsd + skills + docs)
+# 3. Register self-contained capability via GSD (manifest + six skills under the capability dir)
 gsd-tools capability install ./node_modules/@opengsd/gsd-aidlc-overlay/.gsd/capabilities/aidlc-governance --scope project --yes --raw
+# 4. Surface the six skill stems (GSD 1.6.x third-party surface; see docs/onboarding.md)
+# Write explicitAdds for: aidlc-governance-{discuss,plan,execute,verify,ship,audit}
+# then confirm: gsd-tools capability state --raw  (active:true) and loop render-hooks
 ```
 
 > **Org private registry only — not public npmjs.com.** Package name `@opengsd/gsd-aidlc-overlay` uses `@opengsd` because the **org private registry** owns that scope locally. This is **not** a public-registry package and does **not** claim public npmjs.com ownership of `@opengsd`.

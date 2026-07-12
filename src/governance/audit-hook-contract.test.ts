@@ -166,8 +166,6 @@ test("capability manifest registers remaining governance gates additively", () =
   ]);
   assert.deepEqual(plan.consumes, [
     "CONTEXT.md",
-    "RESEARCH.md",
-    "PATTERNS.md",
   ]);
   assert.equal(plan.when, "governance.enabled");
   assert.equal(plan.onError, "halt");
