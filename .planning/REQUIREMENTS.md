@@ -38,8 +38,8 @@
 
 ### Starter Examples & Docs
 
-- [ ] **JAVA-EX-01**: Starter tree under `examples/java-spring/` (folder layout + thin Java/Spring snippets for ports, adapters, handlers, REST, Kafka) ships outside rule-index scan roots
-- [ ] **JAVA-EX-02**: Index/load path never treats starter markdown under `examples/` as selectable rules (guard or layout proof)
+- [x] **JAVA-EX-01**: Starter tree under `examples/java-spring/` (folder layout + thin Java/Spring snippets for ports, adapters, handlers, REST, Kafka) ships outside rule-index scan roots
+- [x] **JAVA-EX-02**: Index/load path never treats starter markdown under `examples/` as selectable rules (guard or layout proof)
 - [ ] **JAVA-DOC-01**: Consumer docs explain how to subscribe `domains: ["java-spring"]` and how to produce JaCoCo/LCOV report path for the coverage gate
 
 ## Future Requirements
@@ -102,8 +102,8 @@ Which phases cover which requirements. Filled during roadmap creation.
 | JAVA-COV-01 | Phase 17 | Pending |
 | JAVA-COV-02 | Phase 17 | Pending |
 | JAVA-COV-03 | Phase 17 | Pending |
-| JAVA-EX-01 | Phase 16 | Pending |
-| JAVA-EX-02 | Phase 16 | Pending |
+| JAVA-EX-01 | Phase 16 | Complete |
+| JAVA-EX-02 | Phase 16 | Complete |
 | JAVA-DOC-01 | Phase 18 | Pending |
 
 **Coverage:**
