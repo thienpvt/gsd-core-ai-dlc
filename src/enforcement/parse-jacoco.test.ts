@@ -48,3 +48,45 @@ test("parseJacoco throws when root LINE counter is missing", () => {
   const xml = `<?xml version="1.0"?><report name="x"><package name="p"><counter type="LINE" missed="1" covered="1"/></package></report>`;
   assert.throws(() => parseJacoco(xml), /./);
 });
+
+
+test("parseJacoco ignores comment-only fake root LINE counter (CR-01 fail-open)", () => {
+  const xml = `<?xml version="1.0"?><report><!-- <counter type="LINE" missed="0" covered="100"/> --></report>`;
+  assert.throws(() => parseJacoco(xml), /./);
+});
+
+test("parseJacoco ignores CDATA-only fake root LINE counter (CR-01 fail-open)", () => {
+  const xml = `<?xml version="1.0"?><report><![CDATA[<counter type="LINE" missed="0" covered="100"/>]]></report>`;
+  assert.throws(() => parseJacoco(xml), /./);
+});
+
+test("parseJacoco accepts real root LINE and ignores commented sample counter (CR-01 false-duplicate)", () => {
+  const xml = `<?xml version="1.0"?>
+<report name="x">
+  <counter type="LINE" missed="30" covered="70"/>
+  <!-- sample: <counter type="LINE" missed="0" covered="100"/> -->
+</report>`;
+  assert.deepEqual(parseJacoco(xml), { covered: 70, total: 100 });
+});
+
+test("parseJacoco ignores commented false close around nested counters (CR-01 depth)", () => {
+  const xml = `<?xml version="1.0"?>
+<report name="x">
+  <package name="p">
+    <!-- </package> -->
+    <counter type="LINE" missed="1" covered="1"/>
+  </package>
+  <counter type="LINE" missed="3" covered="7"/>
+</report>`;
+  assert.deepEqual(parseJacoco(xml), { covered: 7, total: 10 });
+});
+
+test("parseJacoco throws on unterminated XML comment", () => {
+  const xml = `<?xml version="1.0"?><report><!-- <counter type="LINE" missed="0" covered="1"/></report>`;
+  assert.throws(() => parseJacoco(xml), /unterminated XML comment/);
+});
+
+test("parseJacoco throws on unterminated CDATA", () => {
+  const xml = `<?xml version="1.0"?><report><![CDATA[<counter type="LINE" missed="0" covered="1"/></report>`;
+  assert.throws(() => parseJacoco(xml), /unterminated CDATA/);
+});

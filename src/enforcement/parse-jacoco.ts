@@ -32,6 +32,37 @@ function rejectDtdAndEntities(xml: string): void {
 }
 
 /**
+ * Bounded structure-safe pass: drop complete comment/CDATA bodies so the tag
+ * scanner never treats their contents as elements. Unterminated comment/CDATA
+ * is malformed. Does not nest comments (XML comments are non-nesting).
+ */
+function stripIgnoredRegions(xml: string): string {
+  let out = "";
+  let i = 0;
+  while (i < xml.length) {
+    if (xml.startsWith("<!--", i)) {
+      const end = xml.indexOf("-->", i + 4);
+      if (end === -1) {
+        throw new Error("jacoco: unterminated XML comment");
+      }
+      i = end + 3;
+      continue;
+    }
+    if (xml.startsWith("<![CDATA[", i)) {
+      const end = xml.indexOf("]]>", i + 9);
+      if (end === -1) {
+        throw new Error("jacoco: unterminated CDATA section");
+      }
+      i = end + 3;
+      continue;
+    }
+    out += xml[i];
+    i += 1;
+  }
+  return out;
+}
+
+/**
  * Scan tags with nesting depth. Capture the sole report-root direct-child
  * `<counter type="LINE" …/>` (depth === 1 under the report element).
  */
@@ -40,6 +71,7 @@ export function parseJacoco(xml: string): LineCounter {
     throw new Error("jacoco: empty or non-string input");
   }
   rejectDtdAndEntities(xml);
+  const scanned = stripIgnoredRegions(xml);
 
   // Match start tags, end tags, and self-closing tags. Attribute values may use " or '.
   const tagRe = /<\/?([A-Za-z_][\w:.-]*)\b([^>]*?)(\/?)>/g;
@@ -49,7 +81,7 @@ export function parseJacoco(xml: string): LineCounter {
   let rootLineCount = 0;
   let m: RegExpExecArray | null;
 
-  while ((m = tagRe.exec(xml)) !== null) {
+  while ((m = tagRe.exec(scanned)) !== null) {
     const full = m[0];
     const name = m[1].toLowerCase();
     const attrs = m[2] ?? "";
