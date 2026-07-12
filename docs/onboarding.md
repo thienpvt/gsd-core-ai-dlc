@@ -73,7 +73,39 @@ From a consumer project that installed the package into `node_modules`:
 gsd-tools capability install ./node_modules/@opengsd/gsd-aidlc-overlay/.gsd/capabilities/aidlc-governance --scope project --yes --raw
 ```
 
-GSD Core 1.6.x surfaces third-party skill stems only when they appear in the runtime surface. After install, add the six stems via the supported surface state (`~/.claude/.gsd-surface.json` `explicitAdds`, or `/gsd-surface` / the surface write path GSD documents). With `governance.enabled: true` in `.planning/config.json`, `gsd-tools capability state` reports `active: true` and `loop render-hooks` emits the six declared points. Do not invent a second registration mechanism.
+GSD Core 1.6.x surfaces third-party skill stems only when they appear in the runtime surface. After install, write the surface state file at `~/.claude/.gsd-surface.json` (or `$CLAUDE_CONFIG_DIR/.gsd-surface.json`):
+
+```json
+{
+  "baseProfile": "full",
+  "disabledClusters": [],
+  "explicitAdds": [
+    "aidlc-governance-discuss",
+    "aidlc-governance-plan",
+    "aidlc-governance-execute",
+    "aidlc-governance-verify",
+    "aidlc-governance-ship",
+    "aidlc-governance-audit"
+  ],
+  "explicitRemoves": []
+}
+```
+
+Ensure `.planning/config.json` has `"governance": { "enabled": true }`. Then confirm:
+
+```bash
+gsd-tools capability state --raw
+# expect: aidlc-governance installed=true, surfaced=true, active=true, skills list the six stems
+
+gsd-tools loop render-hooks discuss:pre --raw
+gsd-tools loop render-hooks plan:pre --raw
+gsd-tools loop render-hooks execute:pre --raw
+gsd-tools loop render-hooks verify:post --raw
+gsd-tools loop render-hooks ship:pre --raw
+# each must report activeHooks non-empty and rendered text without "No active hooks"
+```
+
+Do not invent a second registration mechanism. Skills invoke the package `governance` binary via Node package resolution (see each SKILL.md), not bare `node dist/...` paths.
 
 ### For maintainers (publish)
 

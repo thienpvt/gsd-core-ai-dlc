@@ -22,10 +22,26 @@ npm install @opengsd/gsd-aidlc-overlay
 
 # 3. Register self-contained capability via GSD (manifest + six skills under the capability dir)
 gsd-tools capability install ./node_modules/@opengsd/gsd-aidlc-overlay/.gsd/capabilities/aidlc-governance --scope project --yes --raw
-# 4. Surface the six skill stems (GSD 1.6.x third-party surface; see docs/onboarding.md)
-# Write explicitAdds for: aidlc-governance-{discuss,plan,execute,verify,ship,audit}
-# then confirm: gsd-tools capability state --raw  (active:true) and loop render-hooks
-```
+# 4. Surface the six skill stems (GSD 1.6.x third-party surface)
+# Write ~/.claude/.gsd-surface.json (or $CLAUDE_CONFIG_DIR/.gsd-surface.json) with:
+# {
+#   "baseProfile": "full",
+#   "disabledClusters": [],
+#   "explicitAdds": [
+#     "aidlc-governance-discuss",
+#     "aidlc-governance-plan",
+#     "aidlc-governance-execute",
+#     "aidlc-governance-verify",
+#     "aidlc-governance-ship",
+#     "aidlc-governance-audit"
+#   ],
+#   "explicitRemoves": []
+# }
+# 5. Confirm activation (requires governance.enabled: true in .planning/config.json):
+gsd-tools capability state --raw
+# expect aidlc-governance: installed=true, surfaced=true, active=true
+gsd-tools loop render-hooks discuss:pre --raw
+# expect activeHooks non-empty (repeat for plan:pre, execute:pre, verify:post, ship:pre)
 
 > **Org private registry only — not public npmjs.com.** Package name `@opengsd/gsd-aidlc-overlay` uses `@opengsd` because the **org private registry** owns that scope locally. This is **not** a public-registry package and does **not** claim public npmjs.com ownership of `@opengsd`.
 
@@ -74,6 +90,13 @@ The package exposes the `governance` binary.
 | `governance inject [--input <file>]` | Render selected summaries as a governance context fragment. |
 | `governance rule-detail <id> [--index <f>]` | Lazy-load one rule's detail body, or print summary-only fallback. |
 | `governance eval <phaseNumber> [--json]` | Run selection recall/precision corpus regression. |
+| `governance discuss <projectRoot> <taskSignalJsonFile> [...]` | Discuss gate: select + persist selection-state. |
+| `governance plan <projectRoot> <phaseNumber> <inputsJson>` | Plan gate: select + write plan evidence. |
+| `governance execute <projectRoot>` | Execute gate: reload selection + render fragment. |
+| `governance verify <projectRoot> <phaseNumber>` | Verify gate: correlate + run adapter + write evidence. |
+| `governance ship <projectRoot> <phaseNumber>` | Ship gate: require prior plan/verify evidence. |
+| `governance audit <projectRoot> <outputPath>` | Write GOVERNANCE.md audit artifact. |
+| `governance capture-test-evidence <phaseNumber>` | Persist TAP test evidence (cwd = project root). |
 
 Full command examples: [Governance Workflow Guide](docs/governance-workflow.md).
 
