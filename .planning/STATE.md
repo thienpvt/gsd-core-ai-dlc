@@ -6,7 +6,7 @@ current_phase: 17
 current_phase_name: Coverage Parser + Binding GateAdapter
 status: executing
 stopped_at: Completed 15-01-PLAN.md
-last_updated: "2026-07-12T13:32:55.699Z"
+last_updated: "2026-07-12T14:26:44.864Z"
 last_activity: 2026-07-12
 last_activity_desc: Phase 16 complete, transitioned to Phase 17
 progress:
@@ -24,16 +24,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-09)
 
 **Core value:** The rule selection engine injects only the relevant AI-DLC rule summaries for the current task and phase — enough governance to be safe, little enough to avoid context bloat.
-**Current focus:** Phase 16 — Starter Examples Outside Index
+**Current focus:** Phase 17 — Coverage Parser + Binding GateAdapter
 
 ## Current Position
 
 Phase: 17 — Coverage Parser + Binding GateAdapter
-Plan: Not started
-Status: Executing Phase 16
-Last activity: 2026-07-12 — Phase 16 complete, transitioned to Phase 17
+Plan: 0/2 complete
+Status: Ready to execute
+Last activity: 2026-07-12 — Phase 17 planned and verified
 
-Progress: [█████░░░░░] 50%
+Progress: [███████░░░] 67%
 
 ## Performance Metrics
 
@@ -88,9 +88,8 @@ Progress: [█████░░░░░] 50%
 | 13. Domain Pack + Service Classification + Integrations | 2/2 | Complete (verified 4/4) |
 | 14. Hexagonal + Tactical DDD Rules | 2/2 | Complete (verified 7/7) |
 | 15. Logging, API Contract & Saga Decision Rules | 2/2 | Complete (verified 8/8) |
-| 16. Starter Examples Outside Index | 0/? | Not started — next to plan |
-| 16. Starter Examples Outside Index | 0/? | Not started |
-| 17. Coverage Parser + Binding GateAdapter | 0/? | Not started |
+| 16. Starter Examples Outside Index | 1/1 | Complete (verified 9/9) |
+| 17. Coverage Parser + Binding GateAdapter | 0/2 | Planned — ready to execute |
 | 18. Verify/Ship Wire + Consumer Docs | 0/? | Not started |
 
 **Recent Trend:**
@@ -151,6 +150,10 @@ Recent decisions affecting current work:
 - [Phase ?]: [15-02]: Optional tight Correlation/Mdc filter globs; no bare filter/**
 - [Phase ?]: [15-02]: URI path versioning (/api/v1/...) is the documented org default for JS-API-01
 - [Phase ?]: [15-02]: Engine frozen — zero production src edits outside inventory test; zero new npm deps
+- [Phase 17]: Adapter name frozen as `coverage-report`; unit line threshold is inclusive ≥70% using integer cross-multiplication; zero-line fails closed.
+- [Phase 17]: JaCoCo uses one report-root LINE counter; LCOV aggregates complete record LF/LH pairs; producer owns exclusions.
+- [Phase 17]: Binding rule uses Java production paths as positive triggers only because selector axes OR-combine; docs/test/infra and test/generated/build/target paths exclude.
+- [Phase 17]: `GateRequest` remains unchanged; configured factory closes over projectRoot/reportPath/format; verify/ship auto-wiring remains Phase 18.
 
 ### Pending Todos
 
@@ -163,7 +166,7 @@ None yet.
 [Issues that affect future work]
 
 - RUN-01 upstream gsd-core capability-manifest `consumes` constraint still open (deferred from v2/v3) — DOC-01 consent-activate path blocked until upstream fix.
-- Phase 17 must freeze single adapter name (`coverage-report`) + measurement boundary (unit line ≥70%, excludes) in same PR as parser.
+- Phase 17 decisions frozen: `coverage-report`, aggregate unit-line ≥70%, producer-owned exclusions; implementation pending.
 
 ### Quick Tasks Completed
 

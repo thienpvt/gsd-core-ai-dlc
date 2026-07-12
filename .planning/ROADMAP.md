@@ -146,7 +146,10 @@ Plans:
   3. Missing coverage report or line coverage &lt; 70% fails closed at verify and blocks ship when coverage evidence is required
   4. Fixture tests prove pass-at-threshold, fail-under, missing report, and malformed report — zero new npm deps; no Maven/JDK shell-out; vendor-neutral `src/`
 
-**Plans**: TBD
+**Plans**: 0/2 plans complete
+
+- [ ] 17-01-PLAN.md — TDD JaCoCo/LCOV parsers + real fail-closed `coverage-report` adapter
+- [ ] 17-02-PLAN.md — TDD binding Java coverage rule + selection/quarantine + inventory 10→11
 
 ### Phase 18: Verify/Ship Wire + Consumer Docs
 
