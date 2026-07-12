@@ -2,7 +2,7 @@
  * Phase 16 TDD suite: starter examples outside the selectable index.
  *
  * Locks JAVA-EX-01 (hexagonal Order layout under examples/java-spring) and
- * JAVA-EX-02 (buildIndex never indexes examples; D-10 backstop; inventory=10).
+ * JAVA-EX-02 (buildIndex never indexes examples; D-10 backstop; inventory=11).
  * Engine frozen — no production src edits outside this test file.
  */
 import { test } from "node:test";
@@ -16,7 +16,7 @@ const REAL_RULES_ROOT = path.resolve(process.cwd(), "aidlc-rules");
 const EXAMPLES_ROOT = path.resolve(process.cwd(), "examples", "java-spring");
 const PACKAGE_JSON = path.resolve(process.cwd(), "package.json");
 
-const INVENTORY_COUNT = 10;
+const INVENTORY_COUNT = 11;
 
 const EXPECTED_SNIPPETS = [
   "README.md",
@@ -218,12 +218,12 @@ test("JAVA-EX-02 backstop: path under examples is outside enterprise/domain/proj
   );
 });
 
-test("inventory regression: real corpus still has exactly 10 winners", () => {
+test("inventory regression: real corpus still has exactly 11 winners", () => {
   const index = buildIndex(REAL_RULES_ROOT);
   assert.equal(
     index.rules.length,
     INVENTORY_COUNT,
-    `expected ${INVENTORY_COUNT} winners; Phase 16 adds zero selectable rules`,
+    `expected ${INVENTORY_COUNT} winners; Phase 17 coverage rule grows inventory 10→11`,
   );
 });
 
