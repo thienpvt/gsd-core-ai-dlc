@@ -4,11 +4,11 @@ milestone: v4.0
 milestone_name: Developer Coding Conventions
 current_phase: 16
 current_phase_name: Starter Examples Outside Index
-status: ready
+status: executing
 stopped_at: Phase 15 verified and transitioned — autonomous stop requested by user
-last_updated: "2026-07-09T18:34:00.000Z"
+last_updated: "2026-07-12T13:04:06.746Z"
 last_activity: 2026-07-09
-last_activity_desc: Phase 15 complete (verify 8/8), transitioned to Phase 16; autonomous mode stopped at user request
+last_activity_desc: Phase 15 complete (verify 8/8), transitioned to Phase 16
 progress:
   total_phases: 6
   completed_phases: 3
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-07-09)
 
 Phase: 16 — Starter Examples Outside Index
 Plan: Not started
-Status: Ready to plan
+Status: Ready to execute
 Last activity: 2026-07-09 — Phase 15 complete (verify 8/8), transitioned to Phase 16
 
 Progress: [█████░░░░░] 50%
