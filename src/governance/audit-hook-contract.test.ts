@@ -209,7 +209,7 @@ test("audit skill delegates phase resolution and writing to the built audit arti
     "current_phase",
     ".planning/phases/{NN}-*/",
     "GOVERNANCE.md",
-    "governance.cjs",
+    "npx --no-install governance",
     "audit",
   ]) {
     assert.match(source, new RegExp(escapeRegExp(required)));
@@ -236,7 +236,7 @@ test("plan skill contract names all D-02 planner input sources before invoking p
     "impactedFiles",
     "impactedModules",
     "PlanTaskSignalInputs",
-    "governance.cjs",
+    "npx --no-install governance",
     "plan",
   ]) {
     assert.match(source, new RegExp(escapeRegExp(required)));

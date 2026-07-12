@@ -30,11 +30,11 @@ governance logic lives in the pure cores under `src/governance/` +
 3. **Invoke the discuss hook.** Run:
 
    ```
-   BIN=$(node -e "process.stdout.write(require('path').join(require('path').dirname(require.resolve('@opengsd/gsd-aidlc-overlay/package.json')),'bin','governance.cjs'))") && node "$BIN" discuss <projectRoot> <taskSignalJsonFile> [--domains a,b] [--budget n]
+   npx --no-install governance discuss <projectRoot> <taskSignalJsonFile> [--budget n]
    ```
 
-   …passing the project root, derived TaskSignal, and optional base domain
-   subscription + budget. The hook:
+   …passing the project root, derived TaskSignal, and optional budget.
+   Domains come from `.planning/config.json` (`governance.domains`) only — no CLI override. The hook:
    - classifies risk via `classifyRisk(signal, phase)`,
    - widens the domain subscription via `riskAdjustedDomains(tier, base)` —
      a `critical` tier subscribes `security` + `payments`,

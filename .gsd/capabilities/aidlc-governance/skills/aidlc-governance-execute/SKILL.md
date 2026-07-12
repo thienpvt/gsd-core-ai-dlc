@@ -19,7 +19,7 @@ risk, or rendering implementation.
 2. **Invoke the execute hook.** Run:
 
    ```bash
-   BIN=$(node -e "process.stdout.write(require('path').join(require('path').dirname(require.resolve('@opengsd/gsd-aidlc-overlay/package.json')),'bin','governance.cjs'))") && node "$BIN" execute <projectRoot>
+   npx --no-install governance execute <projectRoot>
    ```
 
    The hook reloads the persisted `GovernanceRecord` through the state-store,

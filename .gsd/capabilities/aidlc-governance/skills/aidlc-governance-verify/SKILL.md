@@ -21,7 +21,9 @@ NOT an adapter implementation and NOT an audit writer.
 3. **Invoke the verify hook.** Run:
 
    ```bash
-   BIN=$(node -e "process.stdout.write(require('path').join(require('path').dirname(require.resolve('@opengsd/gsd-aidlc-overlay/package.json')),'bin','governance.cjs'))") && node "$BIN" verify <projectRoot> <phaseNumber>
+   npx --no-install governance verify <projectRoot> <phaseNumber>
+
+   From a repository checkout you may also run `node bin/governance.cjs ...`.
    ```
 
    The hook builds a `gateId: "verify"` request, calls `runAdapter`, derives
@@ -32,31 +34,34 @@ NOT an adapter implementation and NOT an audit writer.
    step MUST run to write it. Invoke the compiled capture entrypoint:
 
    ```bash
-   BIN=$(node -e "process.stdout.write(require('path').join(require('path').dirname(require.resolve('@opengsd/gsd-aidlc-overlay/package.json')),'bin','governance.cjs'))") && node "$BIN" capture-test-evidence <phaseNumber>
+   npx --no-install governance capture-test-evidence <phaseNumber>
    ```
 
    Pass the concrete `{NN}` phase number. The module spawns
-   `node --test --test-reporter=tap` (the actual `npm test` runner), parses the
-   TAP summary via `parseTapSummary`, and persists a `TestEvidenceRecord` under
-   `.planning/governance/tests/{NN}.json` via `writeTestEvidence`. Malformed
-   runner output (including model-authored narration) hard-fails through
-   `parseTapSummary`'s D-04 guard before any record lands on disk. If the runner
-   exits non-zero on this step, surface stderr and fail the `verify:post` step —
-   evidence loss is blocking.
+   `node --test --test-reporter=tap dist-test/**/*.test.js` from the **consumer
+   cwd** (not the overlay package). It parses the TAP summary via `parseTapSummary`
+   and persists a `TestEvidenceRecord` under `.planning/governance/tests/{NN}.json`
+   via `writeTestEvidence`. Consumer contract: produce compiled tests under
+   `dist-test/**/*.test.js` that emit TAP with a `# tests N` summary where N > 0.
+   Zero tests, missing glob matches, or malformed runner output (including
+   model-authored narration) hard-fail before any record lands on disk. If the
+   runner exits non-zero on this step, surface stderr and fail the `verify:post`
+   step — evidence loss is blocking.
 
 5. **Run the standing eval harness (SEL-06).** AFTER test evidence and BEFORE
    the audit step, run the recall/precision harness so every governed phase's
    ship evidence includes a fresh eval run. Invoke:
 
    ```bash
-   BIN=$(node -e "process.stdout.write(require('path').join(require('path').dirname(require.resolve('@opengsd/gsd-aidlc-overlay/package.json')),'bin','governance.cjs'))") && node "$BIN" eval <phaseNumber>
+   npx --no-install governance eval <phaseNumber>
    ```
 
-   Pass the concrete `{NN}` phase number. The harness loads
-   `test/fixtures/eval/cases/eval-cases.json`, builds the index from
-   `test/fixtures/eval/eval-rules/`, runs every case through `select()`,
-   persists `.planning/governance/eval/{NN}.json` + `{NN}-report.md`, and emits
-   pretty markdown to stdout (or JSON with `--json`). Exit 0 = pass; exit 2 =
+   Pass the concrete `{NN}` phase number. The harness loads the **packaged**
+   eval corpus (`test/fixtures/eval/` inside `@opengsd/gsd-aidlc-overlay`), not
+   the consumer tree. Cases come from `cases/eval-cases.json`; the index is built
+   from `eval-rules/`. Evidence still writes under the consumer project:
+   `.planning/governance/eval/{NN}.json` + `{NN}-report.md`. Emits pretty
+   markdown to stdout (or JSON with `--json`). Exit 0 = pass; exit 2 =
    critical-recall regression (blocking — the ship gate reads this evidence
    fail-closed); exit 3 = parse/index/load error. Any non-zero exit fails
    `verify:post` — surface stderr and halt.

@@ -35,7 +35,7 @@ risk classifier, or evidence-store implementation.
 3. **Invoke the plan hook.** Run:
 
    ```bash
-   BIN=$(node -e "process.stdout.write(require('path').join(require('path').dirname(require.resolve('@opengsd/gsd-aidlc-overlay/package.json')),'bin','governance.cjs'))") && node "$BIN" plan <projectRoot> <phaseNumber> <plannerInputsJsonFile>
+   npx --no-install governance plan <projectRoot> <phaseNumber> <plannerInputsJsonFile>
    ```
 
    The hook derives the `TaskSignal`, validates it, selects rules, renders the
