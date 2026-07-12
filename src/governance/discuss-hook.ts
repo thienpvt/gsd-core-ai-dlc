@@ -38,6 +38,7 @@ import {
   writeSelection,
   type GovernanceRecord,
 } from "./state-store.js";
+import { readGovernanceConfig } from "./config.js";
 
 /** Re-exported so callers can read the index alongside the hook result. */
 export type { RuleIndex };
@@ -177,7 +178,9 @@ export function discussHook(args: DiscussHookArgs): DiscussHookResult {
 
   // 4. Risk classification -> risk-adjusted domain subscription (D-RISK).
   const tier = classifyRisk(args.taskSignal, phase);
-  const domains = riskAdjustedDomains(tier, args.baseDomains ?? []);
+  const baseDomains =
+    args.baseDomains ?? readGovernanceConfig(args.projectRoot).domains;
+  const domains = riskAdjustedDomains(tier, baseDomains);
 
   // 5. Build the SelectionConfig (budget undefined => select core's default).
   const config: SelectionConfig = {

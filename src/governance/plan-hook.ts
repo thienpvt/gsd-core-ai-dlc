@@ -18,6 +18,7 @@ import {
   writeGateEvidence,
   type GateEvidence,
 } from "./gate-evidence-store.js";
+import { readGovernanceConfig } from "./config.js";
 
 export interface PlanTaskSignalInputs {
   phaseGoal: string;
@@ -189,7 +190,9 @@ export function planHook(args: PlanHookArgs): PlanHookResult {
   const index = resolveIndex(indexPath);
   const taskSignal = derivePlannerTaskSignal(args.plannerInputs);
   const tier = classifyRisk(taskSignal, phase);
-  const domains = riskAdjustedDomains(tier, args.baseDomains ?? []);
+  const baseDomains =
+    args.baseDomains ?? readGovernanceConfig(args.projectRoot).domains;
+  const domains = riskAdjustedDomains(tier, baseDomains);
   const selectionConfig: SelectionConfig = {
     phase,
     domains,
