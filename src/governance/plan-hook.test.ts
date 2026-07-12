@@ -33,7 +33,7 @@ function rule(
     `  ${axis}:`,
     `    - ${trigger}`,
     "phases:",
-    "  - operations",
+    "  - construction",
     "severity: high",
     `summary: ${summary}`,
     "classification: advisory",
@@ -266,7 +266,7 @@ test("planHook uses config domains when baseDomains omitted", () => {
         "  keywords:",
         "    - planner",
         "phases:",
-        "  - operations",
+        "  - construction",
         "severity: medium",
         "summary: Java spring domain rule.",
         "classification: advisory",
@@ -290,15 +290,8 @@ test("planHook uses config domains when baseDomains omitted", () => {
     // presence and via re-running with empty override contrast in sibling test.
     // Capture domains by checking domain rule selection under config.
     const selectedIds = result.evidence.request.rules.map((r) => r.id);
-    // At minimum, config should not throw and plan still works.
     assert.ok(result.fragment.startsWith("<governance>"));
-    // Domain rule only selects when java-spring subscribed.
-    assert.ok(
-      selectedIds.includes("java-spring-domain-rule") ||
-        result.evidence.request.rules.length >= 0,
-      "planHook with config domains should run",
-    );
-    // Stronger: domain rule should be selected when domains include java-spring.
+    // Domain rule should be selected when domains include java-spring.
     assert.ok(
       selectedIds.includes("java-spring-domain-rule"),
       `expected java-spring-domain-rule selected under config domains, got [${selectedIds.join(", ")}]`,
@@ -325,7 +318,7 @@ test("planHook explicit baseDomains: [] overrides config domains", () => {
         "  keywords:",
         "    - planner",
         "phases:",
-        "  - operations",
+        "  - construction",
         "severity: medium",
         "summary: Java spring domain rule.",
         "classification: advisory",
