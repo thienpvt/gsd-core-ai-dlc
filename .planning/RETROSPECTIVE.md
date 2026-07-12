@@ -132,6 +132,45 @@
 
 ---
 
+## Milestone: v4.0 — Developer Coding Conventions
+
+**Shipped:** 2026-07-12
+**Phases:** 6 | **Plans:** 11 | **Tasks:** 28
+**Tests:** 668 total (661 pass, 7 platform/environment skips, 0 fail)
+
+### What Was Built
+- Selectable `java-spring` domain pack with 10 advisory convention rules, one binding coverage rule, summary-only injection, and lazy details.
+- Thin Java/Spring Order examples that ship in the package but remain structurally outside rule-index roots.
+- Stdlib-only JaCoCo/LCOV `coverage-report` adapter enforcing inclusive ≥70% unit line coverage without Maven, Gradle, Java, or JDK execution.
+- Config-backed domain/report settings; authoritative discuss→plan→verify correlation; durable fail-closed verify/ship evidence.
+- Self-contained GSD capability, package-owned hook CLI, immutable packaged eval corpus, zero-test capture rejection, and consumer coverage guide.
+
+### What Worked
+- **Engine freeze held through content work** — Phases 13-16 added rules/examples without changing selector internals or adding dependencies.
+- **Adversarial review found lifecycle defects, not style nits** — consumer-cwd CLI execution, plan/verify provenance, stale pass evidence, package eval location, and zero-test green evidence were fixed before audit.
+- **Real-package and consumer-install tests closed the integration gap** — hook rendering alone was insufficient; executable install tests proved the shipped package path.
+- **Milestone-wide Nyquist/security backfill caught artifact drift** — Phase 15 lacked validation, Phase 16 lacked security, and Phase 13/14/16 validations were stale despite green suites; all were closed before audit.
+
+### What Was Inefficient
+- **Phase 18 required six review iterations** because each fix exposed another consumer-boundary assumption. Earlier end-to-end package execution would have compressed the loop.
+- **Lifecycle artifacts drifted from implementation state** — several VALIDATION/SECURITY files and STATE body fields remained stale until milestone audit.
+- **Generated accomplishment summaries included RED-stage details** — milestone closeout needed manual compression into shipped outcomes.
+
+### Patterns Established
+- **Consumer-cwd execution is the package boundary** — skills call `npx --no-install governance`; package-owned commands resolve package assets independently of consumer cwd.
+- **Binding evidence uses canonical identity plus causality** — correlate id/severity/summary, producer, phase, and ordered timestamps; exclude incidental selector provenance.
+- **Real adapters are factory-built, not fake static stubs** — config closes over consumer paths; all results still pass through `runAdapter` validation.
+- **Reject stale green evidence before verification** — remove the current verify artifact before reading prerequisites or evaluating the adapter.
+
+### Key Lessons
+1. Test the installed consumer flow before polishing capability metadata; rendered hooks do not prove executable hooks.
+2. Treat durable evidence as security-sensitive state: validate identity, provenance, causality, and freshness.
+3. Package-owned fixtures must resolve from package root; consumer cwd and production environment overrides are untrusted inputs.
+4. Nyquist and security artifacts must close in-phase; green tests alone do not keep governance evidence current.
+5. Archive first, safety-commit second, delete live requirements last.
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -140,6 +179,8 @@
 |-----------|----------|--------|------------|
 | v1.0 | ~3 | 5 | Established: dependency-forced spine, RED→GREEN→docs TDD on every plan, pure-core + IO-shell architecture, closed-enum validation at persistence boundary |
 | v2.0 | ~3 | 5 | Extended: durable per-gate evidence + fail-closed ship composition, gap-closure bounded mode, forward-scoping gates, deep code review as wiring-gap gate, advisory Nyquist backfill as gap-finder |
+| v3.0 | ~1 | 2 | Documented: runnable docs as contracts, archived SUMMARY traceability, CRLF-safe artifact checks |
+| v4.0 | continued | 6 | Productized: selectable domain content, real report adapter, consumer-installed capability execution, evidence provenance/freshness checks |
 
 ### Cumulative Quality
 
@@ -147,6 +188,7 @@
 |-----------|-------|----------|-------------------|
 | v1.0 | 178 (176 pass, 2 skip, 0 fail) | (c8 available, not measured this milestone) | 0 new runtime deps — reused GSD Core's `js-yaml`; added only `ajv`+`ajv-formats`+`picomatch` as the JSON-Schema/glob contract layer |
 | v2.0 | 417 (414 pass, 3 skip, 0 fail) | (c8 available, not measured) | 0 new runtime deps — reused the v1.0 contract layer (ajv/ajv-formats/picomatch) for all v2.0 schemas + validators |
+| v4.0 | 668 total (661 pass, 7 skip, 0 fail) | Consumer coverage gate fixed at ≥70% unit lines | 0 new dependencies — JaCoCo XML and LCOV parsed with Node stdlib |
 
 ### Top Lessons (Verified Across Milestones)
 
@@ -155,3 +197,5 @@
 3. **Bounded gap-closure beats replanning** — `--gaps` + `gap_closure: true` + 1-retry cap turned a verification failure into a single targeted plan in Phase 9. The right shape for post-verification fixes.
 4. **Some debt is upstream-only — document, don't force** — the capability manifest `consumes` constraint can't be fixed in-repo. Honest classification (coordination item, not milestone debt) beats a half-fix.
 5. **"Already passed" ≠ "fully covered"** — Phase 6 Nyquist backfill found a real TD-05 gap the green suite hid. Advisory backfill of shipped phases is not wasted work.
+6. **Installed-package execution is the real integration boundary** — v4.0 proved rendered hooks and checkout-local imports can pass while consumer execution fails; tests must execute the packed capability from consumer cwd.
+7. **Durable green evidence needs provenance and freshness** — canonical binding correlation, timestamp causality, and stale-pass invalidation prevent previously valid evidence from authorizing changed work.

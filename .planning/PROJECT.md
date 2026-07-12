@@ -8,30 +8,23 @@ A working extension to GSD Core that layers AI-DLC-style enterprise SDLC governa
 
 The rule selection engine correctly injects only the relevant AI-DLC rule summaries for the current task and phase — enough governance to be safe, little enough to avoid context bloat. If this fails, the entire premise fails.
 
-## Current Milestone: v4.0 Developer Coding Conventions
+## Current State
 
-**Goal:** Ship a selectable developer-facing governance rule pack plus Java/Spring Boot starter examples so LLM-assisted backend work follows Hexagonal Architecture + CQRS + DDD, bank integration boundaries, unit-test coverage >70%, logging/API/saga conventions — without context bloat.
+**Latest release:** v4.0 Developer Coding Conventions — shipped 2026-07-12.
 
-**Target features:**
-- Java + Spring Boot coding-convention rule pack (selectable summaries, lazy detail)
-- Hexagonal (ports/adapters) + CQRS + DDD structure, layering, and naming rules
-- Service classification: Internal services may use JDBC/ORM directly; internet-facing services must route outbound calls through WSO2 APIs
-- Inbound integration conventions: REST and Kafka
-- Unit-test coverage >70% as a real consumer-side CI check (JaCoCo/XML/LCOV parser adapter for consumer Java projects)
-- Error/audit logging conventions (correlation IDs, no PII in logs, audit hooks)
-- API contract conventions (OpenAPI, versioning, error response shape)
-- Saga / domain-event / outbox patterns (when to use vs simple call)
-- Starter examples: folder layout + thin Java/Spring reference snippets the LLM can mirror
+No active milestone. `/gsd-new-milestone` will define the next requirements and roadmap.
 
-**Deferred this milestone:** BA/PM/other role rules; Next.js/SPA frontend conventions; deep SmartVista/legacy protocol rules (outbound still via WSO2 or ACL adapters, not domain-coupled SDKs)
+## Shipped Milestone: v4.0 Developer Coding Conventions
 
-## Previous Milestone: v3.0 Adoption & Hygiene (SHIPPED 2026-07-09)
+18/18 requirements validated across 6 phases, 11 plans, and 28 tasks. The release adds a selectable `java-spring` convention pack, non-indexed starter examples, a real stdlib-only JaCoCo/LCOV coverage adapter, authoritative discuss→plan→verify correlation, fail-closed ship evidence, self-contained capability packaging, and consumer documentation. Full audit: `.planning/milestones/v4.0-MILESTONE-AUDIT.md` — 15/15 integration links, 6/6 E2E flows, every phase Nyquist-compliant and security-verified, 0 open threats.
 
-4/4 requirements validated. 2 phases (11-12), 3 plans, 6 tasks. SUMMARY frontmatter backfill closed the last v2.0 audit debt; end-user onboarding + governance-workflow + rule-authoring docs shipped (`docs/onboarding.md`, `docs/governance-workflow.md`, `docs/rule-authoring.md` + README). Full milestone audit: `.planning/milestones/v3.0-MILESTONE-AUDIT.md` — 3-source cross-reference 4/4 satisfied, 3/4 integration links wired; 1 runtime blocker on DOC-01 consent-activate rooted in the previously-deferred RUN-01 upstream gsd-core capability-manifest `consumes` constraint (documented command is accurate; will activate once upstream fix lands).
+Deferred: BA/PM/frontend packs, deeper legacy-protocol rules, CQRS rules, Java-specific eval extension, branch coverage, and operations-phase governance.
 
-## Previous Milestone: v2.0 Govern (SHIPPED 2026-07-08)
+## Previous Milestones
 
-21/21 requirements validated. 5 phases (6-10), 19 plans, 40 tasks, 417 tests green. Full milestone audit: `.planning/v2.0-MILESTONE-AUDIT.md` (5/5 Nyquist-compliant, 0 blockers, 23/23 integration links, 7/7 E2E flows). One documented upstream-only deferred item (capability manifest `consumes` extension blocked by installed gsd-core `bundleContentHash` constraint — outside this repo). Candidate areas deferred to future milestones: real scanner/policy integrations beyond no-op stubs, dynamic adapter loading, operations-phase (deploy/monitor) governance (OPS-01), upstream `consumes` coordination.
+- **v3.0 Adoption & Hygiene** — shipped 2026-07-09; 4/4 requirements. Documentation and SUMMARY hygiene shipped. Its activation blocker was resolved by v4.0's self-contained capability and host-supported `consumes` surface.
+- **v2.0 Govern** — shipped 2026-07-08; 21/21 requirements. Tool-neutral contracts, durable gate evidence, approvals, audit enrichment, and selection-quality gating shipped.
+- **v1.0 Core** — shipped 2026-07-06; deterministic summary-only selection, lazy detail, capability integration, persistence, and reproducible audit shipped.
 
 ## Requirements
 
@@ -59,7 +52,7 @@ The rule selection engine correctly injects only the relevant AI-DLC rule summar
 
 ### Active
 
-No active implementation requirements. v4.0 implementation and phase verification are complete; milestone audit/closure remains.
+No active implementation requirements. v4.0 is shipped and archived; the next milestone has not been defined.
 
 ### Out of Scope
 
@@ -105,7 +98,9 @@ No active implementation requirements. v4.0 implementation and phase verificatio
 | Durable per-gate evidence files | Plan, verify, and ship gates need stable cross-step artifacts that survive context compaction and can be consumed by ship/audit phases | ✓ Validated (Phase 8) — `.planning/governance/gates/{NN}-{plan,verify,ship}.json` read/write path shipped with fail-closed validation |
 | Rules scoped enterprise / domain / project, indexed by trigger + phase + severity | Enables precise, minimal selection per task | ✓ Validated (Phase 1) — frontmatter format + scope precedence + body-free index shipped |
 | Markdown steering is advisory, not enforcement | Real enforcement belongs in CI/SAST/tests/policy-as-code/human approval | ✓ Contract boundary validated (Phase 7) — `x-binding` separates binding gate contracts from advisory audit artifacts; live gate hook consumption remains Phase 8 scope |
-| Project-scope overlay activation uses user-owned CB-3 consent bound to bundle hash | Keeps project overlays discoverable in git while preventing untrusted or tampered hook activation | ✓ Validated (Phase 4) — `.gsd-capabilities.json` is discoverability; consent store outside repo is activation authority |
+| Project-scope overlay activation uses user-owned CB-3 consent bound to bundle hash | Keeps project overlays discoverable in git while preventing untrusted or tampered hook activation | ✓ Validated (v4.0) — self-contained capability packaging and host-supported `consumes` make install, consent, surfacing, and hook execution work without copying files |
+| Java/Spring coverage is binding only through real report evidence | Markdown cannot enforce coverage; consumers own their Java toolchain while the overlay remains Node-only and vendor-neutral | ✓ Validated (v4.0) — factory-built `coverage-report` parses JaCoCo/LCOV through stdlib, validates via `runAdapter`, and fails closed through verify/ship |
+| Binding verify evidence must correlate with authoritative plan evidence | Re-selecting or accepting stale evidence could silently change the governed rule set | ✓ Validated (v4.0) — canonical binding metadata, phase/producer/timestamp causality, duplicate rejection, and stale-evidence invalidation are enforced |
 
 ## Evolution
 
@@ -125,4 +120,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-13 after Phase 18*
+*Last updated: 2026-07-13 after v4.0 milestone closure*
