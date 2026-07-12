@@ -1,6 +1,13 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { existsSync, mkdtempSync, rmSync } from "node:fs";
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { ECHO_ADAPTERS, type GateAdapter } from "../enforcement/adapters.js";
@@ -12,6 +19,17 @@ import {
 import { readGateEvidence } from "./gate-evidence-store.js";
 import { gateEvidencePath } from "./paths.js";
 import { type GovernanceRecord, writeSelection } from "./state-store.js";
+import { COVERAGE_FINDING_ID } from "../enforcement/coverage-report.js";
+
+const FIXTURE_DIR = path.resolve(
+  process.cwd(),
+  "test",
+  "fixtures",
+  "coverage",
+  "jacoco",
+);
+const BINDING_RULE_ID = "java-spring-unit-line-coverage";
+const COVERAGE_ADAPTER_NAME = "coverage-report";
 
 const STRICT_ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
 
@@ -217,3 +235,237 @@ test("deriveRuleGateStatuses inherits overall pass or waived when no finding mat
     [{ ruleId: "require-mfa", status: "waived", findingIds: [] }],
   );
 });
+
+// ── Phase 18: binding coverage routing (D-03, D-05..D-07, D-14) ──────────────
+
+function bindingRecord(): GovernanceRecord {
+  return {
+    phase: "construction",
+    taskSignal: {
+      taskType: "test",
+      keywords: ["coverage", "java"],
+      paths: ["src/main/java/com/example/Service.java"],
+    },
+    selectionConfig: { phase: "construction", domains: ["java-spring"] },
+    selectionResult: {
+      selected: [
+        {
+          id: BINDING_RULE_ID,
+          severity: "high",
+          summary: "Unit line coverage must meet the 70% threshold.",
+          matchedAxis: "paths",
+          matchedValue: "src/main/java/**",
+        },
+      ],
+      skipped: [],
+    },
+    riskTier: "baseline",
+    timestamp: "2026-07-12T00:00:00.000Z",
+  };
+}
+
+function seedReport(
+  root: string,
+  fixtureName: string,
+  relativePath = "build/reports/jacoco/test/jacocoTestReport.xml",
+): string {
+  const dest = path.join(root, relativePath);
+  mkdirSync(path.dirname(dest), { recursive: true });
+  copyFileSync(path.join(FIXTURE_DIR, fixtureName), dest);
+  return relativePath;
+}
+
+function writeGovConfig(
+  root: string,
+  coverageReportPath: string | undefined,
+): void {
+  const planning = path.join(root, ".planning");
+  mkdirSync(planning, { recursive: true });
+  const governance: Record<string, unknown> = { domains: "java-spring" };
+  if (coverageReportPath !== undefined) {
+    governance.coverage_report_path = coverageReportPath;
+  }
+  writeFileSync(
+    path.join(planning, "config.json"),
+    JSON.stringify({ governance }),
+    "utf8",
+  );
+}
+
+test("verifyGateHook routes binding rule to coverage-report pass fixture", async () => {
+  await withTempRoot(async (root) => {
+    writeSelection(bindingRecord(), root);
+    const reportPath = seedReport(root, "pass-70.xml");
+    writeGovConfig(root, reportPath);
+
+    const hookResult = await verifyGateHook({
+      projectRoot: root,
+      phaseNumber: "18",
+    });
+    const evidence = readGateEvidence(root, "18", "verify");
+
+    assert.ok(evidence, "expected persisted verify evidence");
+    assert.equal(hookResult.evidence.result.status, "pass");
+    assert.equal(evidence!.result.status, "pass");
+    assert.equal(evidence!.result.evaluatedBy, COVERAGE_ADAPTER_NAME);
+    assert.deepEqual(evidence!.result.findings, []);
+  });
+});
+
+test("verifyGateHook routes binding rule to coverage-report fail fixture", async () => {
+  await withTempRoot(async (root) => {
+    writeSelection(bindingRecord(), root);
+    const reportPath = seedReport(root, "fail-below-70.xml");
+    writeGovConfig(root, reportPath);
+
+    const hookResult = await verifyGateHook({
+      projectRoot: root,
+      phaseNumber: "18",
+    });
+    const evidence = readGateEvidence(root, "18", "verify");
+
+    assert.ok(evidence, "expected persisted verify evidence");
+    assert.equal(hookResult.evidence.result.status, "fail");
+    assert.equal(evidence!.result.status, "fail");
+    assert.equal(evidence!.result.evaluatedBy, COVERAGE_ADAPTER_NAME);
+    assert.ok(
+      evidence!.result.findings.some((f) => f.id === COVERAGE_FINDING_ID),
+      `expected finding ${COVERAGE_FINDING_ID}`,
+    );
+  });
+});
+
+test("verifyGateHook empty coverage_report_path with binding yields durable fail evidence", async () => {
+  await withTempRoot(async (root) => {
+    writeSelection(bindingRecord(), root);
+    writeGovConfig(root, "");
+
+    const hookResult = await verifyGateHook({
+      projectRoot: root,
+      phaseNumber: "18",
+    });
+    const evidence = readGateEvidence(root, "18", "verify");
+
+    assert.ok(evidence, "expected durable fail evidence on disk");
+    assert.equal(hookResult.evidence.result.status, "fail");
+    assert.equal(evidence!.result.status, "fail");
+    assert.equal(evidence!.result.evaluatedBy, COVERAGE_ADAPTER_NAME);
+    assert.notEqual(evidence!.result.evaluatedBy, "generic-exit-ci");
+    assert.ok(
+      evidence!.result.findings.some((f) => f.id === COVERAGE_FINDING_ID),
+    );
+  });
+});
+
+test("verifyGateHook rejects non-coverage adapterName when binding selected (no evidence)", async () => {
+  await withTempRoot(async (root) => {
+    writeSelection(bindingRecord(), root);
+    writeGovConfig(root, "build/reports/jacoco/test/jacocoTestReport.xml");
+
+    await assert.rejects(
+      verifyGateHook({
+        projectRoot: root,
+        phaseNumber: "18",
+        adapterName: "generic-exit-ci",
+      }),
+      /bypass|binding|coverage/i,
+    );
+    assert.equal(existsSync(gateEvidencePath(root, "18", "verify")), false);
+  });
+});
+
+test("verifyGateHook without binding rule still defaults to generic-exit-ci", async () => {
+  await withTempRoot(async (root) => {
+    writeSelection(record(), root);
+
+    const hookResult = await verifyGateHook({
+      projectRoot: root,
+      phaseNumber: "08",
+    });
+    const evidence = readGateEvidence(root, "08", "verify");
+
+    assert.ok(evidence);
+    assert.equal(evidence!.result.status, "pass");
+    assert.equal(evidence!.result.evaluatedBy, "generic-exit-ci");
+    assert.equal(hookResult.evidence.result.evaluatedBy, "generic-exit-ci");
+  });
+});
+
+test("verifyGateHook without binding honors explicit adapterName injection", async () => {
+  await withTempRoot(async (root) => {
+    writeSelection(record(), root);
+    const custom: GateAdapter = {
+      name: "custom-test-adapter",
+      async evaluate(request) {
+        return {
+          gateId: request.gateId,
+          status: "pass",
+          findings: [],
+          evaluatedBy: "custom-test-adapter",
+          evaluatedAt: "2026-07-12T00:00:00.000Z",
+        };
+      },
+    };
+
+    const hookResult = await verifyGateHook({
+      projectRoot: root,
+      phaseNumber: "08",
+      adapterName: "custom-test-adapter",
+      adapters: new Map([["custom-test-adapter", custom]]),
+    });
+    assert.equal(hookResult.evidence.result.evaluatedBy, "custom-test-adapter");
+  });
+});
+
+test("verifyGateHook uses injected coverage-report adapter when binding selected", async () => {
+  await withTempRoot(async (root) => {
+    writeSelection(bindingRecord(), root);
+    writeGovConfig(root, "whatever.xml");
+    let called = false;
+    const injected: GateAdapter = {
+      name: COVERAGE_ADAPTER_NAME,
+      async evaluate(request) {
+        called = true;
+        return {
+          gateId: request.gateId,
+          status: "pass",
+          findings: [],
+          evaluatedBy: COVERAGE_ADAPTER_NAME,
+          evaluatedAt: "2026-07-12T00:00:00.000Z",
+        };
+      },
+    };
+
+    const hookResult = await verifyGateHook({
+      projectRoot: root,
+      phaseNumber: "18",
+      adapters: new Map([[COVERAGE_ADAPTER_NAME, injected]]),
+    });
+    assert.equal(called, true);
+    assert.equal(hookResult.evidence.result.evaluatedBy, COVERAGE_ADAPTER_NAME);
+    assert.equal(hookResult.evidence.result.status, "pass");
+  });
+});
+
+test("verifyGateHook injected map without coverage-report falls back to factory", async () => {
+  await withTempRoot(async (root) => {
+    writeSelection(bindingRecord(), root);
+    const reportPath = seedReport(root, "pass-70.xml");
+    writeGovConfig(root, reportPath);
+    const other: GateAdapter = {
+      name: "other",
+      async evaluate() {
+        throw new Error("must not use non-coverage injected adapter");
+      },
+    };
+
+    const hookResult = await verifyGateHook({
+      projectRoot: root,
+      phaseNumber: "18",
+      adapters: new Map([["other", other]]),
+    });
+    assert.equal(hookResult.evidence.result.evaluatedBy, COVERAGE_ADAPTER_NAME);
+    assert.equal(hookResult.evidence.result.status, "pass");
+  });
+});
+

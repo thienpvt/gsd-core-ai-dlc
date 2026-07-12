@@ -540,3 +540,39 @@ test("shipGateHook skips eval check for legacy phases (phaseNumber < '10') (RESE
     assert.equal(existsSync(evalEvidencePath(root, "08")), false);
   });
 });
+
+// ── Phase 18: coverage fail blocks ship (D-08, D-09) ─────────────────────────
+
+test("shipGateHook blocks failed coverage verify evidence and writes no ship file", () => {
+  withTempRoot((root) => {
+    writeGateEvidence(root, "08", evidence("plan", "pass"));
+    writeGateEvidence(root, "08", {
+      request: request("verify"),
+      result: {
+        gateId: "verify",
+        status: "fail",
+        findings: [
+          {
+            id: "java-spring-unit-line-coverage:coverage-report",
+            severity: "high",
+            message: "unit line coverage 6/10 is below 70%",
+          },
+        ],
+        evaluatedBy: "coverage-report",
+        evaluatedAt: "2026-07-12T00:00:01.000Z",
+      },
+      metadata: {
+        phase: "08",
+        writtenAt: "2026-07-12T00:00:02.000Z",
+        source: "aidlc-governance-verify",
+      },
+    });
+
+    assert.throws(
+      () => shipGateHook({ projectRoot: root, phaseNumber: "08" }),
+      /ship gate: verify governance evidence failed[\s\S]*java-spring-unit-line-coverage:coverage-report[\s\S]*below 70%/i,
+    );
+    assert.equal(existsSync(gateEvidencePath(root, "08", "ship")), false);
+  });
+});
+

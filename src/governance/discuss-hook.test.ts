@@ -347,3 +347,47 @@ test("discussHook structural check: the hook source contains NO writeFileSync/re
     "discussHook must not call renameSync directly — use state-store",
   );
 });
+
+// ── Phase 18: config-backed baseDomains (D-02) ───────────────────────────────
+
+test("discussHook uses config domains when baseDomains omitted", () => {
+  withFixtureRoot((root) => {
+    const planning = path.join(root, ".planning");
+    mkdirSync(planning, { recursive: true });
+    writeFileSync(
+      path.join(planning, "config.json"),
+      JSON.stringify({ governance: { domains: "java-spring" } }),
+      "utf8",
+    );
+    const { record } = discussHook({
+      projectRoot: root,
+      taskSignal: signal({ keywords: ["docs"] }),
+    });
+    assert.ok(
+      record.selectionConfig.domains.includes("java-spring"),
+      `expected java-spring from config, got [${record.selectionConfig.domains.join(", ")}]`,
+    );
+  });
+});
+
+test("discussHook explicit baseDomains: [] overrides config domains", () => {
+  withFixtureRoot((root) => {
+    const planning = path.join(root, ".planning");
+    mkdirSync(planning, { recursive: true });
+    writeFileSync(
+      path.join(planning, "config.json"),
+      JSON.stringify({ governance: { domains: "java-spring" } }),
+      "utf8",
+    );
+    const { record } = discussHook({
+      projectRoot: root,
+      taskSignal: signal({ keywords: ["docs"] }),
+      baseDomains: [],
+    });
+    assert.equal(
+      record.selectionConfig.domains.includes("java-spring"),
+      false,
+      "explicit empty baseDomains must not pull java-spring from config",
+    );
+  });
+});

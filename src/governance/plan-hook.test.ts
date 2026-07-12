@@ -243,3 +243,114 @@ test("planHook preserves fragment output and records a failing gate result on bu
     assert.equal(existsSync(selectionStatePath(root)), false);
   });
 });
+
+// ── Phase 18: config-backed baseDomains (D-02) ───────────────────────────────
+
+test("planHook uses config domains when baseDomains omitted", () => {
+  withFixtureRoot((root) => {
+    writeFileSync(
+      path.join(root, ".planning", "config.json"),
+      JSON.stringify({ governance: { domains: "java-spring" } }),
+      "utf8",
+    );
+    // Use a domain-scoped rule so domains matter for selectionConfig.
+    const corpusDir = path.join(root, "fixture-corpus", "domain", "java-spring");
+    mkdirSync(corpusDir, { recursive: true });
+    writeFileSync(
+      path.join(corpusDir, "java-rule.md"),
+      [
+        "---",
+        "id: java-spring-domain-rule",
+        "scope: domain",
+        "triggers:",
+        "  keywords:",
+        "    - planner",
+        "phases:",
+        "  - operations",
+        "severity: medium",
+        "summary: Java spring domain rule.",
+        "classification: advisory",
+        "---",
+        "",
+        "## java-spring-domain-rule",
+        "",
+        "Body.",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+    writeIndex(buildIndex(path.join(root, "fixture-corpus")), path.join(root, "rule-index.json"));
+
+    const result = planHook({
+      projectRoot: root,
+      phaseNumber: "08",
+      plannerInputs: plannerInputs({ riskThreatModel: [] }),
+    });
+    // selectionConfig is not on PlanHookResult; assert via selected domain rule
+    // presence and via re-running with empty override contrast in sibling test.
+    // Capture domains by checking domain rule selection under config.
+    const selectedIds = result.evidence.request.rules.map((r) => r.id);
+    // At minimum, config should not throw and plan still works.
+    assert.ok(result.fragment.startsWith("<governance>"));
+    // Domain rule only selects when java-spring subscribed.
+    assert.ok(
+      selectedIds.includes("java-spring-domain-rule") ||
+        result.evidence.request.rules.length >= 0,
+      "planHook with config domains should run",
+    );
+    // Stronger: domain rule should be selected when domains include java-spring.
+    assert.ok(
+      selectedIds.includes("java-spring-domain-rule"),
+      `expected java-spring-domain-rule selected under config domains, got [${selectedIds.join(", ")}]`,
+    );
+  });
+});
+
+test("planHook explicit baseDomains: [] overrides config domains", () => {
+  withFixtureRoot((root) => {
+    writeFileSync(
+      path.join(root, ".planning", "config.json"),
+      JSON.stringify({ governance: { domains: "java-spring" } }),
+      "utf8",
+    );
+    const corpusDir = path.join(root, "fixture-corpus", "domain", "java-spring");
+    mkdirSync(corpusDir, { recursive: true });
+    writeFileSync(
+      path.join(corpusDir, "java-rule.md"),
+      [
+        "---",
+        "id: java-spring-domain-rule",
+        "scope: domain",
+        "triggers:",
+        "  keywords:",
+        "    - planner",
+        "phases:",
+        "  - operations",
+        "severity: medium",
+        "summary: Java spring domain rule.",
+        "classification: advisory",
+        "---",
+        "",
+        "## java-spring-domain-rule",
+        "",
+        "Body.",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+    writeIndex(buildIndex(path.join(root, "fixture-corpus")), path.join(root, "rule-index.json"));
+
+    const result = planHook({
+      projectRoot: root,
+      phaseNumber: "08",
+      plannerInputs: plannerInputs({ riskThreatModel: [] }),
+      baseDomains: [],
+    });
+    const selectedIds = result.evidence.request.rules.map((r) => r.id);
+    assert.equal(
+      selectedIds.includes("java-spring-domain-rule"),
+      false,
+      "explicit empty baseDomains must not select domain rule from config",
+    );
+  });
+});
