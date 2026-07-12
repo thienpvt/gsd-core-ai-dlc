@@ -388,28 +388,25 @@ test("real rule pack selects coverage at GSD phase 18 and verify routes the real
       "real binding rule must be selected for phase 18 Java production work",
     );
 
-    // phaseGoal tokens must equal discuss keywords so plan/discuss TaskSignals deep-equal
     const planned = planHook({
       projectRoot: root,
       phaseNumber: "18",
       indexPath,
       plannerInputs: {
-        phaseGoal: "java coverage",
-        requirementIds: [],
-        riskThreatModel: [],
-        acceptanceCriteria: [],
+        phaseGoal: "Implement Java order coverage gate",
+        requirementIds: ["GATE-04", "ENF-03"],
+        riskThreatModel: ["Threat: forged coverage evidence could bypass release."],
+        acceptanceCriteria: ["Tests prove the coverage adapter blocks below threshold."],
         impactedFiles: ["service/src/main/java/com/example/Service.java"],
+        impactedModules: ["service/src/main/java"],
       },
     });
     assert.ok(
       planned.evidence.request.rules.some((rule) => rule.id === BINDING_RULE_ID),
       "authoritative plan evidence must retain the binding rule",
     );
-    assert.deepEqual(planned.evidence.request.taskSignal, discussed.record.taskSignal);
-    assert.deepEqual(
-      planned.evidence.request.rules.map((r) => r.id).sort(),
-      discussed.record.selectionResult.selected.map((r) => r.id).sort(),
-    );
+    assert.notDeepEqual(planned.evidence.request.taskSignal, discussed.record.taskSignal);
+    assert.equal(planned.evidence.request.taskSignal.taskType, "security");
     assert.ok(
       Date.parse(planned.evidence.metadata.writtenAt) >=
         Date.parse(discussed.record.timestamp),
@@ -773,51 +770,87 @@ test("verifyGateHook rejects stale plan older than discuss timestamp", async () 
   });
 });
 
-test("verifyGateHook rejects mismatched taskSignal", async () => {
+test("verifyGateHook accepts independently derived task signals and advisory differences", async () => {
   await withTempRoot(async (root) => {
     const seeded = bindingRecord();
+    seeded.selectionResult.selected.push({
+      id: "discuss-only-advisory",
+      severity: "medium",
+      summary: "Discuss advisory.",
+      matchedAxis: "keywords",
+      matchedValue: "coverage",
+    });
     writeSelection(seeded, root);
     writeGovConfig(root, seedReport(root, "pass-70.xml"));
     seedPlanEvidence(root, "18", seeded, {
       taskSignal: {
-        taskType: "feature",
-        keywords: ["other", "task"],
-        paths: ["src/main/java/com/example/Other.java"],
+        taskType: "security",
+        keywords: ["threat", "acceptance", "test", "module"],
+        paths: ["service/src/main/java/com/example/Other.java", "service/**"],
       },
-    });
-
-    await assert.rejects(
-      verifyGateHook({ projectRoot: root, phaseNumber: "18" }),
-      /taskSignal/i,
-    );
-    assert.equal(existsSync(gateEvidencePath(root, "18", "verify")), false);
-  });
-});
-
-test("verifyGateHook rejects selected rule set mismatch with binding on both sides", async () => {
-  await withTempRoot(async (root) => {
-    const seeded = bindingRecord();
-    writeSelection(seeded, root);
-    writeGovConfig(root, seedReport(root, "pass-70.xml"));
-    seedPlanEvidence(root, "18", seeded, {
       rules: [
-        ...seeded.selectionResult.selected,
+        seeded.selectionResult.selected[0]!,
         {
-          id: "require-mfa",
-          severity: "critical",
-          summary: "extra plan-only rule",
-          matchedAxis: "always-in-phase",
-          matchedValue: "always-in-phase",
+          id: "plan-only-advisory",
+          severity: "low",
+          summary: "Plan advisory.",
+          matchedAxis: "paths",
+          matchedValue: "service/**",
         },
       ],
     });
 
-    await assert.rejects(
-      verifyGateHook({ projectRoot: root, phaseNumber: "18" }),
-      /selected rule set/i,
-    );
-    assert.equal(existsSync(gateEvidencePath(root, "18", "verify")), false);
+    const verified = await verifyGateHook({ projectRoot: root, phaseNumber: "18" });
+    assert.equal(verified.evidence.result.status, "pass");
+    assert.equal(verified.evidence.result.evaluatedBy, COVERAGE_ADAPTER_NAME);
   });
+});
+
+test("verifyGateHook rejects changed binding rule metadata", async () => {
+  const changedFields = ["severity", "summary", "matchedAxis", "matchedValue"] as const;
+  for (const field of changedFields) {
+    await withTempRoot(async (root) => {
+      const seeded = bindingRecord();
+      const changed = { ...seeded.selectionResult.selected[0]! };
+      if (field === "severity") changed.severity = "critical";
+      if (field === "summary") changed.summary = "Changed binding summary.";
+      if (field === "matchedAxis") changed.matchedAxis = "keywords";
+      if (field === "matchedValue") changed.matchedValue = "changed-value";
+      writeSelection(seeded, root);
+      writeGovConfig(root, seedReport(root, "pass-70.xml"));
+      seedPlanEvidence(root, "18", seeded, { rules: [changed] });
+
+      await assert.rejects(
+        verifyGateHook({ projectRoot: root, phaseNumber: "18" }),
+        /binding rule metadata/i,
+      );
+      assert.equal(existsSync(gateEvidencePath(root, "18", "verify")), false);
+    });
+  }
+});
+
+test("verifyGateHook rejects duplicate binding ids on either side", async () => {
+  for (const side of ["discuss", "plan"] as const) {
+    await withTempRoot(async (root) => {
+      const seeded = bindingRecord();
+      const duplicate = { ...seeded.selectionResult.selected[0]! };
+      if (side === "discuss") seeded.selectionResult.selected.push(duplicate);
+      writeSelection(seeded, root);
+      writeGovConfig(root, seedReport(root, "pass-70.xml"));
+      seedPlanEvidence(root, "18", seeded, {
+        rules:
+          side === "plan"
+            ? [seeded.selectionResult.selected[0]!, duplicate]
+            : [seeded.selectionResult.selected[0]!],
+      });
+
+      await assert.rejects(
+        verifyGateHook({ projectRoot: root, phaseNumber: "18" }),
+        /duplicate binding rule/i,
+      );
+      assert.equal(existsSync(gateEvidencePath(root, "18", "verify")), false);
+    });
+  }
 });
 
 test("verifyGateHook rejects discuss-selected plan-omitted binding (both directions covered)", async () => {

@@ -1,3 +1,4 @@
+import { isDeepStrictEqual } from "node:util";
 import { ADAPTERS, type GateAdapter } from "../enforcement/adapters.js";
 import { createCoverageAdapter } from "../enforcement/coverage-report.js";
 import { runAdapter } from "../enforcement/run-adapter.js";
@@ -64,8 +65,17 @@ export function deriveRuleGateStatuses(
   });
 }
 
-function sortedRuleIds(rules: ReadonlyArray<{ id: string }>): string[] {
-  return rules.map((rule) => rule.id).slice().sort();
+function bindingRule(
+  rules: GateRequest["rules"],
+  producer: "discuss" | "plan",
+): GateRequest["rules"][number] | undefined {
+  const matches = rules.filter((rule) => rule.id === BINDING_RULE_ID);
+  if (matches.length > 1) {
+    throw new Error(
+      `verifyGateHook: duplicate binding rule '${BINDING_RULE_ID}' in ${producer} selection`,
+    );
+  }
+  return matches[0];
 }
 
 /**
@@ -116,19 +126,20 @@ export function assertPlanEvidenceCorrelated(
     );
   }
 
-  const discussSignal = JSON.stringify(record.taskSignal);
-  const planSignal = JSON.stringify(planEvidence.request.taskSignal);
-  if (planSignal !== discussSignal) {
+  const discussBinding = bindingRule(record.selectionResult.selected, "discuss");
+  const planBinding = bindingRule(planEvidence.request.rules, "plan");
+  if ((discussBinding === undefined) !== (planBinding === undefined)) {
     throw new Error(
-      `verifyGateHook: plan evidence taskSignal does not deep-equal discuss taskSignal; rerun discuss and plan for the same task`,
+      `verifyGateHook: binding rule selection disagreement for '${BINDING_RULE_ID}'; rerun discuss and plan before verify`,
     );
   }
-
-  const discussIds = sortedRuleIds(record.selectionResult.selected);
-  const planIds = sortedRuleIds(planEvidence.request.rules);
-  if (JSON.stringify(planIds) !== JSON.stringify(discussIds)) {
+  if (
+    discussBinding !== undefined &&
+    planBinding !== undefined &&
+    !isDeepStrictEqual(planBinding, discussBinding)
+  ) {
     throw new Error(
-      `verifyGateHook: plan evidence selected rule set does not match discuss selection (${planIds.join(",")} vs ${discussIds.join(",")}); rerun discuss and plan before verify`,
+      `verifyGateHook: binding rule metadata does not match discuss selection for '${BINDING_RULE_ID}'; rerun discuss and plan before verify`,
     );
   }
 
