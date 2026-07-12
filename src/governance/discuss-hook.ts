@@ -212,3 +212,52 @@ export function discussHook(args: DiscussHookArgs): DiscussHookResult {
   //     (Pitfall 8 — the registry already evaluated it).
   return { fragment, record };
 }
+
+function runDirect(argv: string[]): void {
+  // Minimal CLI: projectRoot + taskSignal JSON file + optional domains/budget/index.
+  // Prefer `governance discuss` from skills; this keeps checkout-local parity.
+  if (argv.length < 2) {
+    throw new Error(
+      "usage: discuss-hook <projectRoot> <taskSignalJsonFile> [--domains a,b] [--budget n] [--index <f>]",
+    );
+  }
+  const [projectRoot, signalPath, ...flags] = argv;
+  let domains: string[] | undefined;
+  let budget: number | undefined;
+  let indexPath: string | undefined;
+  for (let i = 0; i < flags.length; i++) {
+    const f = flags[i];
+    if (f === "--domains") {
+      domains = (flags[++i] ?? "")
+        .split(",")
+        .map((x) => x.trim())
+        .filter((x) => x.length > 0);
+    } else if (f === "--budget") {
+      const n = Number(flags[++i]);
+      if (!Number.isInteger(n) || n < 0) throw new Error("discuss-hook: --budget must be non-negative integer");
+      budget = n;
+    } else if (f === "--index") {
+      indexPath = flags[++i];
+    } else {
+      throw new Error(`discuss-hook: unknown flag ${f}`);
+    }
+  }
+  const taskSignal = JSON.parse(readFileSync(signalPath!, "utf8")) as TaskSignal;
+  const result = discussHook({
+    projectRoot: projectRoot!,
+    taskSignal,
+    ...(domains !== undefined ? { baseDomains: domains } : {}),
+    ...(budget !== undefined ? { budget } : {}),
+    ...(indexPath !== undefined ? { indexPath } : {}),
+  });
+  process.stdout.write(result.fragment);
+}
+
+if (require.main === module) {
+  try {
+    runDirect(process.argv.slice(2));
+  } catch (err) {
+    process.stderr.write((err instanceof Error ? err.message : String(err)) + "\n");
+    process.exitCode = 1;
+  }
+}

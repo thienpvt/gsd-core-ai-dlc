@@ -4,11 +4,12 @@ import {
   existsSync,
   mkdtempSync,
   readFileSync,
+  readdirSync,
   rmSync,
   writeFileSync,
   mkdirSync,
 } from "node:fs";
-import { tmpdir } from "node:os";
+import { tmpdir, homedir } from "node:os";
 import path from "node:path";
 import { test } from "node:test";
 
@@ -238,19 +239,32 @@ test("npm pack tarball includes capability, six skills, and docs", () => {
     ),
   );
 });
-test("isolated GSD capability install activates six skills and hooks", () => {
+function resolveGsdTools(): string | null {
   const candidates = [
     path.join(process.env.APPDATA ?? "", "npm", "node_modules", "@opengsd", "gsd-core", "gsd-core", "bin", "gsd-tools.cjs"),
     path.join(process.env.APPDATA ?? "", "npm", "node_modules", "@opengsd", "gsd-core", "bin", "gsd-tools.cjs"),
+    path.join(homedir(), ".claude", "gsd-core", "bin", "gsd-tools.cjs"),
+    path.join(homedir(), ".codex", "gsd-core", "bin", "gsd-tools.cjs"),
   ];
-  let gsdTools: string | null = null;
   for (const c of candidates) {
-    if (c && existsSync(c)) {
-      gsdTools = c;
-      break;
-    }
+    if (c && existsSync(c)) return c;
   }
+  return null;
+}
+
+test("isolated GSD capability install activates six skills and hooks", () => {
+  const gsdTools = resolveGsdTools();
   if (gsdTools === null) {
+    if (process.env.REQUIRE_GSD_INSTALL === "1") {
+      assert.fail(
+        "gsd-tools.cjs not found under APPDATA npm or ~/.claude|~/.codex gsd-core (REQUIRE_GSD_INSTALL=1)",
+      );
+    }
+    // Keep Windows/CI hosts green when GSD Core is not installed locally.
+    // Mirrors consent tests' broad candidate set; do not silently pass without a note.
+    console.log(
+      "skip: isolated GSD capability install — gsd-tools.cjs not found in APPDATA npm / ~/.claude / ~/.codex",
+    );
     return;
   }
   const tools = gsdTools;
@@ -368,8 +382,157 @@ test("isolated GSD capability install activates six skills and hooks", () => {
         "render-hooks " + point + " reported no active hooks",
       );
     }
+
+    // Real package-layout install: pack + npm install into consumer node_modules,
+    // then execute discuss/plan/verify through the package governance binary
+    // (not bare node dist/...). Skills resolve via require.resolve of the package.
+    const packDir = path.join(probe, "pack");
+    mkdirSync(packDir, { recursive: true });
+    const npmCliCandidates = [
+      path.join(path.dirname(process.execPath), "node_modules", "npm", "bin", "npm-cli.js"),
+      path.join(path.dirname(process.execPath), "..", "lib", "node_modules", "npm", "bin", "npm-cli.js"),
+    ];
+    const npmCli = npmCliCandidates.find((c) => existsSync(c));
+    assert.ok(npmCli, "npm-cli.js not found next to node executable");
+    const pack = spawnSync(
+      process.execPath,
+      [npmCli, "pack", "--pack-destination", packDir, "--ignore-scripts"],
+      { cwd: ROOT, encoding: "utf8", shell: false },
+    );
+    assert.equal(pack.status, 0, "npm pack failed: " + (pack.stderr || pack.stdout));
+    const tgz = readdirSync(packDir).find((f) => f.endsWith(".tgz"));
+    assert.ok(tgz, "pack produced no tgz");
+    const consumer = path.join(probe, "consumer");
+    mkdirSync(path.join(consumer, ".planning"), { recursive: true });
+    writeFileSync(
+      path.join(consumer, "package.json"),
+      JSON.stringify({ name: "consumer-app", private: true }, null, 2),
+    );
+    writeFileSync(
+      path.join(consumer, ".planning", "config.json"),
+      JSON.stringify(
+        {
+          governance: {
+            enabled: true,
+            domains: "java-spring",
+            coverage_report_path: "build/reports/jacoco/test/jacocoTestReport.xml",
+          },
+        },
+        null,
+        2,
+      ),
+    );
+    writeFileSync(
+      path.join(consumer, ".planning", "STATE.md"),
+      [
+        "---",
+        "gsd_state_version: 1.0",
+        "current_phase: 18",
+        "status: executing",
+        "---",
+        "",
+      ].join("\n"),
+    );
+    const installPkg = spawnSync(
+      process.execPath,
+      [npmCli, "install", path.join(packDir, tgz), "--ignore-scripts", "--no-save"],
+      { cwd: consumer, encoding: "utf8", shell: false },
+    );
+    assert.equal(
+      installPkg.status,
+      0,
+      "consumer npm install failed: " + (installPkg.stderr || installPkg.stdout),
+    );
+    const overlayRoot = path.join(
+      consumer,
+      "node_modules",
+      "@opengsd",
+      "gsd-aidlc-overlay",
+    );
+    assert.ok(existsSync(overlayRoot), "overlay missing under consumer node_modules");
+    const bin = path.join(overlayRoot, "bin", "governance.cjs");
+    assert.ok(existsSync(bin), "governance binary missing in installed package");
+
+    const indexBuild = spawnSync(
+      process.execPath,
+      [
+        bin,
+        "build-index",
+        "--root",
+        path.join(overlayRoot, "aidlc-rules"),
+        "--out",
+        path.join(consumer, "rule-index.json"),
+      ],
+      { cwd: consumer, encoding: "utf8", shell: false },
+    );
+    assert.equal(
+      indexBuild.status,
+      0,
+      "build-index failed: " + (indexBuild.stderr || indexBuild.stdout),
+    );
+
+    const signalPath = path.join(consumer, "signal.json");
+    writeFileSync(
+      signalPath,
+      JSON.stringify({
+        taskType: "feature",
+        keywords: ["java", "coverage"],
+        paths: ["service/src/main/java/com/example/Service.java"],
+      }),
+    );
+    const discuss = spawnSync(
+      process.execPath,
+      [bin, "discuss", consumer, signalPath, "--domains", "java-spring"],
+      { cwd: consumer, encoding: "utf8", shell: false },
+    );
+    assert.equal(discuss.status, 0, "discuss failed: " + (discuss.stderr || discuss.stdout));
+    assert.ok(discuss.stdout.length > 0, "discuss produced no fragment");
+    assert.ok(
+      existsSync(path.join(consumer, ".planning", "governance", "selection-state.json")),
+      "discuss must persist selection-state",
+    );
+
+    const planInputs = path.join(consumer, "plan-inputs.json");
+    writeFileSync(
+      planInputs,
+      JSON.stringify({
+        phaseGoal: "Implement Java coverage gate",
+        requirementIds: ["GATE-04"],
+        riskThreatModel: ["Threat: forged coverage evidence."],
+        acceptanceCriteria: ["Coverage adapter blocks below threshold."],
+        impactedFiles: ["orders/src/main/java/com/example/OrderService.java"],
+        impactedModules: ["orders/src/main/java"],
+      }),
+    );
+    const plan = spawnSync(
+      process.execPath,
+      [bin, "plan", consumer, "18", planInputs],
+      { cwd: consumer, encoding: "utf8", shell: false },
+    );
+    assert.equal(plan.status, 0, "plan failed: " + (plan.stderr || plan.stdout));
+    assert.ok(
+      existsSync(path.join(consumer, ".planning", "governance", "gates", "18-plan.json")),
+      "plan must write 18-plan.json",
+    );
+
+    const reportRel = "build/reports/jacoco/test/jacocoTestReport.xml";
+    const reportAbs = path.join(consumer, reportRel);
+    mkdirSync(path.dirname(reportAbs), { recursive: true });
+    const fixture = path.join(ROOT, "test", "fixtures", "coverage", "jacoco", "pass-70.xml");
+    writeFileSync(reportAbs, readFileSync(fixture));
+
+    const verify = spawnSync(
+      process.execPath,
+      [bin, "verify", consumer, "18"],
+      { cwd: consumer, encoding: "utf8", shell: false },
+    );
+    assert.equal(verify.status, 0, "verify failed: " + (verify.stderr || verify.stdout));
+    const verifyPath = path.join(consumer, ".planning", "governance", "gates", "18-verify.json");
+    assert.ok(existsSync(verifyPath), "verify must write 18-verify.json");
+    const verifyEv = JSON.parse(readFileSync(verifyPath, "utf8"));
+    assert.equal(verifyEv.result && verifyEv.result.status, "pass");
+    assert.equal(verifyEv.result && verifyEv.result.evaluatedBy, "coverage-report");
   } finally {
     rmSync(probe, { recursive: true, force: true });
   }
 });
-

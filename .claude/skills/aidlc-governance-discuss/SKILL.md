@@ -30,7 +30,7 @@ governance logic lives in the pure cores under `src/governance/` +
 3. **Invoke the discuss hook.** Run:
 
    ```
-   node dist/governance/discuss-hook.js
+   BIN=$(node -e "process.stdout.write(require('path').join(require('path').dirname(require.resolve('@opengsd/gsd-aidlc-overlay/package.json')),'bin','governance.cjs'))") && node "$BIN" discuss <projectRoot> <taskSignalJsonFile> [--domains a,b] [--budget n]
    ```
 
    …passing the project root, derived TaskSignal, and optional base domain
@@ -44,10 +44,7 @@ governance logic lives in the pure cores under `src/governance/` +
    - persists the full `SelectionResult` atomically to
      `.planning/governance/selection-state.json` (temp-then-rename).
 
-   Fallback if `dist/governance/discuss-hook.js` is unavailable: invoke the
-   `governance select` CLI with the same signal + risk-adjusted config and
-   write the fragment manually — but prefer the hook, which owns the
-   on-disk format.
+   From a repository checkout you may also run `node bin/governance.cjs discuss ...`. Do not use bare `node dist/...` paths from a consumer install — they only resolve inside the package tree.
 
 4. **Attach the fragment.** Write the returned `<governance>` fragment into
    the produces artifact (`CONTEXT.md`) so the host loop picks it up. The

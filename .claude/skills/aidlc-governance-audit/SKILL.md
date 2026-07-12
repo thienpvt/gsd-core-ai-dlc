@@ -26,7 +26,7 @@ scanner, ship-hook, or enforcement implementation.
 3. **Invoke the audit writer.** Run:
 
    ```bash
-   node dist/governance/audit-artifact.js <projectRoot> <phaseDir>/GOVERNANCE.md
+   BIN=$(node -e "process.stdout.write(require('path').join(require('path').dirname(require.resolve('@opengsd/gsd-aidlc-overlay/package.json')),'bin','governance.cjs'))") && node "$BIN" audit <projectRoot> <phaseDir>/GOVERNANCE.md
    ```
 
    Pass the absolute project root as `<projectRoot>` and the resolved phase

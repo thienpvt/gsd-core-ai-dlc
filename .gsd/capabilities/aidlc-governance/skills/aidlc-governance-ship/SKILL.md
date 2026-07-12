@@ -18,7 +18,7 @@ enrichment, or scanner integration.
 2. **Invoke the ship hook.** Run:
 
    ```bash
-   node dist/governance/ship-gate-hook.js <projectRoot> <phaseNumber>
+   BIN=$(node -e "process.stdout.write(require('path').join(require('path').dirname(require.resolve('@opengsd/gsd-aidlc-overlay/package.json')),'bin','governance.cjs'))") && node "$BIN" ship <projectRoot> <phaseNumber>
    ```
 
    The hook reads `.planning/governance/gates/{NN}-plan.json` and

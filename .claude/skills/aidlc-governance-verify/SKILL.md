@@ -21,7 +21,7 @@ NOT an adapter implementation and NOT an audit writer.
 3. **Invoke the verify hook.** Run:
 
    ```bash
-   node dist/governance/verify-gate-hook.js <projectRoot> <phaseNumber>
+   BIN=$(node -e "process.stdout.write(require('path').join(require('path').dirname(require.resolve('@opengsd/gsd-aidlc-overlay/package.json')),'bin','governance.cjs'))") && node "$BIN" verify <projectRoot> <phaseNumber>
    ```
 
    The hook builds a `gateId: "verify"` request, calls `runAdapter`, derives
@@ -32,7 +32,7 @@ NOT an adapter implementation and NOT an audit writer.
    step MUST run to write it. Invoke the compiled capture entrypoint:
 
    ```bash
-   node dist/governance/capture-test-evidence.js <phaseNumber>
+   BIN=$(node -e "process.stdout.write(require('path').join(require('path').dirname(require.resolve('@opengsd/gsd-aidlc-overlay/package.json')),'bin','governance.cjs'))") && node "$BIN" capture-test-evidence <phaseNumber>
    ```
 
    Pass the concrete `{NN}` phase number. The module spawns
@@ -49,7 +49,7 @@ NOT an adapter implementation and NOT an audit writer.
    ship evidence includes a fresh eval run. Invoke:
 
    ```bash
-   node dist/select/eval-cli.js <phaseNumber>
+   BIN=$(node -e "process.stdout.write(require('path').join(require('path').dirname(require.resolve('@opengsd/gsd-aidlc-overlay/package.json')),'bin','governance.cjs'))") && node "$BIN" eval <phaseNumber>
    ```
 
    Pass the concrete `{NN}` phase number. The harness loads
