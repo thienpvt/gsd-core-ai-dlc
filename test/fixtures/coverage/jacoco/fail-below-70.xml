@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="sample">
+  <package name="com.example">
+    <class name="com/example/App" sourcefilename="App.java">
+      <counter type="LINE" missed="2" covered="3"/>
+    </class>
+    <counter type="LINE" missed="2" covered="3"/>
+  </package>
+  <counter type="LINE" missed="4" covered="6"/>
+</report>

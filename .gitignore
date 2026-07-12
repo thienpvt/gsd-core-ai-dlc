@@ -11,8 +11,8 @@ dist-test/
 # Generated build artifact (the committed example rule under aidlc-rules/ stays tracked)
 rule-index.json
 
-# Logs / coverage
-coverage/
+# Logs / c8 coverage report (root only — keep test/fixtures/coverage/ tracked)
+/coverage/
 *.log
 
 # Generated GSD research cache

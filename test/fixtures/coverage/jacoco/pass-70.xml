@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="sample">
+  <sessioninfo id="s1" start="1" dump="2"/>
+  <package name="com.example">
+    <class name="com/example/App" sourcefilename="App.java">
+      <method name="main" desc="([Ljava/lang/String;)V" line="10">
+        <counter type="INSTRUCTION" missed="2" covered="8"/>
+        <counter type="LINE" missed="1" covered="4"/>
+      </method>
+      <counter type="LINE" missed="1" covered="4"/>
+    </class>
+    <sourcefile name="App.java">
+      <counter type="LINE" missed="1" covered="4"/>
+    </sourcefile>
+    <counter type="LINE" missed="1" covered="4"/>
+  </package>
+  <counter type="INSTRUCTION" missed="10" covered="90"/>
+  <counter type="BRANCH" missed="2" covered="8"/>
+  <counter type="LINE" missed="3" covered="7"/>
+  <counter type="METHOD" missed="0" covered="1"/>
+  <counter type="CLASS" missed="0" covered="1"/>
+</report>

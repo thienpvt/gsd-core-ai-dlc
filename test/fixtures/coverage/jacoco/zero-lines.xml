@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="sample">
+  <package name="com.example">
+    <counter type="LINE" missed="5" covered="5"/>
+  </package>
+  <counter type="LINE" missed="0" covered="0"/>
+</report>
