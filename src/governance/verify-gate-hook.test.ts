@@ -11,12 +11,15 @@ import {
 import os from "node:os";
 import path from "node:path";
 import { ECHO_ADAPTERS, type GateAdapter } from "../enforcement/adapters.js";
+import { buildIndex, writeIndex } from "../index/build.js";
+import { discussHook } from "./discuss-hook.js";
+import { planHook } from "./plan-hook.js";
 import type { GateRequest, GateResult } from "../enforcement/types.js";
 import {
   deriveRuleGateStatuses,
   verifyGateHook,
 } from "./verify-gate-hook.js";
-import { readGateEvidence } from "./gate-evidence-store.js";
+import { readGateEvidence, writeGateEvidence } from "./gate-evidence-store.js";
 import { gateEvidencePath } from "./paths.js";
 import { type GovernanceRecord, writeSelection } from "./state-store.js";
 import { COVERAGE_FINDING_ID } from "../enforcement/coverage-report.js";
@@ -291,6 +294,102 @@ function writeGovConfig(
     "utf8",
   );
 }
+
+test("real rule pack selects coverage at GSD phase 18 and verify routes the real report adapter", async () => {
+  await withTempRoot(async (root) => {
+    const stateDir = path.join(root, ".planning");
+    mkdirSync(stateDir, { recursive: true });
+    writeFileSync(
+      path.join(stateDir, "STATE.md"),
+      [
+        "---",
+        "gsd_state_version: 1.0",
+        "current_phase: 18",
+        "status: executing",
+        "---",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+    const reportPath = seedReport(root, "pass-70.xml");
+    writeGovConfig(root, reportPath);
+    const realRulePack = path.resolve(process.cwd(), "aidlc-rules");
+    const indexPath = path.join(root, "rule-index.json");
+    writeIndex(buildIndex(realRulePack), indexPath);
+
+    const discussed = discussHook({
+      projectRoot: root,
+      indexPath,
+      taskSignal: {
+        taskType: "feature",
+        keywords: ["java", "coverage"],
+        paths: ["service/src/main/java/com/example/Service.java"],
+      },
+    });
+    assert.ok(
+      discussed.record.selectionResult.selected.some((rule) => rule.id === BINDING_RULE_ID),
+      "real binding rule must be selected for phase 18 Java production work",
+    );
+
+    const planned = planHook({
+      projectRoot: root,
+      phaseNumber: "18",
+      indexPath,
+      plannerInputs: {
+        phaseGoal: "Implement Java service behavior",
+        requirementIds: [],
+        riskThreatModel: [],
+        acceptanceCriteria: ["Coverage report passes"],
+        impactedFiles: ["service/src/main/java/com/example/Service.java"],
+      },
+    });
+    assert.ok(
+      planned.evidence.request.rules.some((rule) => rule.id === BINDING_RULE_ID),
+      "authoritative plan evidence must retain the binding rule",
+    );
+
+    const verified = await verifyGateHook({ projectRoot: root, phaseNumber: "18" });
+    assert.equal(verified.evidence.result.status, "pass");
+    assert.equal(verified.evidence.result.evaluatedBy, COVERAGE_ADAPTER_NAME);
+  });
+});
+
+test("verifyGateHook fails closed when plan binding coverage is absent from discuss state", async () => {
+  await withTempRoot(async (root) => {
+    writeSelection(record(), root);
+    writeGovConfig(root, seedReport(root, "pass-70.xml"));
+    const now = "2026-07-12T00:00:00.000Z";
+    const planBinding = bindingRecord().selectionResult.selected;
+    const evidence = {
+      request: {
+        gateId: "plan" as const,
+        phase: "construction" as const,
+        taskSignal: bindingRecord().taskSignal,
+        rules: planBinding,
+        requestedAt: now,
+      },
+      result: {
+        gateId: "plan" as const,
+        status: "pass" as const,
+        findings: [],
+        evaluatedBy: "aidlc-governance-plan",
+        evaluatedAt: now,
+      },
+      metadata: {
+        phase: "18",
+        writtenAt: now,
+        source: "aidlc-governance-plan",
+      },
+    };
+    writeGateEvidence(root, "18", evidence);
+
+    await assert.rejects(
+      verifyGateHook({ projectRoot: root, phaseNumber: "18" }),
+      /selection disagreement|binding.*omission/i,
+    );
+    assert.equal(existsSync(gateEvidencePath(root, "18", "verify")), false);
+  });
+});
 
 test("verifyGateHook routes binding rule to coverage-report pass fixture", async () => {
   await withTempRoot(async (root) => {
