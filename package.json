@@ -1,7 +1,7 @@
 {
   "name": "@opengsd/gsd-aidlc-overlay",
   "version": "0.1.0",
-  "description": "AI-DLC governance overlay for GSD Core — indexed, on-demand rule packs.",
+  "description": "AI-DLC governance overlay for GSD Core \u2014 indexed, on-demand rule packs.",
   "license": "MIT",
   "publishConfig": {
     "registry": "https://npm.example-org.local/repository/npm-private/"
@@ -18,7 +18,10 @@
     "dist",
     "bin",
     "aidlc-rules",
-    "examples"
+    "examples",
+    ".gsd",
+    ".claude/skills",
+    "docs"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",

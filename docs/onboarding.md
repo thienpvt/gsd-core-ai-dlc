@@ -57,9 +57,23 @@ npm install file:../gsd-core-ai-dlc
 npm install git+ssh://git@<org-host>/<team>/gsd-core-ai-dlc.git
 ```
 
-### 4. Let GSD register capability and skills
+### 4. Register capability and skills through GSD
 
-The GSD Core installer registers the capability from `.gsd/capabilities/aidlc-governance/capability.json` and the skills from `.claude/skills/aidlc-governance-*/SKILL.md`. No manual copying from `agents/`, `commands/`, or skill directories is needed.
+The package tarball ships `.gsd/capabilities/aidlc-governance/`, the six `.claude/skills/aidlc-governance-*/` skill directories, and `docs/`. After install, register the capability with GSD Core's existing `capability install` command — no auto-registration, postinstall, or manual copy of `agents/`/`commands/` is used.
+
+From a full repository checkout (or when the package is the project root):
+
+```bash
+gsd-tools capability install ./.gsd/capabilities/aidlc-governance --scope project --yes --raw
+```
+
+From a consumer project that installed the package into `node_modules`:
+
+```bash
+gsd-tools capability install ./node_modules/@opengsd/gsd-aidlc-overlay/.gsd/capabilities/aidlc-governance --scope project --yes --raw
+```
+
+GSD capability install records the capability bundle for the project. Skills remain at their package-relative paths under the installed package; do not invent a second registration mechanism.
 
 ### For maintainers (publish)
 
@@ -104,10 +118,13 @@ Both must be satisfied before governance hooks fire.
 Run the loader consent grant:
 
 ```bash
+# checkout / package-as-project-root
 gsd-tools capability install ./.gsd/capabilities/aidlc-governance --scope project --yes --raw
+# consumer node_modules install
+gsd-tools capability install ./node_modules/@opengsd/gsd-aidlc-overlay/.gsd/capabilities/aidlc-governance --scope project --yes --raw
 ```
 
-This writes the loader consent record using `consent.recordProjectConsent(...)` with the capability bundle content hash. It flips capability status from `inactive` to `active` when the hash matches.
+This writes the loader consent record using `consent.recordProjectConsent(...)` with the capability bundle content hash. It flips capability status from `inactive` to `active` when the hash matches. Use the path that exists in your install layout; both are supported GSD capability install sources.
 
 Check capability status:
 

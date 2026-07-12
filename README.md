@@ -19,6 +19,9 @@ cp .npmrc.example .npmrc
 
 # 2. Install (requires gsd-core first)
 npm install @opengsd/gsd-aidlc-overlay
+
+# 3. Register capability via GSD (package ships .gsd + skills + docs)
+gsd-tools capability install ./node_modules/@opengsd/gsd-aidlc-overlay/.gsd/capabilities/aidlc-governance --scope project --yes --raw
 ```
 
 > **Org private registry only — not public npmjs.com.** Package name `@opengsd/gsd-aidlc-overlay` uses `@opengsd` because the **org private registry** owns that scope locally. This is **not** a public-registry package and does **not** claim public npmjs.com ownership of `@opengsd`.
