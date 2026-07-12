@@ -1,7 +1,14 @@
 ---
 phase: 17-coverage-parser-binding-gateadapter
-reviewed: 2026-07-12T18:40:00Z
+reviewed: 2026-07-12T15:25:00Z
 depth: deep
+prior_review: .planning/phases/17-coverage-parser-binding-gateadapter/17-REVIEW.md
+remediation_commits:
+  - 1ccdbcb
+  - 4e8836b
+  - 8413d12
+  - 4940d4b
+  - 397fb71
 files_reviewed: 25
 files_reviewed_list:
   - .gitignore
@@ -30,193 +37,93 @@ files_reviewed_list:
   - test/fixtures/coverage/lcov/duplicate-lf.info
   - test/fixtures/coverage/lcov/lh-gt-lf.info
 findings:
-  critical: 1
-  warning: 6
-  info: 4
-  total: 11
-status: issues_found
+  critical: 0
+  warning: 0
+  info: 3
+  total: 3
+status: clean
 ---
 
 # Phase 17: Code Review Report
 
-**Reviewed:** 2026-07-12T18:40:00Z
+**Reviewed:** 2026-07-12T15:25:00Z
 **Depth:** deep
 **Files Reviewed:** 25
-**Status:** issues_found
+**Status:** clean
+**Prior review:** iteration 2 (1 critical CR-02 / 1 warning WR-07 / 3 info)
+**Remediation commits:** `1ccdbcb`, `4e8836b`, `8413d12`, `4940d4b`, `397fb71`
 
 ## Summary
 
-Phase 17 ships pure JaCoCo/LCOV parsers, a factory-only `coverage-report` GateAdapter, binding rule `java-spring-unit-line-coverage`, fixtures, and inventory 10→11 locks. Threshold math, DTD/entity hard-reject, path absolute/traversal lexical checks, size ceiling, `runAdapter` identity, finding-id token, and STUB_NAMES=7 are largely sound.
+Deep re-review of Phase 17 after claimed CR-02 + WR-07 fixes on main `397fb71` (agent worktree was still at `8413d12`; review target was main HEAD with rebuilt `dist/`).
 
-**Primary defect:** `parseJacoco` tag scanner does not ignore XML comments or CDATA. Adversarial inputs achieve fail-open 100% coverage from non-element text, and legitimate root counters paired with commented samples false-reject as duplicates. That breaks the binding measurement contract and T-17-06 fail-closed disposition.
+Focused suite: 62 tests, 58 pass, 0 fail, 4 symlink skips (EPERM). Rule/inventory suite: 26 pass. Runtime probes against rebuilt parsers + `runAdapter`.
 
-Cross-file path containment mirrors `detail-path.ts` closely; symlink realpath branch exists but suite did not execute symlink cases on this Windows host (EPERM). Phase 18 wiring absence not scored.
+**Verified fixed (do not re-open):**
+
+| Prior | Result |
+|-------|--------|
+| CR-01 comment/CDATA | Still fixed — comment-only / CDATA-only fake root counters throw; real root + commented sample OK; false-close depth OK; unterminated comment/CDATA throw |
+| CR-02 PI residual | **Fixed** in `4940d4b` — PI-only fake root throws; real root + PI sample → 70/100; unterminated PI throws; PI false-close does not alter depth; nested `<!--` inside comment throws |
+| WR-01/02 bounded read | Still fixed — `openSync` + post-open revalidation + `readSync` cap `MAX+1`; oversized / directory fail closed |
+| WR-03 LCOV endings | Still fixed — CR-only + indented LF/LH accepted |
+| WR-04 rule selection | Still fixed — empty/other rules → `coverage-report:binding-rule-not-selected`; `deriveRuleGateStatuses` no false attribution |
+| WR-05 symlink tests | Still present; skip only EPERM/EACCES/ENOTSUP/EOPNOTSUPP |
+| WR-06 no-record | Still fixed — non-LCOV → `no complete records`; forced lcov-on-xml → malformed, not zero-line |
+| WR-07 path identity | **Fixed** in `397fb71` — post-open re-realpath + containment + fd/path `dev`/`ino` match; escape / mismatch / re-resolve fail closed via `runAdapter`; residual concurrent TOCTOU documented (`ponytail`) |
+
+All reviewed files meet quality standards for critical/warning severity. Remaining items are documented ceilings only.
+
+**Boundaries preserved:** adapter name `coverage-report`; factory-only seam (not in `STUB_NAMES`/`ADAPTERS`/`ECHO_ADAPTERS`, size 7); threshold `covered * 100 >= total * 70` (7/10 pass, 69/100 fail); 8 MiB cap; finding id `java-spring-unit-line-coverage:coverage-report`; `runAdapter` schema + identity validation; Phase 18 wiring absent (`verifyGateHook` default still `generic-exit-ci`); zero new dependencies (`ajv`/`ajv-formats`/`gray-matter`/`picomatch` only); package `main` does not re-export coverage module.
 
 ## Narrative Findings (AI reviewer)
 
-### Critical Issues
-
-### CR-01: parseJacoco treats comment/CDATA text as real tags (fail-open coverage)
-
-**File:** `src/enforcement/parse-jacoco.ts:45-103`
-**Issue:** Tag regex `tagRe` scans the entire string with no comment/CDATA lexer. `<!-- … -->` and `<![CDATA[…]]>` bodies that contain `<counter type="LINE" …/>` are parsed as real elements at whatever depth the unclosed comment text implies.
-
-**Failure scenarios (reproduced against `dist/enforcement/parse-jacoco.js`):**
-
-1. **Fail-open pass:** comment-only or CDATA-only fake root counter accepted as measurable coverage:
-   ```xml
-   <report><!-- <counter type="LINE" missed="0" covered="100"/> --></report>
-   ```
-   and
-   ```xml
-   <report><![CDATA[<counter type="LINE" missed="0" covered="100"/>]]></report>
-   ```
-   both return `{ covered: 100, total: 100 }` → adapter `meetsThreshold` → **status pass** with no real report evidence.
-
-2. **False fail on valid-shaped report + annotation:** real root LINE plus a comment that mentions a counter throws `duplicate root LINE counters`:
-   ```xml
-   <report>
-     <counter type="LINE" missed="30" covered="70"/>
-     <!-- note <counter type="LINE" missed="0" covered="0"/> -->
-   </report>
-   ```
-
-3. **Depth corruption:** `<!-- </package> -->` is treated as a real close, elevating nested counters / unbalancing the stack (throws or mis-attributes depth).
-
-This is not fixture-only: any producer/tooling that embeds sample counters in comments, or an adversary who can write the report path, spoofs ≥70% line coverage. Conflicts with 17-CONTEXT measurement boundary, T-17-06, and JAVA-COV-03 fail-closed intent. Current suite (pass-70 / nested counters only) never exercises comments/CDATA → green tests do not catch it.
-
-**Fix:** Before tag scan (or inside the scanner), strip or skip:
-- `<!-- … -->` (non-nested comments)
-- `<![CDATA[…]]>`
-- optionally `<?…?>` PIs already mostly harmless
-
-Do not feed those regions to `tagRe`. Add fixtures/tests:
-- comment-only counter → throw missing root LINE
-- CDATA-only counter → throw missing root LINE
-- real root + comment containing counter text → `{covered,total}` from real root only
-- comment false `</package>` must not elevate nested counters
-
-```ts
-function stripIgnoredXmlRegions(xml: string): string {
-  return xml
-    .replace(/<!--[\s\S]*?-->/g, "")
-    .replace(/<!\[CDATA\[[\s\S]*?\]\]>/g, "");
-}
-// parseJacoco: rejectDtdAndEntities(xml); xml = stripIgnoredXmlRegions(xml); …
-```
-
----
-
-### Warnings
-
-### WR-01: Non-regular files not rejected (only directories)
-
-**File:** `src/enforcement/coverage-report.ts:159-175`
-**Issue:** After `statSync`, code rejects `st.isDirectory()` and oversized files, then reads. No `st.isFile()` (or reject `isFIFO`/`isSocket`/`isCharacterDevice`). A FIFO/device under `projectRoot` can block `readFileSync` or create DoS (T-17-03 residual).
-
-**Fix:**
-```ts
-if (!st.isFile()) {
-  return failResult(request, "coverage report path is not a regular file", evidencePath);
-}
-```
-
-### WR-02: Size check TOCTOU before read
-
-**File:** `src/enforcement/coverage-report.ts:176-225`
-**Issue:** `st.size > MAX` then later `readFileSync(realTarget)`. Between stat and read the file can grow past 8 MiB (or shrink/replace). Classic TOCTOU; threat model lists oversized read as high.
-
-**Fix:** Open with `openSync`/`readSync` capped at `MAX_COVERAGE_REPORT_BYTES + 1` bytes; if more bytes available, fail oversized. Or `fs.readFileSync` into buffer with manual length guard after read (`if (buf.length > MAX) fail`) as defense-in-depth (still races on replace, but bounds memory).
-
-### WR-03: LCOV line ending / indentation brittleness
-
-**File:** `src/enforcement/parse-lcov.ts:38-58`
-**Issue:** Split is `text.split(/\r?\n/)` only. Pure `\r` (old Mac) records never terminate → throw unterminated. Lines with leading space/tab before `LF:`/`LH:` fail incomplete (`startsWith` after `trimEnd` only). Still fail-closed, but rejects plausible producer variants and differs from “tolerate trailing `\r`” plan wording for full CR-only files.
-
-**Fix:** Normalize `text.replace(/\r\n/g, "\n").replace(/\r/g, "\n")` then split; `const line = rawLine.trim()` (or trimStart) for record keywords.
-
-### WR-04: Adapter ignores `request.rules` selection set
-
-**File:** `src/enforcement/coverage-report.ts:119-260`
-**Issue:** `evaluate` always runs filesystem parse and always emits finding id `java-spring-unit-line-coverage:coverage-report`, even when `request.rules` is empty or only contains other rules (reproduced: `other-rules-only` / `empty-rules` still fail with coverage finding). Phase 18 is expected to choose the adapter, but a mis-wire marks `deriveRuleGateStatuses` for a rule not in the request (or none). Not fail-open, but incorrect gate attribution.
-
-**Fix:** If binding rule id absent from `request.rules`, either no-op pass with no findings, or fail with explicit “coverage adapter invoked without selected binding rule” message; do not invent a rule-token finding for unselected rules.
-
-### WR-05: Symlink escape mitigation untested in suite
-
-**File:** `src/enforcement/coverage-report.ts:184-203`, `src/enforcement/coverage-report.test.ts` (no symlink cases)
-**Issue:** realpath containment implements T-17-01, but tests never create leaf/parent symlinks. On this review host symlink creation returned EPERM. A regression in `canonicalize`/`escapesRoot` would not be caught by the 580-test suite.
-
-**Fix:** Add temp-dir tests (skip if `symlinkSync` unsupported) for: file symlink out of root → fail; parent dir symlink out → fail; projectRoot itself symlinked to real tree + in-tree report → pass; dangling symlink → fail closed.
-
-### WR-06: Forced wrong format maps non-LCOV to zero-line, not malformed
-
-**File:** `src/enforcement/coverage-report.ts:229-249`, `src/enforcement/parse-lcov.ts:24-30`
-**Issue:** `format: "lcov"` on JaCoCo XML (or arbitrary text without SF records) → `parseLcov` returns `{0,0}` (empty aggregate) → adapter message “zero measurable lines” instead of “malformed”. Still fail-closed, but weakens diagnostics and conflates empty coverage with wrong bytes. Content-sniffing is intentionally out of scope; forced format should still treat “zero records after non-empty input” as malformed or keep zero-line only for truly empty files.
-
-**Fix:** In `parseLcov`, if `text.trim().length > 0` and no complete records contributed, throw `lcov: no complete records`; keep empty-string → `{0,0}`.
-
----
-
 ### Info
 
-### IN-01: Trailing markup after `</report>` ignored when no second root LINE
+### IN-01: Residual post-open TOCTOU under hostile concurrent mutation
 
-**File:** `src/enforcement/parse-jacoco.ts:64-103`
-**Issue:** After report closes, `inReport=false`; trailing tags do not contribute. Acceptable fail-soft; optional harden: reject non-whitespace after final report close.
+**File:** `src/enforcement/coverage-report.ts:148-155,157-203`
+**Issue:** After `openSync`, identity/containment is re-checked, then bytes are read from the fd. A hostile concurrent rename/swap between the identity check and `readSync` remains possible. Code documents this Node stdlib ceiling (`ponytail`: no `openat2` / `O_PATH` / fd-based realpath).
+**Fix:** No action required for Phase 17. Upgrade path already named: platform `openat2+RESOLVE_BENEATH` or fd-based realpath when available. Do not treat as open defect.
 
-### IN-02: Entity rejection also bans predefined entities in attributes
+### IN-02: `CoverageAdapterInternals` is a published export on the deep module
 
-**File:** `src/enforcement/parse-jacoco.ts:28-31`
-**Issue:** `/&[A-Za-z_]/` rejects `&amp;`/`&lt;` in report names. Intentional T-17-04 harden; may reject rare real JaCoCo XML with encoded names. Fail-closed — document as supported subset.
+**File:** `src/enforcement/coverage-report.ts:53-64,240-242` (`dist/enforcement/coverage-report.d.ts`)
+**Issue:** Test seam (`afterOpen` / `postOpenRealpath` / `postOpenStat`) is an `export interface` and optional second arg of `createCoverageAdapter`. Module ships under `package.json` `files: ["dist", …]`. Package `main` (`dist/index.js`) does not re-export it; Phase 18 is expected to deep-import the factory. Callers who pass untrusted objects as the second arg can weaken post-open checks — same trust boundary as controlling the factory call site.
+**Fix:** Optional later hygiene: stop exporting the interface (type-only import in tests via relative path), or brand/omit second arg from `.d.ts` consumer surface. Not a gate correctness bug.
 
-### IN-03: Test gap — comment/CDATA/adversarial XML absent from 580 suite
+### IN-03: Outer `TypeError`/`RangeError` rethrow vs open-path fail-closed
 
-**File:** `src/enforcement/parse-jacoco.test.ts` (entire)
-**Issue:** Fixtures cover nested counters, DTD, duplicate root, negative — not comments/CDATA/PI/trailing. CR-01 survives full green suite. Add adversarial cases with CR-01 fix.
-
-### IN-04: `.gitignore` `/coverage/` correctly scopes root c8 output
-
-**File:** `.gitignore:14-15`
-**Issue:** None — `/coverage/` keeps `test/fixtures/coverage/**` tracked (`git ls-files` confirms). Intentional Phase 17 hygiene; no defect.
+**File:** `src/enforcement/coverage-report.ts:323-343,379-387`
+**Issue:** Outer `evaluate` catch rethrows `TypeError`/`RangeError`, but errors thrown inside `readBoundedRegularFile` (including test-seam `TypeError` from `afterOpen`) are caught by the inner open/read `catch` and mapped to schema-valid `status: "fail"`. Net effect is fail-closed durable evidence, which matches the gate contract; only TypeErrors outside that block (e.g. hostile `rules` proxy) still throw.
+**Fix:** None required. If programming-fault loudness is desired later, rethrow `TypeError`/`RangeError` in the inner open/read catch before mapping — optional, not a correctness defect.
 
 ---
 
-## Cross-file / deep-trace notes
+## Probe Log (high level)
 
-| Area | Result |
-|------|--------|
-| `runAdapter` identity/schema | Factory returns `evaluatedBy: "coverage-report"`, `gateId` echo; tests cover pass/fail via `runAdapter`. OK. |
-| `STUB_NAMES` / `ADAPTERS` | Remain 7; `coverage-report` factory-only. OK. |
-| Finding id → `deriveRuleGateStatuses` | `java-spring-unit-line-coverage:coverage-report` token-matches rule id. OK when rule selected. |
-| Threshold | Integer `covered*100 >= total*70`; exact 70% pass; 69/100 fail; BigInt path for large products. OK (stricter/safer than plan “fail if product overflows”). |
-| Rule selection | Paths-only positives; exclude docs/test/infra + test/generated/build/target; BODY_CANARY quarantine; inventory 11. OK. |
-| Phase 18 wiring | Deferred by design — not scored. |
-| Windows path | Absolute `reportPath` rejected; `..\` traversal rejected; drive-absolute rejected via `path.isAbsolute`. `C:foo` relative quirk resolves under root as `foo` — not an escape. |
-| projectRoot trusted | Broad `projectRoot` (e.g. `C:\`) can read any relative file under it then fail parse — config trust boundary, not reportPath escape. |
-
-## Tests run / inspection
-
-- Static read of all 25 scoped sources + 17-CONTEXT/01-PLAN threat model.
-- Runtime probes via `dist/enforcement/{parse-jacoco,parse-lcov,coverage-report,run-adapter}.js`:
-  - comment/CDATA fail-open and false-duplicate (**CR-01**).
-  - LCOV CRLF OK; CR-only / leading-space fail (**WR-03**).
-  - Threshold exact 70 / 69/100 / zero covered.
-  - Absolute, `..`, unknown suffix, empty path, directory, oversized boundary, forced lcov-on-xml, empty rules.
-  - Symlink probes skipped (EPERM).
-- Full `npm test` not re-run in this review agent (pre-stated 580/580); defects above are outside current assertions.
+- CR-02: PI-only throw; real+PI 70/100; unterminated PI throw; nested comment throw; PI false-close depth OK
+- CR-01: comment/CDATA-only throw; DTD/entity reject
+- Direct-root: nested-only throw; package counters ignored; root LINE 7/10
+- LCOV: empty/ws → zero; CR/CRLF/indent OK; overflow aggregate throw; no-record throw
+- Adapter via `runAdapter`: pass/fail/zero/PI-malformed/two-reports/oversized/dir/absolute/traversal/unknown suffix/thresholds
+- WR-07: post-open escape fail; identity mismatch fail; re-resolve fail; zero-ino escape still fails containment first
+- WR-04: empty rules → `binding-rule-not-selected`; `deriveRuleGateStatuses` no false fail on binding id
+- Stubs size 7; no `coverage-report` in ADAPTERS; deps unchanged; Phase 18 not wired
+- Host Windows: non-zero `ino`/`dev`; fd vs path identity match
 
 ## Counts
 
 | Severity | Count |
 |----------|------:|
-| Critical | 1 |
-| Warning  | 6 |
-| Info     | 4 |
-| **Total**| **11** |
+| Critical | 0 |
+| Warning  | 0 |
+| Info     | 3 |
+| **Total**| **3** |
 
 ---
 
-_Reviewed: 2026-07-12T18:40:00Z_
+_Reviewed: 2026-07-12T15:25:00Z_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: deep_
+_HEAD reviewed: 397fb71_
