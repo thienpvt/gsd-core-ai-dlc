@@ -164,12 +164,12 @@ Plans:
   2. Verify/ship path is configured so binding coverage uses `coverage-report` evidence (not left on always-pass generic-exit-ci while claiming coverage enforced)
   3. Docs are discoverable from existing onboarding/docs entrypoints without reading engine source
 
-**Plans**: 2 plans
+**Plans**: 1/2 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 18-01-PLAN.md — TDD config reader + discuss/plan domain defaults + verify coverage-report routing + ship regression
+- [x] 18-01-PLAN.md — TDD config reader + discuss/plan domain defaults + verify coverage-report routing + ship regression
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -196,7 +196,7 @@ Plans:
 | 15. Logging, API Contract & Saga Decision Rules | v4.0 | 2/2 | Complete    | 2026-07-09 |
 | 16. Starter Examples Outside Index | v4.0 | 1/1 | Complete    | 2026-07-12 |
 | 17. Coverage Parser + Binding GateAdapter | v4.0 | 2/2 | Complete    | 2026-07-12 |
-| 18. Verify/Ship Wire + Consumer Docs | v4.0 | 0/2 | Planned | - |
+| 18. Verify/Ship Wire + Consumer Docs | v4.0 | 1/2 | In Progress|  |
 
 ---
 *See `.planning/MILESTONES.md` for shipped-milestone summaries, `.planning/milestones/v1.0-ROADMAP.md` for full v1.0 phase detail, `.planning/milestones/v2.0-ROADMAP.md` for v2.0, and `.planning/milestones/v3.0-ROADMAP.md` for v3.0.*
