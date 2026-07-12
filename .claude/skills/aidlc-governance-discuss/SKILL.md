@@ -14,10 +14,12 @@ governance logic lives in the pure cores under `src/governance/` +
 ## Steps
 
 1. **Read the current phase.** Open `.planning/STATE.md` and read the
-   `current_phase` field. Map it to the project's Phase enum:
-   `1 -> inception`, `2-4 -> construction`, `5+ -> operations`. If STATE.md
-   is missing or `current_phase` is unparseable, FAIL LOUD — never silently
-   fall back to a default phase (under-injection footgun, Pitfall 7).
+   `current_phase` field. Map it to the supported AI-DLC Phase enum:
+   `1 -> inception`, `2+ -> construction`. GSD phase numbers are project-defined,
+   so no numeric value implies operations; OPS-01 remains deferred until explicit
+   AI-DLC phase metadata exists. If STATE.md is missing or `current_phase` is
+   unparseable, FAIL LOUD � never silently fall back to a default phase
+   (under-injection footgun, Pitfall 7).
 
 2. **Derive the TaskSignal.** From the discuss context, build:
    - `taskType` — one of `feature | bugfix | refactor | docs | test | infra | security | data`,

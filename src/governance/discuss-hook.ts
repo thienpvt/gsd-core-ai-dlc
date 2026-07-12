@@ -71,10 +71,10 @@ export interface DiscussHookResult {
 export type { Phase, SelectionConfig, TaskSignal, GovernanceRecord };
 
 /**
- * Project-specific phase-number → Phase enum mapping. The roadmap models
- * phases 1=inception, 2-4=construction, 5+=operations. STATE.md carries a
- * numeric `current_phase` field; this helper converts it. Any unrecognized
- * value throws loud (Pitfall 7).
+ * Map the first GSD phase to AI-DLC inception and all later development phases
+ * to construction. GSD phase numbers are project-defined and unbounded, so
+ * they cannot encode an operations transition. OPS-01 remains deferred; add
+ * explicit AI-DLC phase metadata before returning `operations` here.
  */
 export function phaseFromNumber(n: number): Phase {
   if (!Number.isInteger(n) || n < 1) {
@@ -82,9 +82,7 @@ export function phaseFromNumber(n: number): Phase {
       `malformed STATE.md: current_phase ${JSON.stringify(n)} is not a positive integer`,
     );
   }
-  if (n === 1) return "inception";
-  if (n >= 2 && n <= 4) return "construction";
-  return "operations";
+  return n === 1 ? "inception" : "construction";
 }
 
 /**
