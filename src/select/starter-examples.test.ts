@@ -164,10 +164,12 @@ test("JAVA-EX-02: buildIndex(aidlc-rules) never indexes examples/ sourceFiles", 
   }
 });
 
-test("JAVA-EX-02 backstop: buildIndex(EXAMPLES_ROOT) throws D-10 scope error", () => {
+test("JAVA-EX-02 backstop: buildIndex(EXAMPLES_ROOT) throws (not a rule root)", () => {
+  // Load order: frontmatter validation on .md runs before D-10 tier check.
+  // Either failure proves examples/ is not a valid selectable corpus root.
   assert.throws(
     () => buildIndex(EXAMPLES_ROOT),
-    /outside the enterprise\/domain\/project tiers|D-10/,
+    /outside the enterprise\/domain\/project tiers|D-10|must have required property|missing '/,
   );
 });
 

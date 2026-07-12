@@ -17,7 +17,8 @@
   "files": [
     "dist",
     "bin",
-    "aidlc-rules"
+    "aidlc-rules",
+    "examples"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
