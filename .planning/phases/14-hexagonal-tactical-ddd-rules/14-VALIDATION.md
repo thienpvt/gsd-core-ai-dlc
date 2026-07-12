@@ -1,10 +1,11 @@
 ---
 phase: 14
 slug: hexagonal-tactical-ddd-rules
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: verified
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-07-09
+verified: 2026-07-13
 ---
 
 # Phase 14 — Validation Strategy
@@ -38,11 +39,11 @@ created: 2026-07-09
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|---------|-----------------|-----------|-------------------|-------------|--------|
-| 14-01-01 | 01 | 1 | JAVA-HEX-01 | T-14-01 | Path-primary hex selects when subscribed; inject summary only | unit | `npm test` | ❌ W0 | ⬜ pending |
-| 14-01-02 | 01 | 1 | JAVA-DDD-01 | T-14-01 | Path-primary ddd selects; no bare-entity false positives | unit | `npm test` | ❌ W0 | ⬜ pending |
-| 14-01-03 | 01 | 1 | JAVA-HEX-01 / JAVA-DDD-01 | T-14-02 | domains=[] / docs / README / inception do not select | unit | `npm test` | ❌ W0 | ⬜ pending |
-| 14-02-01 | 02 | 2 | JAVA-HEX-01 | — | Content + detail makes hex suite GREEN | unit | `npm test` | ❌ W0 | ⬜ pending |
-| 14-02-02 | 02 | 2 | JAVA-DDD-01 | — | Content + detail makes ddd suite GREEN | unit | `npm test` | ❌ W0 | ⬜ pending |
+| 14-01-01 | 01 | 1 | JAVA-HEX-01 | T-14-01 | Path-primary hex selects when subscribed; inject summary only | unit | focused HEX/DDD suite | ✅ | ✅ green |
+| 14-01-02 | 01 | 1 | JAVA-DDD-01 | T-14-01 | Path-primary DDD selects; no bare-entity false positives | unit | focused HEX/DDD suite | ✅ | ✅ green |
+| 14-01-03 | 01 | 1 | JAVA-HEX-01 / JAVA-DDD-01 | T-14-02 | domains=[] / docs / README / inception do not select | unit | focused HEX/DDD suite | ✅ | ✅ green |
+| 14-02-01 | 02 | 2 | JAVA-HEX-01 | — | Content + detail makes hex suite GREEN | unit | focused HEX/DDD suite | ✅ | ✅ green |
+| 14-02-02 | 02 | 2 | JAVA-DDD-01 | — | Content + detail makes DDD suite GREEN | unit | focused HEX/DDD suite | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -50,11 +51,11 @@ created: 2026-07-09
 
 ## Wave 0 Requirements
 
-- [ ] `src/select/java-spring-hex-ddd.test.ts` — HEX/DDD matrices + CR-style negatives
-- [ ] `aidlc-rules/domain/java-spring/java-spring-hex-layering.md` + detail
-- [ ] `aidlc-rules/domain/java-spring/java-spring-ddd-tactical.md` + detail
-- [ ] Rebuild `rule-index.json` after content lands
-- [ ] Framework install: none
+- [x] `src/select/java-spring-hex-ddd.test.ts` — 36 HEX/DDD matrix and adversarial-negative tests.
+- [x] `java-spring-hex-layering.md` + lazy detail.
+- [x] `java-spring-ddd-tactical.md` + lazy detail.
+- [x] Real-corpus precedence/inventory regression.
+- [x] Framework install: none.
 
 ---
 
@@ -70,11 +71,13 @@ created: 2026-07-09
 
 ## Validation Sign-Off
 
-- [ ] All tasks have automated verify or Wave 0 deps
-- [ ] Sampling continuity OK
-- [ ] Wave 0 covers MISSING refs
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 120s
-- [ ] `nyquist_compliant: true` after green suite
+- [x] All tasks have automated verification.
+- [x] Sampling continuity preserved.
+- [x] Wave 0 complete.
+- [x] No watch-mode flags.
+- [x] Feedback latency target met.
+- [x] `nyquist_compliant: true`.
 
-**Approval:** pending
+**Audit 2026-07-13:** focused HEX/DDD 36/36; precedence 4/4; full 668 total, 661 pass, 7 skips, 0 fail; gaps 0.
+
+**Approval:** verified 2026-07-13

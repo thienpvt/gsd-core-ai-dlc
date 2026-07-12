@@ -1,10 +1,11 @@
 ---
 phase: 13
 slug: domain-pack-service-classification-integrations
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: verified
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-07-09
+verified: 2026-07-13
 ---
 
 # Phase 13 — Validation Strategy
@@ -38,14 +39,14 @@ created: 2026-07-09
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|---------|-----------------|-----------|-------------------|-------------|--------|
-| 13-01-01 | 01 | 1 | JAVA-PACK-01 | T-13-04 | Unsubscribed domains never inject pack rules | unit | `npm test` | ❌ W0 | ⬜ pending |
-| 13-01-02 | 01 | 1 | JAVA-PACK-02 | T-13-03 | Summaries only in inject; body canaries absent | unit | `npm test` | ❌ W0 | ⬜ pending |
-| 13-01-03 | 01 | 1 | JAVA-SVC-01 | T-13-01 | Internal XOR internet; ambiguous → neither | unit | `npm test` | ❌ W0 | ⬜ pending |
-| 13-01-04 | 01 | 1 | JAVA-SVC-02 | — | Internal summary encodes JDBC/ORM OK | unit | `npm test` | ❌ W0 | ⬜ pending |
-| 13-01-05 | 01 | 1 | JAVA-SVC-03 | T-13-02 | Internet gateway language; WSO2 only in Markdown | unit + grep | `npm test` | ❌ W0 | ⬜ pending |
-| 13-01-06 | 01 | 1 | JAVA-IN-01 | — | Controller/API paths select REST; construction only | unit | `npm test` | ❌ W0 | ⬜ pending |
-| 13-01-07 | 01 | 1 | JAVA-IN-02 | — | Listener/Kafka paths select Kafka; construction only | unit | `npm test` | ❌ W0 | ⬜ pending |
-| 13-02-01 | 02 | 2 | JAVA-PACK-01..IN-02 | T-13-01..04 | Content + index make pack suite GREEN | unit | `npm test` | ❌ W0 | ⬜ pending |
+| 13-01-01 | 01 | 1 | JAVA-PACK-01 | T-13-04 | Unsubscribed domains never inject pack rules | unit | focused pack suite | ✅ | ✅ green |
+| 13-01-02 | 01 | 1 | JAVA-PACK-02 | T-13-03 | Summaries only in inject; body canaries absent | unit | focused pack suite | ✅ | ✅ green |
+| 13-01-03 | 01 | 1 | JAVA-SVC-01 | T-13-01 | Internal XOR internet; ambiguous → neither | unit | focused pack suite | ✅ | ✅ green |
+| 13-01-04 | 01 | 1 | JAVA-SVC-02 | — | Internal summary encodes JDBC/ORM OK | unit | focused pack suite | ✅ | ✅ green |
+| 13-01-05 | 01 | 1 | JAVA-SVC-03 | T-13-02 | Internet gateway language; WSO2 only in Markdown | unit + grep | focused pack suite | ✅ | ✅ green |
+| 13-01-06 | 01 | 1 | JAVA-IN-01 | — | Controller/API paths select REST; construction only | unit | focused pack suite | ✅ | ✅ green |
+| 13-01-07 | 01 | 1 | JAVA-IN-02 | — | Listener/Kafka paths select Kafka; construction only | unit | focused pack suite | ✅ | ✅ green |
+| 13-02-01 | 02 | 2 | JAVA-PACK-01..IN-02 | T-13-01..04 | Content + index make pack suite GREEN | unit | `npm test` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -53,10 +54,10 @@ created: 2026-07-09
 
 ## Wave 0 Requirements
 
-- [ ] `src/select/java-spring-pack.test.ts` — stubs/suite for JAVA-PACK/SVC/IN matrices
-- [ ] Production rules under `aidlc-rules/domain/java-spring/*.md` + `details/*`
-- [ ] Rebuild `rule-index.json` after rules land
-- [ ] Framework install: none — existing `npm test` sufficient
+- [x] `src/select/java-spring-pack.test.ts` — 27 JAVA-PACK/SVC/IN matrix tests.
+- [x] Production rules under `aidlc-rules/domain/java-spring/*.md` + `details/*`.
+- [x] Real-corpus precedence/inventory regression.
+- [x] Framework install: none — existing runner sufficient.
 
 *Existing infrastructure covers the runner; missing pieces are content + pack suite only.*
 
@@ -74,11 +75,13 @@ created: 2026-07-09
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 120s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have automated verification or satisfied Wave 0 dependencies.
+- [x] Sampling continuity preserved.
+- [x] Wave 0 complete.
+- [x] No watch-mode flags.
+- [x] Feedback latency target met.
+- [x] `nyquist_compliant: true`.
 
-**Approval:** pending
+**Audit 2026-07-13:** focused pack 27/27; precedence 4/4; full 668 total, 661 pass, 7 skips, 0 fail; gaps 0.
+
+**Approval:** verified 2026-07-13
