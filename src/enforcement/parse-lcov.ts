@@ -25,7 +25,8 @@ export function parseLcov(text: string): LineCounter {
   if (typeof text !== "string") {
     throw new Error("lcov: non-string input");
   }
-  if (text.length === 0) {
+  // Truly empty / whitespace-only input → zero counters (zero-line fail closed upstream).
+  if (text.trim().length === 0) {
     return { covered: 0, total: 0 };
   }
 
@@ -34,11 +35,16 @@ export function parseLcov(text: string): LineCounter {
   let recordLh: number | null = null;
   let total = 0;
   let covered = 0;
+  let completeRecords = 0;
 
-  // Normalize line endings; keep empty lines harmless.
-  const lines = text.split(/\r?\n/);
+  // Normalize CRLF and bare CR; tolerate leading/trailing whitespace around records.
+  const normalized = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+  const lines = normalized.split("\n");
   for (const rawLine of lines) {
-    const line = rawLine.trimEnd();
+    const line = rawLine.trim();
+    if (line.length === 0) {
+      continue;
+    }
     if (line.startsWith("SF:")) {
       if (inRecord) {
         throw new Error("lcov: nested/overlapping SF without end_of_record");
@@ -82,6 +88,7 @@ export function parseLcov(text: string): LineCounter {
       }
       total = nextTotal;
       covered = nextCovered;
+      completeRecords += 1;
       inRecord = false;
       recordLf = null;
       recordLh = null;
@@ -92,6 +99,9 @@ export function parseLcov(text: string): LineCounter {
 
   if (inRecord) {
     throw new Error("lcov: unterminated record (missing end_of_record)");
+  }
+  if (completeRecords === 0) {
+    throw new Error("lcov: no complete records");
   }
 
   return { covered, total };
