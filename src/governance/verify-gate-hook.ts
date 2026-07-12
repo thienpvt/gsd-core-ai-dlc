@@ -1,4 +1,5 @@
 import { ADAPTERS, type GateAdapter } from "../enforcement/adapters.js";
+import { createCoverageAdapter } from "../enforcement/coverage-report.js";
 import { runAdapter } from "../enforcement/run-adapter.js";
 import type { GateRequest, GateResult } from "../enforcement/types.js";
 import {
@@ -7,6 +8,13 @@ import {
 } from "./gate-evidence-store.js";
 import { selectionStatePath } from "./paths.js";
 import { readSelection } from "./state-store.js";
+import { readGovernanceConfig } from "./config.js";
+
+
+/** Binding rule that forces real coverage-report evaluation. */
+const BINDING_RULE_ID = "java-spring-unit-line-coverage";
+/** Forced adapter name when the binding rule is selected. */
+const COVERAGE_ADAPTER_NAME = "coverage-report";
 
 export interface VerifyGateHookArgs {
   projectRoot: string;
@@ -63,10 +71,37 @@ export async function verifyGateHook(
     );
   }
 
-  const adapterName = args.adapterName ?? "generic-exit-ci";
-  const adapter = (args.adapters ?? ADAPTERS).get(adapterName);
-  if (!adapter) {
-    throw new Error(`verifyGateHook: missing adapter '${adapterName}'`);
+  const bindingSelected = record.selectionResult.selected.some(
+    (rule) => rule.id === BINDING_RULE_ID,
+  );
+
+  let adapter: GateAdapter;
+  if (bindingSelected) {
+    if (
+      args.adapterName !== undefined &&
+      args.adapterName !== COVERAGE_ADAPTER_NAME
+    ) {
+      throw new Error(
+        `verifyGateHook: adapter bypass rejected while binding rule '${BINDING_RULE_ID}' is selected; required adapter '${COVERAGE_ADAPTER_NAME}', got '${args.adapterName}'`,
+      );
+    }
+    const injected = args.adapters?.get(COVERAGE_ADAPTER_NAME);
+    if (injected !== undefined) {
+      adapter = injected;
+    } else {
+      const { coverageReportPath } = readGovernanceConfig(args.projectRoot);
+      adapter = createCoverageAdapter({
+        projectRoot: args.projectRoot,
+        reportPath: coverageReportPath,
+      });
+    }
+  } else {
+    const adapterName = args.adapterName ?? "generic-exit-ci";
+    const lookedUp = (args.adapters ?? ADAPTERS).get(adapterName);
+    if (!lookedUp) {
+      throw new Error(`verifyGateHook: missing adapter '${adapterName}'`);
+    }
+    adapter = lookedUp;
   }
 
   const requestedAt = new Date().toISOString();
