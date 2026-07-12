@@ -57,15 +57,10 @@ function packageRoot(): string {
 
 /**
  * Eval fixtures root (`.../test/fixtures/eval`).
- * Default: packaged corpus under package root.
- * Override: `GOVERNANCE_EVAL_FIXTURES_ROOT` absolute path to an eval fixtures dir
- * (test injection for spawn e2e only — production never sets this).
+ * Immutable packaged corpus under package root — no env override.
+ * Tests inject via RunEvalArgs loaders or spawn a purpose-built temp package.
  */
 export function evalCorpusRoot(): string {
-  const override = process.env.GOVERNANCE_EVAL_FIXTURES_ROOT;
-  if (override && override.trim().length > 0) {
-    return path.resolve(override);
-  }
   return path.join(packageRoot(), "test", "fixtures", "eval");
 }
 

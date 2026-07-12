@@ -1,22 +1,28 @@
 /**
- * SEL-06 standing eval harness producer tests (D-01..D-16) — TDD RED.
+ * SEL-06 standing eval harness producer tests (D-01..D-16).
  *
  * eval-cli.ts: runEval(args) → runCases → aggregate → build EvalReport;
  * runDirect(argv) persists via writeEvalEvidence + writeEvalReportMarkdown and
  * sets process.exitCode (0 pass, 2 critical-recall miss, 3 parse/load error).
  *
  * Injectable seams: `indexLoader` + `casesLoader` let unit tests pass fixture
- * data without touching disk. End-to-end + exit-code tests spawnSync the
- * compiled dist-test runner with cwd set to a temp root seeded with minimal
- * fixtures (clone of ship-gate-hook.test.ts RUNNER pattern).
- *
- * RED note: eval-cli.ts does not exist yet — import resolves to undefined and
- * every case fails. Task 2 turns them GREEN.
+ * data without touching disk. End-to-end + exit-code tests spawnSync a
+ * purpose-built temporary package (copied dist-test + seeded corpus) — the
+ * packaged corpus is immutable (no GOVERNANCE_EVAL_FIXTURES_ROOT override).
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync, mkdirSync } from "node:fs";
+import {
+  cpSync,
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+  mkdirSync,
+} from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import {
@@ -144,7 +150,7 @@ function withTempRoot<T>(fn: (root: string) => T): T {
 }
 
 // ---------------------------------------------------------------------------
-// Seed helpers for spawnSync end-to-end tests (minimal fixture corpus on disk).
+// Seed helpers + purpose-built temp package for spawnSync e2e (no env override).
 // ---------------------------------------------------------------------------
 
 const ALWAYS_CRITICAL_RULE = `---
@@ -179,11 +185,11 @@ classification: advisory
 Body is irrelevant to the index.
 `;
 
-function seedPassingCorpus(root: string): void {
-  const rulesDir = path.join(root, "test", "fixtures", "eval", "eval-rules", "enterprise");
+function seedPassingCorpus(fixturesRoot: string): void {
+  const rulesDir = path.join(fixturesRoot, "eval-rules", "enterprise");
   mkdirSync(rulesDir, { recursive: true });
   writeFileSync(path.join(rulesDir, "always-critical.md"), ALWAYS_CRITICAL_RULE, "utf8");
-  const casesDir = path.join(root, "test", "fixtures", "eval", "cases");
+  const casesDir = path.join(fixturesRoot, "cases");
   mkdirSync(casesDir, { recursive: true });
   writeFileSync(
     path.join(casesDir, "eval-cases.json"),
@@ -204,11 +210,11 @@ function seedPassingCorpus(root: string): void {
   );
 }
 
-function seedCriticalMissCorpus(root: string): void {
-  const rulesDir = path.join(root, "test", "fixtures", "eval", "eval-rules", "enterprise");
+function seedCriticalMissCorpus(fixturesRoot: string): void {
+  const rulesDir = path.join(fixturesRoot, "eval-rules", "enterprise");
   mkdirSync(rulesDir, { recursive: true });
   writeFileSync(path.join(rulesDir, "narrow-critical.md"), NARROW_CRITICAL_RULE, "utf8");
-  const casesDir = path.join(root, "test", "fixtures", "eval", "cases");
+  const casesDir = path.join(fixturesRoot, "cases");
   mkdirSync(casesDir, { recursive: true });
   writeFileSync(
     path.join(casesDir, "eval-cases.json"),
@@ -229,16 +235,41 @@ function seedCriticalMissCorpus(root: string): void {
   );
 }
 
-const RUNNER = path.resolve(process.cwd(), "dist-test", "select", "eval-cli.js");
+const DIST_TEST = path.resolve(process.cwd(), "dist-test");
+/** Resolved host node_modules (worktrees may lack a local install). */
+const NODE_MODULES = path.dirname(
+  path.dirname(require.resolve("gray-matter/package.json")),
+);
 
-/** Point default loaders at seeded temp fixtures (spawn e2e only). */
-function evalSpawnEnv(root: string): NodeJS.ProcessEnv {
-  return {
-    ...process.env,
-    GOVERNANCE_EVAL_FIXTURES_ROOT: path.join(root, "test", "fixtures", "eval"),
-  };
+/**
+ * Build a throwaway package: dist-test graph + seeded corpus + node_modules
+ * junction. packageRoot() = two levels up from dist-test/select/eval-cli.js.
+ */
+function withTempEvalPackage(
+  seed: (fixturesRoot: string) => void,
+  fn: (pkg: string, runner: string) => void,
+): void {
+  const pkg = mkdtempSync(path.join(os.tmpdir(), "gsd-eval-pkg-"));
+  try {
+    cpSync(DIST_TEST, path.join(pkg, "dist-test"), { recursive: true });
+    try {
+      symlinkSync(NODE_MODULES, path.join(pkg, "node_modules"), "junction");
+    } catch {
+      // NODE_PATH below covers deps when junctions unavailable.
+    }
+    seed(path.join(pkg, "test", "fixtures", "eval"));
+    const runner = path.join(pkg, "dist-test", "select", "eval-cli.js");
+    fn(pkg, runner);
+  } finally {
+    rmSync(pkg, { recursive: true, force: true });
+  }
 }
 
+function spawnEnv(): NodeJS.ProcessEnv {
+  const env: NodeJS.ProcessEnv = { ...process.env, NODE_PATH: NODE_MODULES };
+  delete env.GOVERNANCE_EVAL_FIXTURES_ROOT;
+  return env;
+}
 
 // ---------------------------------------------------------------------------
 // Tests.
@@ -353,33 +384,31 @@ test("renderMarkdown emits aggregate + per-case table + critical-misses + corpus
 });
 
 test("End-to-end: node dist/select/eval-cli.js 10 writes 10.json + 10-report.md (D-09, D-13)", () => {
-  withTempRoot((root) => {
-    seedPassingCorpus(root);
-    const child = spawnSync(process.execPath, [RUNNER, "10"], {
-      cwd: root,
+  withTempEvalPackage(seedPassingCorpus, (pkg, runner) => {
+    const child = spawnSync(process.execPath, [runner, "10"], {
+      cwd: pkg,
       encoding: "utf8",
-      env: evalSpawnEnv(root),
+      env: spawnEnv(),
     });
     assert.equal(
       child.status,
       0,
       `expected exit 0, got ${child.status}\nstdout:\n${child.stdout}\nstderr:\n${child.stderr}`,
     );
-    assert.equal(existsSync(evalEvidencePath(root, "10")), true, "10.json persisted");
-    assert.equal(existsSync(evalReportPath(root, "10")), true, "10-report.md persisted");
-    const reloaded = readEvalEvidence(root, "10");
+    assert.equal(existsSync(evalEvidencePath(pkg, "10")), true, "10.json persisted");
+    assert.equal(existsSync(evalReportPath(pkg, "10")), true, "10-report.md persisted");
+    const reloaded = readEvalEvidence(pkg, "10");
     assert.ok(reloaded, "persisted report reloads");
     assert.equal(reloaded!.aggregate.recallBySeverity.critical, 1);
   });
 });
 
 test("D-05 critical-recall miss → exit 2 + persisted failed report (D-08)", () => {
-  withTempRoot((root) => {
-    seedCriticalMissCorpus(root);
-    const child = spawnSync(process.execPath, [RUNNER, "10"], {
-      cwd: root,
+  withTempEvalPackage(seedCriticalMissCorpus, (pkg, runner) => {
+    const child = spawnSync(process.execPath, [runner, "10"], {
+      cwd: pkg,
       encoding: "utf8",
-      env: evalSpawnEnv(root),
+      env: spawnEnv(),
     });
     assert.equal(
       child.status,
@@ -387,7 +416,7 @@ test("D-05 critical-recall miss → exit 2 + persisted failed report (D-08)", ()
       `expected exit 2 on critical miss, got ${child.status}\nstdout:\n${child.stdout}\nstderr:\n${child.stderr}`,
     );
     // Failed evidence MUST still persist (D-05 — evidence-of-failure is load-bearing).
-    const reloaded = readEvalEvidence(root, "10");
+    const reloaded = readEvalEvidence(pkg, "10");
     assert.ok(reloaded, "failed report persisted even on exit 2");
     assert.ok(
       reloaded!.aggregate.recallBySeverity.critical < 1.0,
@@ -398,13 +427,12 @@ test("D-05 critical-recall miss → exit 2 + persisted failed report (D-08)", ()
 });
 
 test("--json flag emits JSON to stdout; default emits markdown (D-03)", () => {
-  withTempRoot((root) => {
-    seedPassingCorpus(root);
+  withTempEvalPackage(seedPassingCorpus, (pkg, runner) => {
     // --json → stdout parses as JSON
-    const jsonChild = spawnSync(process.execPath, [RUNNER, "10", "--json"], {
-      cwd: root,
+    const jsonChild = spawnSync(process.execPath, [runner, "10", "--json"], {
+      cwd: pkg,
       encoding: "utf8",
-      env: evalSpawnEnv(root),
+      env: spawnEnv(),
     });
     assert.equal(jsonChild.status, 0);
     const parsed = JSON.parse(jsonChild.stdout) as { phase: string; corpusHash: string };
@@ -412,10 +440,10 @@ test("--json flag emits JSON to stdout; default emits markdown (D-03)", () => {
     assert.match(parsed.corpusHash, /^[a-f0-9]{64}$/);
 
     // default → markdown table
-    const mdChild = spawnSync(process.execPath, [RUNNER, "10"], {
-      cwd: root,
+    const mdChild = spawnSync(process.execPath, [runner, "10"], {
+      cwd: pkg,
       encoding: "utf8",
-      env: evalSpawnEnv(root),
+      env: spawnEnv(),
     });
     assert.equal(mdChild.status, 0);
     assert.match(mdChild.stdout, /microRecall|Recall/i);
@@ -442,29 +470,57 @@ test("production-caller evidence: runCases/aggregate have a non-test caller (eva
 });
 
 test("evalCorpusRoot points at package-shipped test/fixtures/eval corpus", () => {
-  const prev = process.env.GOVERNANCE_EVAL_FIXTURES_ROOT;
-  delete process.env.GOVERNANCE_EVAL_FIXTURES_ROOT;
-  try {
-    const root = evalCorpusRoot();
-    const norm = root.split("\\").join("/");
-    assert.ok(norm.endsWith("test/fixtures/eval"), `unexpected corpus root: ${root}`);
-    assert.ok(existsSync(path.join(root, "cases", "eval-cases.json")), `missing cases at ${root}`);
-    assert.ok(existsSync(path.join(root, "eval-rules")), `missing eval-rules at ${root}`);
-  } finally {
-    if (prev === undefined) delete process.env.GOVERNANCE_EVAL_FIXTURES_ROOT;
-    else process.env.GOVERNANCE_EVAL_FIXTURES_ROOT = prev;
-  }
+  const root = evalCorpusRoot();
+  const norm = root.split("\\").join("/");
+  assert.ok(norm.endsWith("test/fixtures/eval"), `unexpected corpus root: ${root}`);
+  assert.ok(existsSync(path.join(root, "cases", "eval-cases.json")), `missing cases at ${root}`);
+  assert.ok(existsSync(path.join(root, "eval-rules")), `missing eval-rules at ${root}`);
 });
 
 test("runEval default loaders use package corpus (not empty projectRoot)", () => {
-  const prev = process.env.GOVERNANCE_EVAL_FIXTURES_ROOT;
-  delete process.env.GOVERNANCE_EVAL_FIXTURES_ROOT;
-  try {
-    const report = runEval({ projectRoot: path.join(os.tmpdir(), "empty-consumer"), phaseNumber: "18" });
-    assert.ok(report.cases.length > 0, "default packaged corpus must yield cases");
-    assert.equal(typeof report.aggregate.microRecall, "number");
-  } finally {
-    if (prev === undefined) delete process.env.GOVERNANCE_EVAL_FIXTURES_ROOT;
-    else process.env.GOVERNANCE_EVAL_FIXTURES_ROOT = prev;
-  }
+  const report = runEval({
+    projectRoot: path.join(os.tmpdir(), "empty-consumer"),
+    phaseNumber: "18",
+  });
+  assert.ok(report.cases.length > 0, "default packaged corpus must yield cases");
+  assert.equal(typeof report.aggregate.microRecall, "number");
+});
+
+test("GOVERNANCE_EVAL_FIXTURES_ROOT cannot alter case count or corpus hash", () => {
+  const baseline = runEval({
+    projectRoot: path.join(os.tmpdir(), "empty-consumer"),
+    phaseNumber: "18",
+  });
+  assert.ok(baseline.cases.length > 1, "baseline packaged corpus must have multiple cases");
+
+  withTempRoot((greenwash) => {
+    // Greenwash corpus: single clean-hit case — would shrink count/hash if honored.
+    seedPassingCorpus(greenwash);
+    const prev = process.env.GOVERNANCE_EVAL_FIXTURES_ROOT;
+    process.env.GOVERNANCE_EVAL_FIXTURES_ROOT = greenwash;
+    try {
+      const poisoned = runEval({
+        projectRoot: path.join(os.tmpdir(), "empty-consumer"),
+        phaseNumber: "18",
+      });
+      assert.equal(
+        poisoned.cases.length,
+        baseline.cases.length,
+        "env override must not change case count",
+      );
+      assert.equal(
+        poisoned.corpusHash,
+        baseline.corpusHash,
+        "env override must not change corpus hash",
+      );
+      assert.notEqual(
+        poisoned.cases.length,
+        1,
+        "must not accept greenwashed single-case corpus via env",
+      );
+    } finally {
+      if (prev === undefined) delete process.env.GOVERNANCE_EVAL_FIXTURES_ROOT;
+      else process.env.GOVERNANCE_EVAL_FIXTURES_ROOT = prev;
+    }
+  });
 });
