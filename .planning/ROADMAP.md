@@ -57,7 +57,9 @@ Full phase details (goals, success criteria, plans, waves) archived at
 Content + one real adapter. Engine from v1–v3 stays frozen. Ship selectable `java-spring` domain pack, non-indexed starters, and a real consumer-side coverage GateAdapter.
 
 - [x] **Phase 13: Domain Pack + Service Classification + Integrations** - Subscribe-able java-spring pack with summary discipline, Internal vs internet-facing outbound rules, REST/Kafka inbound (completed 2026-07-09)
-- [x] **Phase 14: Hexagonal + Tactical DDD Rules** - Path-triggered layering and aggregate/VO/event naming rules (advisory) (completed 2026-07-09)
+- [x] **Phase 14: Hexagonal + Tactical DDD Rules** - Path-triggered layering and aggregate/VO/event naming rules (advisory)
+ (completed 2026-07-09)
+
 - [x] **Phase 15: Logging, API Contract & Saga Decision Rules** - Correlation/no-PII logging, OpenAPI/error envelope, saga/outbox when-not-to-use (completed 2026-07-09)
 - [x] **Phase 16: Starter Examples Outside Index** - Thin examples/java-spring/ tree never enters rule-index (completed 2026-07-12)
 - [x] **Phase 17: Coverage Parser + Binding GateAdapter** - JaCoCo/LCOV stdlib parse, binding ≥70% rule, fail-closed on missing/low coverage (completed 2026-07-12)
@@ -162,7 +164,16 @@ Plans:
   2. Verify/ship path is configured so binding coverage uses `coverage-report` evidence (not left on always-pass generic-exit-ci while claiming coverage enforced)
   3. Docs are discoverable from existing onboarding/docs entrypoints without reading engine source
 
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 18-01-PLAN.md — TDD config reader + discuss/plan domain defaults + verify coverage-report routing + ship regression
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 18-02-PLAN.md — Capability config slices + focused consumer guide + three discovery links + contract tests
 
 ## Progress
 
@@ -185,7 +196,7 @@ Plans:
 | 15. Logging, API Contract & Saga Decision Rules | v4.0 | 2/2 | Complete    | 2026-07-09 |
 | 16. Starter Examples Outside Index | v4.0 | 1/1 | Complete    | 2026-07-12 |
 | 17. Coverage Parser + Binding GateAdapter | v4.0 | 2/2 | Complete    | 2026-07-12 |
-| 18. Verify/Ship Wire + Consumer Docs | v4.0 | 0/? | Not started | - |
+| 18. Verify/Ship Wire + Consumer Docs | v4.0 | 0/2 | Planned | - |
 
 ---
 *See `.planning/MILESTONES.md` for shipped-milestone summaries, `.planning/milestones/v1.0-ROADMAP.md` for full v1.0 phase detail, `.planning/milestones/v2.0-ROADMAP.md` for v2.0, and `.planning/milestones/v3.0-ROADMAP.md` for v3.0.*
