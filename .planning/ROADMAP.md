@@ -59,7 +59,7 @@ Content + one real adapter. Engine from v1–v3 stays frozen. Ship selectable `j
 - [x] **Phase 13: Domain Pack + Service Classification + Integrations** - Subscribe-able java-spring pack with summary discipline, Internal vs internet-facing outbound rules, REST/Kafka inbound (completed 2026-07-09)
 - [x] **Phase 14: Hexagonal + Tactical DDD Rules** - Path-triggered layering and aggregate/VO/event naming rules (advisory) (completed 2026-07-09)
 - [x] **Phase 15: Logging, API Contract & Saga Decision Rules** - Correlation/no-PII logging, OpenAPI/error envelope, saga/outbox when-not-to-use (completed 2026-07-09)
-- [ ] **Phase 16: Starter Examples Outside Index** - Thin examples/java-spring/ tree never enters rule-index
+- [x] **Phase 16: Starter Examples Outside Index** - Thin examples/java-spring/ tree never enters rule-index (completed 2026-07-12)
 - [ ] **Phase 17: Coverage Parser + Binding GateAdapter** - JaCoCo/LCOV stdlib parse, binding ≥70% rule, fail-closed on missing/low coverage
 - [ ] **Phase 18: Verify/Ship Wire + Consumer Docs** - Coverage evidence path wired; docs for domain subscribe + report path
 
@@ -130,7 +130,9 @@ Plans:
   1. `examples/java-spring/` ships folder layout plus thin snippets (ports, adapters, handlers, REST, Kafka) outside rule-index scan roots
   2. `build-index` / load path never treats starter content under `examples/` as selectable rules (layout proof and/or explicit guard)
 
-**Plans**: TBD
+**Plans**: 1/1 plans complete
+
+- [x] 16-01-PLAN.md
 
 ### Phase 17: Coverage Parser + Binding GateAdapter
 
@@ -178,7 +180,7 @@ Plans:
 | 13. Domain Pack + Service Classification + Integrations | v4.0 | 2/2 | Complete    | 2026-07-09 |
 | 14. Hexagonal + Tactical DDD Rules | v4.0 | 2/2 | Complete   | 2026-07-09 |
 | 15. Logging, API Contract & Saga Decision Rules | v4.0 | 2/2 | Complete    | 2026-07-09 |
-| 16. Starter Examples Outside Index | v4.0 | 0/? | Not started | - |
+| 16. Starter Examples Outside Index | v4.0 | 1/1 | Complete   | 2026-07-12 |
 | 17. Coverage Parser + Binding GateAdapter | v4.0 | 0/? | Not started | - |
 | 18. Verify/Ship Wire + Consumer Docs | v4.0 | 0/? | Not started | - |
 

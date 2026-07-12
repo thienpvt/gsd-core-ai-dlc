@@ -6,13 +6,13 @@ current_phase: 16
 current_phase_name: Starter Examples Outside Index
 status: executing
 stopped_at: Phase 15 verified and transitioned — autonomous stop requested by user
-last_updated: "2026-07-12T13:04:06.746Z"
-last_activity: 2026-07-09
-last_activity_desc: Phase 15 complete (verify 8/8), transitioned to Phase 16
+last_updated: "2026-07-12T13:05:41.874Z"
+last_activity: 2026-07-12
+last_activity_desc: Phase 16 execution started
 progress:
   total_phases: 6
   completed_phases: 3
-  total_plans: 6
+  total_plans: 7
   completed_plans: 6
   percent: 50
 ---
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-09)
 
 **Core value:** The rule selection engine injects only the relevant AI-DLC rule summaries for the current task and phase — enough governance to be safe, little enough to avoid context bloat.
-**Current focus:** Phase 16 — Starter Examples Outside Index (not started; autonomous mode stopped after Phase 15)
+**Current focus:** Phase 16 — Starter Examples Outside Index
 
 ## Current Position
 
-Phase: 16 — Starter Examples Outside Index
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-07-09 — Phase 15 complete (verify 8/8), transitioned to Phase 16
+Phase: 16 (Starter Examples Outside Index) — EXECUTING
+Plan: 1 of 1
+Status: Executing Phase 16
+Last activity: 2026-07-12 — Phase 16 execution started
 
 Progress: [█████░░░░░] 50%
 
