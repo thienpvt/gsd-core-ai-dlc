@@ -238,19 +238,19 @@ test("discussHook derives phase from STATE.md: phase=2 -> construction -> constr
   });
 });
 
-test("discussHook derives phase from STATE.md: phase=5 -> operations -> construction-only rule is skipped out-of-phase", () => {
+test("discussHook maps later GSD phases to construction until operations support exists", () => {
   withFixtureRoot((root) => {
     const { record } = discussHook({
       projectRoot: root,
       taskSignal: signal({}),
     });
-    assert.equal(record.selectionConfig.phase, "operations");
-    const skippedIds = record.selectionResult.skipped.map((r) => r.id);
+    assert.equal(record.selectionConfig.phase, "construction");
+    const selectedIds = record.selectionResult.selected.map((r) => r.id);
     assert.ok(
-      skippedIds.includes("construction-only-rule"),
-      "construction-only rule must be skipped when phase=operations",
+      selectedIds.includes("construction-only-rule"),
+      "construction-only rule must remain selectable in later GSD phases",
     );
-  }, 5);
+  }, 18);
 });
 
 // ── Loud on missing index ───────────────────────────────────────────────────
