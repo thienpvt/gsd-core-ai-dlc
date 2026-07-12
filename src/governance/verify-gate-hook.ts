@@ -3,6 +3,7 @@ import { createCoverageAdapter } from "../enforcement/coverage-report.js";
 import { runAdapter } from "../enforcement/run-adapter.js";
 import type { GateRequest, GateResult } from "../enforcement/types.js";
 import {
+  readGateEvidence,
   writeGateEvidence,
   type GateEvidence,
 } from "./gate-evidence-store.js";
@@ -74,6 +75,17 @@ export async function verifyGateHook(
   const bindingSelected = record.selectionResult.selected.some(
     (rule) => rule.id === BINDING_RULE_ID,
   );
+  const planEvidence = readGateEvidence(args.projectRoot, args.phaseNumber, "plan");
+  if (planEvidence !== null) {
+    const planBindingSelected = planEvidence.request.rules.some(
+      (rule) => rule.id === BINDING_RULE_ID,
+    );
+    if (planBindingSelected !== bindingSelected) {
+      throw new Error(
+        `verifyGateHook: selection disagreement for binding rule '${BINDING_RULE_ID}' between persisted discuss state (${bindingSelected ? "selected" : "omitted"}) and authoritative plan evidence (${planBindingSelected ? "selected" : "omitted"}); rerun discuss and plan before verify`,
+      );
+    }
+  }
 
   let adapter: GateAdapter;
   if (bindingSelected) {
